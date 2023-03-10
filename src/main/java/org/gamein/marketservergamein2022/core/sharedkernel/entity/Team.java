@@ -16,8 +16,6 @@ import java.util.List;
 @Getter
 @Setter
 public class Team {
-//    @OneToOne
-//    private Factory factory;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -26,12 +24,18 @@ public class Team {
     @OneToMany
     private List<User> users;
 
-    @Column(name = "balance")
+    @OneToOne(optional = false)
+    private User owner;
+
+    @Column(name = "balance", nullable = false)
     private long balance;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "region")
     private int region;
+
+    @OneToMany
+    private List<StorageProduct> storageProducts;
 }
