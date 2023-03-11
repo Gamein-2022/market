@@ -35,7 +35,7 @@ public class Offer {
     private Product product;
 
     @Column(name = "product_amount", nullable = false)
-    private long productAmount;
+    private Long productAmount;
 
     @ManyToOne(optional = false)
     private Team submitter;
