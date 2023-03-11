@@ -1,7 +1,7 @@
 package org.gamein.marketservergamein2022.web.controller;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
-import org.gamein.marketservergamein2022.infrastructure.service.trade.TradeService;
+import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.web.dto.AuthInfo;
 import org.gamein.marketservergamein2022.web.dto.request.TradeWithGameinRequestDTO;
 import org.gamein.marketservergamein2022.web.dto.result.BaseResultDTO;

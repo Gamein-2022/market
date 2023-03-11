@@ -1,6 +1,7 @@
-package org.gamein.marketservergamein2022.infrastructure.service.trade;
+package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;

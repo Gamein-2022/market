@@ -1,4 +1,4 @@
-package org.gamein.marketservergamein2022.infrastructure.service.trade;
+package org.gamein.marketservergamein2022.core.service;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.web.dto.result.TradeWithGameinResultDTO;
