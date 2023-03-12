@@ -25,8 +25,14 @@ public class Offer {
     @Column(name = "type", updatable = false, nullable = false)
     private OfferType type;
 
+    @Column(name = "price", updatable = false, nullable = false)
+    private Long price;
+
     @Column(name = "submit_date", nullable = false)
     private Date submitDate;
+
+    @Column(name = "expiration_date", nullable = false)
+    private Date expirationDate;
 
     @Column(name = "accept_date")
     private Date acceptDate;

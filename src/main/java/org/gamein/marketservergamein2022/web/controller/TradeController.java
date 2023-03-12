@@ -3,8 +3,10 @@ package org.gamein.marketservergamein2022.web.controller;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.web.dto.AuthInfo;
+import org.gamein.marketservergamein2022.web.dto.request.CreateOfferRequestDTO;
 import org.gamein.marketservergamein2022.web.dto.request.TradeWithGameinRequestDTO;
 import org.gamein.marketservergamein2022.web.dto.result.BaseResultDTO;
+import org.gamein.marketservergamein2022.web.dto.result.CreateOfferResultDTO;
 import org.gamein.marketservergamein2022.web.dto.result.ErrorResultDTO;
 import org.gamein.marketservergamein2022.web.dto.result.TradeWithGameinResultDTO;
 import org.slf4j.Logger;
@@ -41,6 +43,21 @@ public class TradeController {
             TradeWithGameinResultDTO result = tradeService.tradeWithGamein(authInfo.getTeamId(), request.getSide(),
                     request.getProductId(),
                     request.getQuantity());
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(error, error.getStatus());
+        }
+    }
+
+    @PostMapping(value = "/offer",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> createOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                     @RequestBody CreateOfferRequestDTO request) {
+        try {
+            CreateOfferResultDTO result = tradeService.createOffer(authInfo.getTeamId(), request.getOfferType(),
+                    request.getProductId(), request.getQuantity(), request.getPrice());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
