@@ -6,9 +6,11 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
+import org.gamein.marketservergamein2022.web.dto.result.GetAllProductsResultDTO;
 import org.gamein.marketservergamein2022.web.dto.result.TradeWithGameinResultDTO;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -55,7 +57,7 @@ public class TradeServiceHandler implements TradeService {
             }
         } else if (side.equals("sell")) {
             // TODO check if there is this amount of product present in storage
-            if (balance < 999999999) {
+            if (balance < 1000000000) { // this should be the condition explained above
                 balance += product.getPrice() * quantity;
                 team.setBalance(balance);
                 teamRepository.save(team);
@@ -68,5 +70,12 @@ public class TradeServiceHandler implements TradeService {
         } else {
             throw new BadRequestException("Invalid side!");
         }
+    }
+
+    @Override
+    public GetAllProductsResultDTO getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        // TODO return only available products
+        return new GetAllProductsResultDTO(products);
     }
 }

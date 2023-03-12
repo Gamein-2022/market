@@ -26,6 +26,12 @@ public class TradeController {
     }
 
 
+    @GetMapping(value = "/products",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> getAllProducts() {
+        return new ResponseEntity<>(tradeService.getAllProducts(), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/tradeWithGamein",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
