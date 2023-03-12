@@ -14,9 +14,7 @@ public class GetAllProductsResultDTO implements BaseResultDTO {
 
     public GetAllProductsResultDTO(List<Product> products) {
         List<ProductDTO> productDTOS = new ArrayList<>();
-        products.forEach(product -> {
-            productDTOS.add(new ProductDTO(product));
-        });
+        products.forEach(product -> productDTOS.add(new ProductDTO(product)));
         this.products = productDTOS;
     }
 }

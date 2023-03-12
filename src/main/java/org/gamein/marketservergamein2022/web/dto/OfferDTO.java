@@ -16,6 +16,8 @@ public class OfferDTO {
     private final Long quantity;
     private final Long price;
     private final Date submitDate;
+    private final Date expirationDate;
+    private final Date acceptDate;
 
     public OfferDTO(Offer offer) {
         this.offerId = offer.getId();
@@ -25,5 +27,7 @@ public class OfferDTO {
         this.quantity = offer.getProductAmount();
         this.price = offer.getPrice();
         this.submitDate = offer.getSubmitDate();
+        this.expirationDate = offer.getExpirationDate();
+        this.acceptDate = offer.getAcceptDate();
     }
 }

@@ -64,4 +64,21 @@ public class TradeController {
             return new ResponseEntity<>(error, error.getStatus());
         }
     }
+
+    @GetMapping(value = "/offer",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> getOffers() {
+        return new ResponseEntity<>(tradeService.getAllOffers(), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/trade-history",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> getMyOffers(@ModelAttribute("authInfo") AuthInfo authInfo) {
+        try {
+            return new ResponseEntity<>(tradeService.getTeamTrades(authInfo.getTeamId()), HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(error, error.getStatus());
+        }
+    }
 }

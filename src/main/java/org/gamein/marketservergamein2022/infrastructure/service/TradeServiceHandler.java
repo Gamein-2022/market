@@ -10,6 +10,7 @@ import org.gamein.marketservergamein2022.infrastructure.repository.OfferReposito
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 import org.gamein.marketservergamein2022.web.dto.result.CreateOfferResultDTO;
+import org.gamein.marketservergamein2022.web.dto.result.GetAllOffersResultDTO;
 import org.gamein.marketservergamein2022.web.dto.result.GetAllProductsResultDTO;
 import org.gamein.marketservergamein2022.web.dto.result.TradeWithGameinResultDTO;
 import org.springframework.stereotype.Service;
@@ -140,5 +141,23 @@ public class TradeServiceHandler implements TradeService {
         offerRepository.save(offer);
 
         return new CreateOfferResultDTO(offer);
+    }
+
+    @Override
+    public GetAllOffersResultDTO getAllOffers() {
+        List<Offer> offers = offerRepository.findAllByExpirationDateAfter(new Date());
+        return new GetAllOffersResultDTO(offers);
+    }
+
+    @Override
+    public GetAllOffersResultDTO getTeamTrades(Long teamId) throws BadRequestException {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        if (teamOptional.isEmpty()) {
+            throw new BadRequestException("User is from invalid team!");
+        }
+        Team team = teamOptional.get();
+
+        List<Offer> offers = offerRepository.findAllByAccepterOrSubmitter(team, team);
+        return new GetAllOffersResultDTO(offers);
     }
 }
