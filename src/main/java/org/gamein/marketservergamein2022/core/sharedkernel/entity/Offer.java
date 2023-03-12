@@ -31,8 +31,8 @@ public class Offer {
     @Column(name = "submit_date", nullable = false)
     private Date submitDate;
 
-    @Column(name = "expiration_date", nullable = false)
-    private Date expirationDate;
+    @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
+    private Boolean cancelled;
 
     @Column(name = "accept_date")
     private Date acceptDate;

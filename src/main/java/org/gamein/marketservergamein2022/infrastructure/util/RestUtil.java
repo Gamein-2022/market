@@ -11,7 +11,7 @@ import java.util.Map;
 
 
 public class RestUtil {
-    private static final String dashboardUrl = "https://dashboard-server-gamein-2022.darkube.app/dashboard/auth/info";
+    private static final String dashboardUrl = "http://localhost:8081/dashboard/auth/info";
 
     public static AuthInfo getAuthInfo(String token) throws RestClientException {
         RestTemplate restTemplate = new RestTemplate();

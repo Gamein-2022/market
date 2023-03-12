@@ -9,25 +9,25 @@ import java.util.Date;
 
 @Getter
 public class OfferDTO {
-    private final Long offerId;
+    private final Long id;
     private final OfferType offerType;
     private final String submitterTeamName;
     private final String productName;
     private final Long quantity;
     private final Long price;
     private final Date submitDate;
-    private final Date expirationDate;
+    private final Boolean cancelled;
     private final Date acceptDate;
 
     public OfferDTO(Offer offer) {
-        this.offerId = offer.getId();
+        this.id = offer.getId();
         this.offerType = offer.getType();
         this.submitterTeamName = offer.getSubmitter().getName();
         this.productName = offer.getProduct().getName();
         this.quantity = offer.getProductAmount();
         this.price = offer.getPrice();
         this.submitDate = offer.getSubmitDate();
-        this.expirationDate = offer.getExpirationDate();
+        this.cancelled = offer.getCancelled();
         this.acceptDate = offer.getAcceptDate();
     }
 }

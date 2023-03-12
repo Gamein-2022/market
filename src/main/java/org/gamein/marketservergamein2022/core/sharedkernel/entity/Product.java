@@ -38,4 +38,7 @@ public class Product {
 
     @Column(name = "price", nullable = false)
     long price;
+
+    @Column(name = "year", nullable = false)
+    long year;
 }

@@ -1,18 +1,14 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.exception.NotFoundException;
+import org.gamein.marketservergamein2022.core.exception.UnauthorizedException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Offer;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OfferType;
-import org.gamein.marketservergamein2022.infrastructure.repository.OfferRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
-import org.gamein.marketservergamein2022.web.dto.result.CreateOfferResultDTO;
-import org.gamein.marketservergamein2022.web.dto.result.GetAllOffersResultDTO;
-import org.gamein.marketservergamein2022.web.dto.result.GetAllProductsResultDTO;
-import org.gamein.marketservergamein2022.web.dto.result.TradeWithGameinResultDTO;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
+import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.web.dto.result.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -25,12 +21,17 @@ public class TradeServiceHandler implements TradeService {
     private final ProductRepository productRepository;
     private final TeamRepository teamRepository;
     private final OfferRepository offerRepository;
+    private final ShippingRepository shippingRepository;
+    private final PendingOfferRepository pendingOfferRepository;
 
     public TradeServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
-                               OfferRepository offerRepository) {
+                               OfferRepository offerRepository, ShippingRepository shippingRepository,
+                               PendingOfferRepository pendingOfferRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.offerRepository = offerRepository;
+        this.shippingRepository = shippingRepository;
+        this.pendingOfferRepository = pendingOfferRepository;
     }
 
     @Override
@@ -127,7 +128,13 @@ public class TradeServiceHandler implements TradeService {
         Product product = productOptional.get();
 
         // TODO check if there is enough of this product for sell offers, & if there is enough storage for buy offers
-        // TODO talk about balance requirements for putting offer with game design team
+
+        if (type == OfferType.BUY) {
+            long balance = team.getBalance();
+            balance -= quantity * price;
+            team.setBalance(balance);
+            teamRepository.save(team);
+        }
 
         Offer offer = new Offer();
         offer.setSubmitter(team);
@@ -136,7 +143,6 @@ public class TradeServiceHandler implements TradeService {
         offer.setProductAmount(quantity);
         offer.setPrice(price);
         offer.setSubmitDate(new Date());
-        offer.setExpirationDate(new Date((new Date()).getTime() + 60000));
 
         offerRepository.save(offer);
 
@@ -145,7 +151,7 @@ public class TradeServiceHandler implements TradeService {
 
     @Override
     public GetAllOffersResultDTO getAllOffers() {
-        List<Offer> offers = offerRepository.findAllByExpirationDateAfter(new Date());
+        List<Offer> offers = offerRepository.findAllByCancelled(false);
         return new GetAllOffersResultDTO(offers);
     }
 
@@ -159,5 +165,177 @@ public class TradeServiceHandler implements TradeService {
 
         List<Offer> offers = offerRepository.findAllByAccepterOrSubmitter(team, team);
         return new GetAllOffersResultDTO(offers);
+    }
+
+    @Override
+    public AcceptOfferResultDTO acceptOffer(Long offerId, Long accepterId, String shippingMethod) throws BadRequestException {
+        if (offerId == null) {
+            throw new BadRequestException("\"offerId\" is a required field!");
+        }
+
+        Optional<Team> teamOptional = teamRepository.findById(accepterId);
+        if (teamOptional.isEmpty()) {
+            throw new BadRequestException("User is from invalid team!");
+        }
+        Team team = teamOptional.get();
+
+        Optional<Offer> offerOptional = offerRepository.findById(offerId);
+        if (offerOptional.isEmpty()) {
+            throw new BadRequestException("Invalid offer!");
+        }
+        Offer offer = offerOptional.get();
+
+        if (team.getId().equals(offer.getSubmitter().getId())) {
+            throw new BadRequestException("You can't accept your own offers!");
+        }
+
+        if (offer.getType() == OfferType.SELL) {
+            ShippingMethod method;
+            if (team.getRegion() == offer.getSubmitter().getRegion()) {
+                method = ShippingMethod.SAME_REGION;
+            } else {
+                if (shippingMethod == null || shippingMethod.isEmpty()) {
+                    throw new BadRequestException("\"shippingMethod\" is a required field when accepting sell offer " +
+                            "from other regions!");
+                }
+                if (shippingMethod.equals("plane")) {
+                    method = ShippingMethod.PLANE;
+                } else if (shippingMethod.equals("ship")) {
+                    method = ShippingMethod.SHIP;
+                } else {
+                    throw new BadRequestException("Invalid shippingMethod!");
+                }
+            }
+
+            Shipping shipping = new Shipping();
+            shipping.setMethod(method);
+            shipping.setSourceRegion(offer.getSubmitter().getRegion());
+            shipping.setTeam(team);
+            shipping.setDepartureTime(new Date());
+            shipping.setArrivalTime(new Date((new Date()).getTime() + 60000));
+            shippingRepository.save(shipping);
+
+            long balance = team.getBalance();
+            balance -= offer.getProductAmount() * offer.getPrice();
+            // TODO calculate & reduce shipping price from balance
+            team.setBalance(balance);
+            teamRepository.save(team);
+
+            offer.setAccepter(team);
+            offer.setAcceptDate(new Date());
+            offerRepository.save(offer);
+
+            return new AcceptSellOfferResultDTO(shipping);
+        } else {
+            PendingOffer pendingOffer = new PendingOffer();
+            pendingOffer.setOffer(offer);
+            pendingOffer.setAccepter(team);
+            pendingOffer.setCreationDate(new Date());
+            pendingOfferRepository.save(pendingOffer);
+
+            // TODO notify offer users they have a new pending acceptance
+
+            return new AcceptBuyOfferResultDTO(pendingOffer);
+        }
+    }
+
+    @Override
+    public CreateOfferResultDTO cancelOffer(Long teamId, Long offerId) throws UnauthorizedException, BadRequestException {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        if (teamOptional.isEmpty()) {
+            throw new BadRequestException("User is from invalid team!");
+        }
+        Team team = teamOptional.get();
+
+        Optional<Offer> offerOptional = offerRepository.findById(offerId);
+        if (offerOptional.isEmpty()) {
+            throw new BadRequestException("offer does not exist!");
+        }
+        Offer offer = offerOptional.get();
+
+        if (!team.getId().equals(offer.getSubmitter().getId())) {
+            throw new UnauthorizedException("You can only cancel your own offers!");
+        }
+
+        if (offer.getCancelled()) {
+            throw new BadRequestException("Offer already canceled!");
+        }
+
+        offer.setCancelled(true);
+        offerRepository.save(offer);
+
+        return new CreateOfferResultDTO(offer);
+    }
+
+    @Override
+    public GetPendingOfferResultDTO getPendingOffers(Long teamId) {
+        return new GetPendingOfferResultDTO(pendingOfferRepository.findAllByOffer_Submitter_Id(teamId));
+    }
+
+    @Override
+    public AcceptSellOfferResultDTO acceptSellOffer(Long pendingOfferId, String shippingMethod, Long teamId) throws BadRequestException, NotFoundException {
+        if (pendingOfferId == null) {
+            throw new BadRequestException("\"pendingOfferId\" is a required field!");
+        }
+
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        if (teamOptional.isEmpty()) {
+            throw new BadRequestException("User is from invalid team!");
+        }
+        Team team = teamOptional.get();
+
+        Optional<PendingOffer> pendingOfferOptional = pendingOfferRepository.findById(pendingOfferId);
+        if (pendingOfferOptional.isEmpty()) {
+            throw new NotFoundException("PendingOffer not found!");
+        }
+        PendingOffer pendingOffer = pendingOfferOptional.get();
+
+        if (!team.getId().equals(pendingOffer.getOffer().getSubmitter().getId())) {
+            throw new NotFoundException("PendingOffer not found!");
+        }
+
+        if (pendingOffer.getAcceptDate() != null) {
+            throw new BadRequestException("PendingOffer already accepted!");
+        }
+
+        if (pendingOffer.getOffer().getAcceptDate() != null) {
+            throw new BadRequestException("You have already accepted a seller for your buy offer!");
+        }
+
+        pendingOffer.setDeclined(false);
+        pendingOffer.setAcceptDate(new Date());
+        pendingOfferRepository.save(pendingOffer);
+
+        Offer offer = pendingOffer.getOffer();
+        offer.setAcceptDate(new Date());
+        offer.setAccepter(pendingOffer.getAccepter());
+        offerRepository.save(offer);
+
+        ShippingMethod method;
+        if (team.getRegion() == offer.getAccepter().getRegion()) {
+            method = ShippingMethod.SAME_REGION;
+        } else {
+            if (shippingMethod == null || shippingMethod.isEmpty()) {
+                throw new BadRequestException("\"shippingMethod\" is a required field when accepting sell offer " +
+                        "from other regions!");
+            }
+            if (shippingMethod.equals("plane")) {
+                method = ShippingMethod.PLANE;
+            } else if (shippingMethod.equals("ship")) {
+                method = ShippingMethod.SHIP;
+            } else {
+                throw new BadRequestException("Invalid shippingMethod!");
+            }
+        }
+
+        Shipping shipping = new Shipping();
+        shipping.setMethod(method);
+        shipping.setSourceRegion(offer.getAccepter().getRegion());
+        shipping.setTeam(team);
+        shipping.setDepartureTime(new Date());
+        shipping.setArrivalTime(new Date((new Date()).getTime() + 60000));
+        shippingRepository.save(shipping);
+
+        return new AcceptSellOfferResultDTO(shipping);
     }
 }

@@ -24,6 +24,9 @@ public class Team {
     @OneToMany
     private List<User> users;
 
+    @OneToMany
+    private List<Shipping> shippings;
+
     @OneToOne(optional = false)
     private User owner;
 
