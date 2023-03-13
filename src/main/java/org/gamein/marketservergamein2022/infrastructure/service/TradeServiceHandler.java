@@ -51,10 +51,12 @@ public class TradeServiceHandler implements TradeService {
 
         long balance = team.getBalance();
 
-        // TODO check product tier & supply & brand value &...
-        // buy can only be tier 0 products (raw materials)
-        // sell can only be tier 2 products (final products)
+        // TODO double check the amount people are able to trade with Gamein (brand value limits the
+        //  amounts a team can sell?)
         if (side.equals("buy")) {
+            if (product.getLevel() > 0) {
+                throw new BadRequestException("Gamein only sells raw material!");
+            }
             // TODO check if there is enough storage before accepting trade
             if (balance >= product.getPrice() * quantity) {
                 balance -= product.getPrice() * quantity;
@@ -67,6 +69,9 @@ public class TradeServiceHandler implements TradeService {
                 throw new BadRequestException("Not enough balance!");
             }
         } else if (side.equals("sell")) {
+            if (product.getLevel() < 2) {
+                throw new BadRequestException("Gamein only buys final products!");
+            }
             // TODO check if there is this amount of product present in storage
             if (balance < 1000000000) { // this should be the condition explained above
                 balance += product.getPrice() * quantity;
@@ -128,6 +133,9 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("Product does not exist!");
         }
         Product product = productOptional.get();
+        if (product.getLevel() >= 2) { // TODO check product level with teammates
+            throw new BadRequestException("You can only sell this product to gamein!");
+        }
 
         // TODO check if there is enough of this product for sell offers, & if there is enough storage for buy offers
 
