@@ -12,11 +12,13 @@ public class PendingOfferDTO {
     private Long teamId;
     private Long offerId;
     private Date creationDate;
+    private Boolean declined;
 
     public PendingOfferDTO(PendingOffer pendingOffer) {
         this.id = pendingOffer.getId();
         this.teamId = pendingOffer.getAccepter().getId();
         this.offerId = pendingOffer.getOffer().getId();
         this.creationDate = pendingOffer.getCreationDate();
+        this.declined = pendingOffer.getDeclined();
     }
 }

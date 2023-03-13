@@ -100,7 +100,7 @@ public class TradeController {
 
     @DeleteMapping(value = "/offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResultDTO> cancelOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
-                                                     @PathVariable(value="id") Long offerId) {
+                                                     @PathVariable(value = "id") Long offerId) {
         try {
             CreateOfferResultDTO result = tradeService.cancelOffer(authInfo.getTeamId(), offerId);
             return new ResponseEntity<>(result, HttpStatus.OK);
@@ -126,6 +126,24 @@ public class TradeController {
         try {
             AcceptSellOfferResultDTO result = tradeService.acceptSellOffer(request.getPendingOfferId(),
                     request.getShippingMethod(), authInfo.getTeamId());
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(error, error.getStatus());
+        } catch (NotFoundException e) {
+            ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(error, error.getStatus());
+        }
+    }
+
+    @PostMapping(value = "/declinePendingOffer",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> declinePendingOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                             @RequestBody AcceptPendingOfferRequestDTO request) {
+        try {
+            DeclinePendingOfferResultDTO result = tradeService.declineSellOffer(request.getPendingOfferId(),
+                    authInfo.getTeamId());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);

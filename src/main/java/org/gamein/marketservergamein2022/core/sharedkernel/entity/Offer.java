@@ -37,7 +37,7 @@ public class Offer {
     @Column(name = "accept_date")
     private Date acceptDate;
 
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     private Product product;
 
     @Column(name = "product_amount", nullable = false)

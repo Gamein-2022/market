@@ -10,7 +10,7 @@ import java.util.Date;
 
 
 @Entity
-@Table(name = "offers")
+@Table(name = "pending_offers")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -27,7 +27,7 @@ public class PendingOffer {
     @ManyToOne(optional = false)
     private Team accepter;
 
-    @Column(name = "creation_date", nullable = false, insertable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false)
     private Date creationDate;
 
     @Column(name = "accept_date")

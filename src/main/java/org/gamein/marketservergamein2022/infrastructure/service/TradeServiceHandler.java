@@ -51,8 +51,9 @@ public class TradeServiceHandler implements TradeService {
 
         long balance = team.getBalance();
 
-        // TODO check if product is available at current in game year
         // TODO check product tier & supply & brand value &...
+        // buy can only be tier 0 products (raw materials)
+        // sell can only be tier 2 products (final products)
         if (side.equals("buy")) {
             // TODO check if there is enough storage before accepting trade
             if (balance >= product.getPrice() * quantity) {
@@ -105,6 +106,7 @@ public class TradeServiceHandler implements TradeService {
         if (price == null) {
             throw new BadRequestException("\"price\" is a required field!");
         }
+        // TODO filter out final product offers
 
         Optional<Team> teamOptional = teamRepository.findById(teamId);
         if (teamOptional.isEmpty()) {
@@ -143,7 +145,7 @@ public class TradeServiceHandler implements TradeService {
         offer.setProductAmount(quantity);
         offer.setPrice(price);
         offer.setSubmitDate(new Date());
-
+        offer.setCancelled(false);
         offerRepository.save(offer);
 
         return new CreateOfferResultDTO(offer);
@@ -231,6 +233,7 @@ public class TradeServiceHandler implements TradeService {
             pendingOffer.setOffer(offer);
             pendingOffer.setAccepter(team);
             pendingOffer.setCreationDate(new Date());
+            pendingOffer.setDeclined(false);
             pendingOfferRepository.save(pendingOffer);
 
             // TODO notify offer users they have a new pending acceptance
@@ -297,12 +300,17 @@ public class TradeServiceHandler implements TradeService {
         if (pendingOffer.getAcceptDate() != null) {
             throw new BadRequestException("PendingOffer already accepted!");
         }
+        if (pendingOffer.getDeclined()) {
+            throw new BadRequestException("PendingOffer already declined!");
+        }
 
         if (pendingOffer.getOffer().getAcceptDate() != null) {
             throw new BadRequestException("You have already accepted a seller for your buy offer!");
         }
+        if (pendingOffer.getOffer().getCancelled()) {
+            throw new BadRequestException("You have cancelled your buy offer!");
+        }
 
-        pendingOffer.setDeclined(false);
         pendingOffer.setAcceptDate(new Date());
         pendingOfferRepository.save(pendingOffer);
 
@@ -337,5 +345,47 @@ public class TradeServiceHandler implements TradeService {
         shippingRepository.save(shipping);
 
         return new AcceptSellOfferResultDTO(shipping);
+    }
+
+    @Override
+    public DeclinePendingOfferResultDTO declineSellOffer(Long pendingOfferId, Long teamId) throws BadRequestException, NotFoundException {
+        if (pendingOfferId == null) {
+            throw new BadRequestException("\"pendingOfferId\" is a required field!");
+        }
+
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        if (teamOptional.isEmpty()) {
+            throw new BadRequestException("User is from invalid team!");
+        }
+        Team team = teamOptional.get();
+
+        Optional<PendingOffer> pendingOfferOptional = pendingOfferRepository.findById(pendingOfferId);
+        if (pendingOfferOptional.isEmpty()) {
+            throw new NotFoundException("PendingOffer not found!");
+        }
+        PendingOffer pendingOffer = pendingOfferOptional.get();
+
+        if (!team.getId().equals(pendingOffer.getOffer().getSubmitter().getId())) {
+            throw new NotFoundException("PendingOffer not found!");
+        }
+
+        if (pendingOffer.getAcceptDate() != null) {
+            throw new BadRequestException("PendingOffer already accepted!");
+        }
+        if (pendingOffer.getDeclined()) {
+            throw new BadRequestException("PendingOffer already declined!");
+        }
+
+        if (pendingOffer.getOffer().getAcceptDate() != null) {
+            throw new BadRequestException("You have already accepted a seller for your buy offer!");
+        }
+        if (pendingOffer.getOffer().getCancelled()) {
+            throw new BadRequestException("You have cancelled your buy offer!");
+        }
+
+        pendingOffer.setDeclined(true);
+        pendingOfferRepository.save(pendingOffer);
+
+        return new DeclinePendingOfferResultDTO();
     }
 }

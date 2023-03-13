@@ -24,7 +24,7 @@ public class InitController {
     @ModelAttribute(name = "authInfo")
     public AuthInfo getLoginInformation(HttpServletRequest request) throws InvalidTokenException {
         String token = request.getHeader("Authorization");
-        if (token == null || token.isEmpty()) {
+        if (token == null || token.length() < 8) {
             throw new InvalidTokenException("Invalid token!");
         }
         logger.info(token);

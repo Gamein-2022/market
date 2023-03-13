@@ -26,4 +26,6 @@ public interface TradeService {
     GetPendingOfferResultDTO getPendingOffers(Long teamId);
 
     AcceptSellOfferResultDTO acceptSellOffer(Long pendingOfferId, String shippingMethod, Long teamId) throws BadRequestException, NotFoundException;
+
+    DeclinePendingOfferResultDTO declineSellOffer(Long pendingOfferId, Long teamId) throws BadRequestException, NotFoundException;
 }
