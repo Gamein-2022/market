@@ -30,15 +30,12 @@ public class Product {
     @OneToMany
     private List<Product> components;
 
-    @Column(name = "volume", nullable = false)
-    long volume;
-
     @Column(name = "region", nullable = false)
     int region;
 
     @Column(name = "price", nullable = false)
     long price;
 
-    @Column(name = "year", nullable = false)
-    long year;
+    @Column(name = "available_year", nullable = false)
+    long availableYear;
 }
