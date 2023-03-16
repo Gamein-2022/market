@@ -10,16 +10,11 @@ import java.util.List;
 
 @Getter
 public class GetProductsResultDTO implements BaseResultDTO {
-    private List<ProductDTO> myRegion;
-    private List<ProductDTO> otherRegions;
+    private List<ProductDTO> products;
 
-    public GetProductsResultDTO(List<Product> myRegion, List<Product> otherRegions) {
-        List<ProductDTO> myRegionDTOS = new ArrayList<>();
-        myRegion.forEach(product -> myRegionDTOS.add(new ProductDTO(product)));
-        this.myRegion = myRegionDTOS;
-
-        List<ProductDTO> otherRegionsDTOS = new ArrayList<>();
-        otherRegions.forEach(product -> otherRegionsDTOS.add(new ProductDTO(product)));
-        this.otherRegions = otherRegionsDTOS;
+    public GetProductsResultDTO(List<Product> products) {
+        List<ProductDTO> productDTOS = new ArrayList<>();
+        products.forEach(product -> productDTOS.add(new ProductDTO(product)));
+        this.products = productDTOS;
     }
 }

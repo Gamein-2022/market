@@ -89,11 +89,17 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public GetProductsResultDTO getRawMaterials(Team team) {
+    public GetRawMaterialsResultDTO getRawMaterials(Team team) {
         List<Product> myRegion = productRepository.findAllByLevelAndRegion(0, team.getRegion());
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionIsNot(0, team.getRegion());
+        return new GetRawMaterialsResultDTO(myRegion, otherRegions);
+    }
+
+    @Override
+    public GetProductsResultDTO getIntermediateProducts() {
+        List<Product> products = productRepository.findAllByLevel(1);
         // TODO return only available products
-        return new GetProductsResultDTO(myRegion, otherRegions);
+        return new GetProductsResultDTO(products);
     }
 
     @Override

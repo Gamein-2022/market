@@ -36,6 +36,12 @@ public class TradeController {
         return new ResponseEntity<>(tradeService.getRawMaterials(authInfo.getTeam()), HttpStatus.OK);
     }
 
+    @GetMapping(value = "/intermediate-products",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResultDTO> getIntermediateProducts() {
+        return new ResponseEntity<>(tradeService.getIntermediateProducts(), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/trade-with-gamein",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

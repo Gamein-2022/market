@@ -10,7 +10,9 @@ public interface TradeService {
     TradeWithGameinResultDTO tradeWithGamein(Team team, String side, Long productId, Long quantity)
             throws BadRequestException;
 
-    GetProductsResultDTO getRawMaterials(Team team);
+    GetRawMaterialsResultDTO getRawMaterials(Team team);
+
+    GetProductsResultDTO getIntermediateProducts();
 
     CreateOfferResultDTO createOffer(Team team, String offerType, Long productId, Long quantity, Long price)
             throws BadRequestException;
