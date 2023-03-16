@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/trade")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TradeController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final TradeService tradeService;
@@ -29,19 +30,19 @@ public class TradeController {
     }
 
 
-    @GetMapping(value = "/products",
+    @GetMapping(value = "/raw-materials",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResultDTO> getAllProducts() {
-        return new ResponseEntity<>(tradeService.getAllProducts(), HttpStatus.OK);
+    public ResponseEntity<BaseResultDTO> getRawMaterials(@ModelAttribute("authInfo") AuthInfo authInfo) {
+        return new ResponseEntity<>(tradeService.getRawMaterials(authInfo.getTeam()), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/tradeWithGamein",
+    @PostMapping(value = "/trade-with-gamein",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResultDTO> tradeWithGamein(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                          @RequestBody TradeWithGameinRequestDTO request) {
         try {
-            TradeWithGameinResultDTO result = tradeService.tradeWithGamein(authInfo.getTeamId(), request.getSide(),
+            TradeWithGameinResultDTO result = tradeService.tradeWithGamein(authInfo.getTeam(), request.getSide(),
                     request.getProductId(),
                     request.getQuantity());
             return new ResponseEntity<>(result, HttpStatus.OK);
@@ -57,7 +58,7 @@ public class TradeController {
     public ResponseEntity<BaseResultDTO> createOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                      @RequestBody CreateOfferRequestDTO request) {
         try {
-            CreateOfferResultDTO result = tradeService.createOffer(authInfo.getTeamId(), request.getOfferType(),
+            CreateOfferResultDTO result = tradeService.createOffer(authInfo.getTeam(), request.getOfferType(),
                     request.getProductId(), request.getQuantity(), request.getPrice());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
@@ -72,24 +73,24 @@ public class TradeController {
         return new ResponseEntity<>(tradeService.getAllOffers(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/tradeHistory",
+    @GetMapping(value = "/trade-history",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResultDTO> getMyOffers(@ModelAttribute("authInfo") AuthInfo authInfo) {
         try {
-            return new ResponseEntity<>(tradeService.getTeamTrades(authInfo.getTeamId()), HttpStatus.OK);
+            return new ResponseEntity<>(tradeService.getTeamTrades(authInfo.getTeam()), HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(error, error.getStatus());
         }
     }
 
-    @PostMapping(value = "/acceptOffer",
+    @PostMapping(value = "/accept-offer",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResultDTO> acceptOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                      @RequestBody AcceptOfferRequestDTO request) {
         try {
-            AcceptOfferResultDTO result = tradeService.acceptOffer(request.getOfferId(), authInfo.getTeamId(),
+            AcceptOfferResultDTO result = tradeService.acceptOffer(request.getOfferId(), authInfo.getTeam(),
                     request.getShippingMethod());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
@@ -102,7 +103,7 @@ public class TradeController {
     public ResponseEntity<BaseResultDTO> cancelOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                      @PathVariable(value = "id") Long offerId) {
         try {
-            CreateOfferResultDTO result = tradeService.cancelOffer(authInfo.getTeamId(), offerId);
+            CreateOfferResultDTO result = tradeService.cancelOffer(authInfo.getTeam(), offerId);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -113,9 +114,9 @@ public class TradeController {
         }
     }
 
-    @GetMapping(value = "/pendingOffers", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/pending-offers", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResultDTO> getPendingOffers(@ModelAttribute("authInfo") AuthInfo authInfo) {
-        return new ResponseEntity<>(tradeService.getPendingOffers(authInfo.getTeamId()), HttpStatus.OK);
+        return new ResponseEntity<>(tradeService.getPendingOffers(authInfo.getTeam()), HttpStatus.OK);
     }
 
     @PostMapping(value = "/acceptPendingOffer",
@@ -125,7 +126,7 @@ public class TradeController {
                                                             @RequestBody AcceptPendingOfferRequestDTO request) {
         try {
             AcceptSellOfferResultDTO result = tradeService.acceptSellOffer(request.getPendingOfferId(),
-                    request.getShippingMethod(), authInfo.getTeamId());
+                    request.getShippingMethod(), authInfo.getTeam());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -143,7 +144,7 @@ public class TradeController {
                                                              @RequestBody AcceptPendingOfferRequestDTO request) {
         try {
             DeclinePendingOfferResultDTO result = tradeService.declineSellOffer(request.getPendingOfferId(),
-                    authInfo.getTeamId());
+                    authInfo.getTeam());
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (BadRequestException e) {
             ErrorResultDTO error = new ErrorResultDTO(e.getMessage(), HttpStatus.BAD_REQUEST);

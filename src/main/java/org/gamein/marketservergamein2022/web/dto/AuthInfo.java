@@ -1,10 +1,14 @@
 package org.gamein.marketservergamein2022.web.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.User;
 
 
+@AllArgsConstructor
 @Getter
 public class AuthInfo {
-    private Long teamId;
-    private Long userId;
+    private User user;
+    private Team team;
 }

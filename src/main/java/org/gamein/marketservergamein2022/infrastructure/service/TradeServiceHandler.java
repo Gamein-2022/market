@@ -35,13 +35,13 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public TradeWithGameinResultDTO tradeWithGamein(Long teamId, String side, Long productId, Long quantity)
+    public TradeWithGameinResultDTO tradeWithGamein(Team team, String side, Long productId, Long quantity)
             throws BadRequestException {
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("Team not found!");
-        }
-        Team team = teamOptional.get();
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("Team not found!");
+//        }
+//        Team team = teamOptional.get();
 
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
@@ -89,14 +89,15 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public GetAllProductsResultDTO getAllProducts() {
-        List<Product> products = productRepository.findAll();
+    public GetProductsResultDTO getRawMaterials(Team team) {
+        List<Product> myRegion = productRepository.findAllByLevelAndRegion(0, team.getRegion());
+        List<Product> otherRegions = productRepository.findAllByLevelAndRegionIsNot(0, team.getRegion());
         // TODO return only available products
-        return new GetAllProductsResultDTO(products);
+        return new GetProductsResultDTO(myRegion, otherRegions);
     }
 
     @Override
-    public CreateOfferResultDTO createOffer(Long teamId, String offerType, Long productId, Long quantity, Long price)
+    public CreateOfferResultDTO createOffer(Team team, String offerType, Long productId, Long quantity, Long price)
             throws BadRequestException {
 
         if (offerType == null) {
@@ -113,11 +114,11 @@ public class TradeServiceHandler implements TradeService {
         }
         // TODO filter out final product offers
 
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("Team does not exist!");
-        }
-        Team team = teamOptional.get();
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("Team does not exist!");
+//        }
+//        Team team = teamOptional.get();
 
         OfferType type;
         if (offerType.equals("sell")) {
@@ -166,28 +167,28 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public GetAllOffersResultDTO getTeamTrades(Long teamId) throws BadRequestException {
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("User is from invalid team!");
-        }
-        Team team = teamOptional.get();
+    public GetAllOffersResultDTO getTeamTrades(Team team) throws BadRequestException {
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("User is from invalid team!");
+//        }
+//        Team team = teamOptional.get();
 
         List<Offer> offers = offerRepository.findAllByAccepterOrSubmitter(team, team);
         return new GetAllOffersResultDTO(offers);
     }
 
     @Override
-    public AcceptOfferResultDTO acceptOffer(Long offerId, Long accepterId, String shippingMethod) throws BadRequestException {
+    public AcceptOfferResultDTO acceptOffer(Long offerId, Team accepter, String shippingMethod) throws BadRequestException {
         if (offerId == null) {
             throw new BadRequestException("\"offerId\" is a required field!");
         }
 
-        Optional<Team> teamOptional = teamRepository.findById(accepterId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("User is from invalid team!");
-        }
-        Team team = teamOptional.get();
+//        Optional<Team> teamOptional = teamRepository.findById(accepterId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("User is from invalid team!");
+//        }
+//        Team team = teamOptional.get();
 
         Optional<Offer> offerOptional = offerRepository.findById(offerId);
         if (offerOptional.isEmpty()) {
@@ -195,13 +196,13 @@ public class TradeServiceHandler implements TradeService {
         }
         Offer offer = offerOptional.get();
 
-        if (team.getId().equals(offer.getSubmitter().getId())) {
+        if (accepter.getId().equals(offer.getSubmitter().getId())) {
             throw new BadRequestException("You can't accept your own offers!");
         }
 
         if (offer.getType() == OfferType.SELL) {
             ShippingMethod method;
-            if (team.getRegion() == offer.getSubmitter().getRegion()) {
+            if (accepter.getRegion() == offer.getSubmitter().getRegion()) {
                 method = ShippingMethod.SAME_REGION;
             } else {
                 if (shippingMethod == null || shippingMethod.isEmpty()) {
@@ -220,18 +221,18 @@ public class TradeServiceHandler implements TradeService {
             Shipping shipping = new Shipping();
             shipping.setMethod(method);
             shipping.setSourceRegion(offer.getSubmitter().getRegion());
-            shipping.setTeam(team);
+            shipping.setTeam(accepter);
             shipping.setDepartureTime(new Date());
             shipping.setArrivalTime(new Date((new Date()).getTime() + 60000));
             shippingRepository.save(shipping);
 
-            long balance = team.getBalance();
+            long balance = accepter.getBalance();
             balance -= offer.getProductAmount() * offer.getPrice();
             // TODO calculate & reduce shipping price from balance
-            team.setBalance(balance);
-            teamRepository.save(team);
+            accepter.setBalance(balance);
+            teamRepository.save(accepter);
 
-            offer.setAccepter(team);
+            offer.setAccepter(accepter);
             offer.setAcceptDate(new Date());
             offerRepository.save(offer);
 
@@ -239,7 +240,7 @@ public class TradeServiceHandler implements TradeService {
         } else {
             PendingOffer pendingOffer = new PendingOffer();
             pendingOffer.setOffer(offer);
-            pendingOffer.setAccepter(team);
+            pendingOffer.setAccepter(accepter);
             pendingOffer.setCreationDate(new Date());
             pendingOffer.setDeclined(false);
             pendingOfferRepository.save(pendingOffer);
@@ -251,12 +252,12 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public CreateOfferResultDTO cancelOffer(Long teamId, Long offerId) throws UnauthorizedException, BadRequestException {
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("User is from invalid team!");
-        }
-        Team team = teamOptional.get();
+    public CreateOfferResultDTO cancelOffer(Team team, Long offerId) throws UnauthorizedException, BadRequestException {
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("User is from invalid team!");
+//        }
+//        Team team = teamOptional.get();
 
         Optional<Offer> offerOptional = offerRepository.findById(offerId);
         if (offerOptional.isEmpty()) {
@@ -279,21 +280,21 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public GetPendingOfferResultDTO getPendingOffers(Long teamId) {
-        return new GetPendingOfferResultDTO(pendingOfferRepository.findAllByOffer_Submitter_Id(teamId));
+    public GetPendingOfferResultDTO getPendingOffers(Team team) {
+        return new GetPendingOfferResultDTO(pendingOfferRepository.findAllByOffer_Submitter_Id(team.getId()));
     }
 
     @Override
-    public AcceptSellOfferResultDTO acceptSellOffer(Long pendingOfferId, String shippingMethod, Long teamId) throws BadRequestException, NotFoundException {
+    public AcceptSellOfferResultDTO acceptSellOffer(Long pendingOfferId, String shippingMethod, Team team) throws BadRequestException, NotFoundException {
         if (pendingOfferId == null) {
             throw new BadRequestException("\"pendingOfferId\" is a required field!");
         }
 
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("User is from invalid team!");
-        }
-        Team team = teamOptional.get();
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("User is from invalid team!");
+//        }
+//        Team team = teamOptional.get();
 
         Optional<PendingOffer> pendingOfferOptional = pendingOfferRepository.findById(pendingOfferId);
         if (pendingOfferOptional.isEmpty()) {
@@ -356,16 +357,16 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public DeclinePendingOfferResultDTO declineSellOffer(Long pendingOfferId, Long teamId) throws BadRequestException, NotFoundException {
+    public DeclinePendingOfferResultDTO declineSellOffer(Long pendingOfferId, Team team) throws BadRequestException, NotFoundException {
         if (pendingOfferId == null) {
             throw new BadRequestException("\"pendingOfferId\" is a required field!");
         }
 
-        Optional<Team> teamOptional = teamRepository.findById(teamId);
-        if (teamOptional.isEmpty()) {
-            throw new BadRequestException("User is from invalid team!");
-        }
-        Team team = teamOptional.get();
+//        Optional<Team> teamOptional = teamRepository.findById(teamId);
+//        if (teamOptional.isEmpty()) {
+//            throw new BadRequestException("User is from invalid team!");
+//        }
+//        Team team = teamOptional.get();
 
         Optional<PendingOffer> pendingOfferOptional = pendingOfferRepository.findById(pendingOfferId);
         if (pendingOfferOptional.isEmpty()) {
