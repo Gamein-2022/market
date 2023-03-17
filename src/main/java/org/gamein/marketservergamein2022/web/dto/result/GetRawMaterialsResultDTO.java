@@ -10,8 +10,12 @@ import java.util.List;
 
 @Getter
 public class GetRawMaterialsResultDTO implements BaseResultDTO {
-    private List<ProductDTO> myRegion;
-    private List<ProductDTO> otherRegions;
+    private final List<ProductDTO> myRegion;
+    private final List<ProductDTO> otherRegions;
+    private final int shipBasePrice = 100;
+    private final int shipDistanceFactor = 5;
+    private final int planeBasePrice = 200;
+    private final int planeDistanceFactor = 10;
 
     public GetRawMaterialsResultDTO(List<Product> myRegion, List<Product> otherRegions) {
         List<ProductDTO> myRegionDTOS = new ArrayList<>();

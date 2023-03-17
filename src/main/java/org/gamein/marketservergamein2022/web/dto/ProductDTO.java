@@ -8,9 +8,11 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 public class ProductDTO {
     private final Long id;
     private final String name;
+    private final Long price;
 
     public ProductDTO(Product product) {
         this.id = product.getId();
         this.name = product.getName();
+        this.price = product.getPrice();
     }
 }
