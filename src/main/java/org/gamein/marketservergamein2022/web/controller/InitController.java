@@ -9,6 +9,7 @@ import org.gamein.marketservergamein2022.web.dto.AuthInfoResponse;
 import org.gamein.marketservergamein2022.web.dto.result.ErrorResultDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +24,12 @@ public class InitController {
 
     private final AuthService authService;
 
+    @Value("${auth.url}")
+    private String authUrl;
+
     public InitController(AuthService authService) {
         this.authService = authService;
     }
-
 
     @ModelAttribute(name = "authInfo")
     public AuthInfo getLoginInformation(HttpServletRequest request) throws InvalidTokenException, BadRequestException {
@@ -37,7 +40,7 @@ public class InitController {
         logger.info(token);
 
         try {
-            AuthInfoResponse result = RestUtil.getAuthInfo(token);
+            AuthInfoResponse result = RestUtil.getAuthInfo(token, authUrl);
             if (result.getTeamId() == null) {
                 throw new InvalidTokenException("User does not have a team!");
             }

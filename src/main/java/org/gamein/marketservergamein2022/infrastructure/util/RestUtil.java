@@ -12,16 +12,14 @@ import java.util.Map;
 
 
 public class RestUtil {
-    private static final String dashboardUrl = "http://localhost:8081/dashboard/auth/info";
-
-    public static AuthInfoResponse getAuthInfo(String token) throws RestClientException {
+    public static AuthInfoResponse getAuthInfo(String token, String authUrl) throws RestClientException {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
         headers.set("Authorization", token);
 
         HttpEntity<String> request = new HttpEntity<>(headers);
-        ResponseEntity<AuthInfoResponse> response = restTemplate.exchange(dashboardUrl, HttpMethod.GET, request,
+        ResponseEntity<AuthInfoResponse> response = restTemplate.exchange(authUrl, HttpMethod.GET, request,
                 AuthInfoResponse.class);
         return response.getBody();
     }
