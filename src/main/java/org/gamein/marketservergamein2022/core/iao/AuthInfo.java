@@ -1,4 +1,4 @@
-package org.gamein.marketservergamein2022.web.dto;
+package org.gamein.marketservergamein2022.core.iao;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,5 +1,6 @@
-package org.gamein.marketservergamein2022.web.dto;
+package org.gamein.marketservergamein2022.core.dto.result;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
@@ -7,6 +8,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import java.util.Date;
 
 
+@AllArgsConstructor
 @Getter
 public class ShippingDTO {
     private Integer sourceRegion;
@@ -14,12 +16,4 @@ public class ShippingDTO {
     private ShippingMethod method;
     private Date departureTime;
     private Date arrivalTime;
-
-    public ShippingDTO(Shipping shipping) {
-        this.sourceRegion = shipping.getSourceRegion();
-        this.method = shipping.getMethod();
-        this.teamId = shipping.getTeam().getId();
-        this.departureTime = shipping.getDepartureTime();
-        this.arrivalTime = shipping.getArrivalTime();
-    }
 }

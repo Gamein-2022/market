@@ -4,7 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.OfferType;
+import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -22,30 +23,32 @@ public class Offer {
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "type", updatable = false, nullable = false)
-    private OfferType type;
+    @ManyToOne(optional = false)
+    private Order order;
 
-    @Column(name = "price", updatable = false, nullable = false)
-    private Long price;
+    @ManyToOne(optional = false)
+    private Team offerer;
 
-    @Column(name = "submit_date", nullable = false)
-    private Date submitDate;
-
-    @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
-    private Boolean cancelled;
+    @Column(name = "creation_date", nullable = false)
+    private Date creationDate;
 
     @Column(name = "accept_date")
     private Date acceptDate;
 
-    @ManyToOne(optional = false)
-    private Product product;
+    @Column(name = "declined")
+    private Boolean declined;
 
-    @Column(name = "product_amount", nullable = false)
-    private Long productAmount;
+    @Column
+    private ShippingMethod shippingMethod;
 
-    @ManyToOne(optional = false)
-    private Team submitter;
-
-    @ManyToOne
-    private Team accepter;
+    public OfferDTO toDTO() {
+        return new OfferDTO(
+                id,
+                offerer.getId(),
+                order.getId(),
+                creationDate,
+                declined,
+                acceptDate
+        );
+    }
 }

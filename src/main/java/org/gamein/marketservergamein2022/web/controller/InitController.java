@@ -1,12 +1,12 @@
 package org.gamein.marketservergamein2022.web.controller;
 
+import org.gamein.marketservergamein2022.core.dto.result.ErrorResult;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.InvalidTokenException;
 import org.gamein.marketservergamein2022.core.service.AuthService;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
-import org.gamein.marketservergamein2022.web.dto.AuthInfo;
-import org.gamein.marketservergamein2022.web.dto.AuthInfoResponse;
-import org.gamein.marketservergamein2022.web.dto.result.ErrorResultDTO;
+import org.gamein.marketservergamein2022.core.iao.AuthInfo;
+import org.gamein.marketservergamein2022.core.iao.AuthInfoResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,18 +57,18 @@ public class InitController {
     }
 
     @ExceptionHandler(value = InvalidTokenException.class)
-    public ResponseEntity<ErrorResultDTO> exception(InvalidTokenException exception) {
+    public ResponseEntity<ErrorResult> exception(InvalidTokenException exception) {
         logger.error("Error: " + exception.getMessage());
 
-        ErrorResultDTO result = new ErrorResultDTO(exception.getMessage(), HttpStatus.UNAUTHORIZED);
-        return new ResponseEntity<>(result, result.getStatus());
+        ErrorResult result = new ErrorResult(exception.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(value = BadRequestException.class)
-    public ResponseEntity<ErrorResultDTO> exception(BadRequestException exception) {
+    public ResponseEntity<ErrorResult> exception(BadRequestException exception) {
         logger.error("Error: " + exception.getMessage());
 
-        ErrorResultDTO result = new ErrorResultDTO(exception.getMessage(), HttpStatus.UNAUTHORIZED);
-        return new ResponseEntity<>(result, result.getStatus());
+        ErrorResult result = new ErrorResult(exception.getMessage());
+        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 }

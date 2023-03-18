@@ -1,9 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.util;
 
 import com.google.gson.JsonObject;
-import org.gamein.marketservergamein2022.core.exception.InvalidTokenException;
-import org.gamein.marketservergamein2022.web.dto.AuthInfo;
-import org.gamein.marketservergamein2022.web.dto.AuthInfoResponse;
+import org.gamein.marketservergamein2022.core.iao.AuthInfoResponse;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 
 import javax.persistence.*;
@@ -36,4 +37,10 @@ public class Shipping {
 
     @ManyToOne(optional = false)
     private Team team;
+
+    public ShippingDTO toDTO() {
+        return new ShippingDTO(
+                sourceRegion, team.getId(), method, departureTime, arrivalTime
+        );
+    }
 }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.gamein.marketservergamein2022.core.dto.result.ProductDTO;
 
 import javax.persistence.*;
 import java.util.List;
@@ -38,4 +39,8 @@ public class Product {
 
     @Column(name = "available_year", nullable = false)
     long availableYear;
+
+    public ProductDTO toDTO() {
+        return new ProductDTO(id, name, price);
+    }
 }
