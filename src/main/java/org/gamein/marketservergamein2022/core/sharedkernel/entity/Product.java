@@ -37,6 +37,9 @@ public class Product {
     @Column(name = "price", nullable = false)
     long price;
 
+    @Column(name = "unit_volume", nullable = false)
+    byte unitVolume;
+
     @Column(name = "available_year", nullable = false)
     long availableYear;
 

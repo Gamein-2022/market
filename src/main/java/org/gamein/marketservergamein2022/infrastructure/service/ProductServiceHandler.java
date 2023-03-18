@@ -26,8 +26,8 @@ public class ProductServiceHandler implements ProductService {
         List<Product> myRegion = productRepository.findAllByLevelAndRegion(0, team.getRegion());
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionIsNot(0, team.getRegion());
         return new RegionRawMaterialDTO(
-                myRegion.stream().map(Product::toDTO).map(productDTO -> (RawMaterialDTO) productDTO).collect(Collectors.toList()),
-                otherRegions.stream().map(Product::toDTO).map(productDTO -> (RawMaterialDTO) productDTO).collect(Collectors.toList())
+                myRegion.stream().map(Product::toDTO).map(RawMaterialDTO::new).collect(Collectors.toList()),
+                otherRegions.stream().map(Product::toDTO).map(RawMaterialDTO::new).collect(Collectors.toList())
         );
     }
 

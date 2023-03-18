@@ -9,6 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 public class RegionRawMaterialDTO {
-    private List<ProductDTO> myRegion;
-    private List<ProductDTO> otherRegions;
+    private List<RawMaterialDTO> myRegion;
+    private List<RawMaterialDTO> otherRegions;
 }

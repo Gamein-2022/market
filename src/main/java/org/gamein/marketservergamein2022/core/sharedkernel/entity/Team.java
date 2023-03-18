@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.List;
 
 
+@DynamicInsert
 @Entity
 @Table(name = "teams")
 @NoArgsConstructor
@@ -41,4 +43,10 @@ public class Team {
 
     @OneToMany
     private List<StorageProduct> storageProducts;
+
+    @Column(name = "reserved_space", nullable = false, columnDefinition = "int default 0")
+    private int reservedSpace = 0;
+
+    @OneToMany
+    private List<Building> buildings;
 }

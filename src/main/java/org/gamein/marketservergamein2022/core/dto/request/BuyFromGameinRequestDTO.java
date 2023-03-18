@@ -8,5 +8,5 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 public class BuyFromGameinRequestDTO {
     private Long productId;
     private Long quantity;
-    private ShippingMethod method;
+    private ShippingMethod shippingMethod;
 }

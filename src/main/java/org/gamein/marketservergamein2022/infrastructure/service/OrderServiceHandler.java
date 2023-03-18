@@ -6,11 +6,14 @@ import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +26,15 @@ public class OrderServiceHandler implements OrderService {
     private final TeamRepository teamRepository;
     private final OrderRepository orderRepository;
 
+    private final StorageProductRepository storageProductRepository;
+
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
-                              OrderRepository orderRepository) {
+                               OrderRepository orderRepository,
+                               StorageProductRepository storageProductRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
+        this.storageProductRepository = storageProductRepository;
     }
 
     @Override
@@ -61,7 +68,7 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(balance);
             teamRepository.save(team);
         } else {
-            // TODO check if there is enough of this product for sell offers
+            TeamUtil.removeProductFromStorage(team, product, quantity, storageProductRepository);
         }
 
         Order order = new Order();
@@ -71,7 +78,6 @@ public class OrderServiceHandler implements OrderService {
         order.setProductAmount(quantity);
         order.setUnitPrice(price);
         order.setSubmitDate(new Date());
-        order.setCancelled(false);
         orderRepository.save(order);
 
         return order.toDTO();
@@ -104,6 +110,14 @@ public class OrderServiceHandler implements OrderService {
 
         if (order.getCancelled()) {
             throw new BadRequestException("Order already canceled!");
+        }
+
+        if (order.getType() == OrderType.BUY) {
+            team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
+            teamRepository.save(team);
+        } else {
+            TeamUtil.addProductToStorage(team, order.getProduct(), order.getProductAmount(),
+                    teamRepository, storageProductRepository);
         }
 
         order.setCancelled(true);

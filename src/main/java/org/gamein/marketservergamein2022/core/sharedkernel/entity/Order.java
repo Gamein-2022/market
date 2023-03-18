@@ -6,11 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.Date;
 
 
+@DynamicInsert
 @Entity
 @Table(name = "orders")
 @Getter
@@ -33,7 +35,7 @@ public class Order {
     private Date submitDate;
 
     @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
-    private Boolean cancelled;
+    private Boolean cancelled = false;
 
     @Column(name = "accept_date")
     private Date acceptDate;

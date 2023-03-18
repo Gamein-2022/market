@@ -1,20 +1,20 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
-import org.gamein.marketservergamein2022.core.dto.result.*;
+import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
-import org.gamein.marketservergamein2022.core.exception.NotFoundException;
-import org.gamein.marketservergamein2022.core.exception.UnauthorizedException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -23,13 +23,16 @@ public class TradeServerHandler implements TradeService {
     private final TeamRepository teamRepository;
     private final OrderRepository orderRepository;
     private final ShippingRepository shippingRepository;
+    private final StorageProductRepository storageProductRepository;
 
     public TradeServerHandler(ProductRepository productRepository, TeamRepository teamRepository,
-                              OrderRepository orderRepository, ShippingRepository shippingRepository) {
+                              OrderRepository orderRepository, ShippingRepository shippingRepository,
+                              StorageProductRepository storageProductRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
+        this.storageProductRepository = storageProductRepository;
     }
 
     @Override
@@ -43,26 +46,30 @@ public class TradeServerHandler implements TradeService {
         if (quantity <= 0) {
             throw new BadRequestException("Invalid quantity!");
         }
-        // TODO validate method
+        if (method == ShippingMethod.SAME_REGION) {
+            throw new BadRequestException("Invalid shipping method!");
+        }
 
         long balance = team.getBalance();
 
         if (product.getLevel() > 0) {
             throw new BadRequestException("Gamein only sells raw material or second-hand products!");
         }
-        // TODO check if there is enough storage before accepting trade
         if (balance >= product.getPrice() * quantity) {
             balance -= product.getPrice() * quantity;
             // TODO reduce shipping amount from balance
             team.setBalance(balance);
             teamRepository.save(team);
-            // TODO add purchase to storage
+
+            TeamUtil.addProductToStorage(team, product, quantity, teamRepository, storageProductRepository);
+            // TODO do this on shipping arrival time
+
             Shipping shipping = new Shipping();
             shipping.setMethod(method);
             shipping.setTeam(team);
             shipping.setDepartureTime(new Date());
             shipping.setArrivalTime(new Date((new Date()).getTime() + 60000));
-            shipping.setSourceRegion(0); // TODO find the nearest region for this
+            shipping.setSourceRegion(0); // TODO find the right region for this
             shippingRepository.save(shipping);
 
             return shipping.toDTO();
@@ -87,26 +94,24 @@ public class TradeServerHandler implements TradeService {
 
         long balance = team.getBalance();
 
-        // TODO check if there is this amount of product present in storage
-        if (balance < 1000000000) { // this should be the condition explained above
-            balance += product.getPrice() * quantity;
-            team.setBalance(balance);
-            teamRepository.save(team);
-            // TODO remove from storage
-            Order order = new Order();
-            order.setSubmitDate(new Date());
-            order.setSubmitter(team);
-            order.setAcceptDate(new Date());
-            order.setCancelled(false);
-            order.setProduct(product);
-            order.setUnitPrice(product.getPrice());
-            order.setProductAmount(quantity);
-            // TODO set accepter to gamein team
-            orderRepository.save(order);
+        TeamUtil.removeProductFromStorage(team, product, quantity, storageProductRepository); // throws error if
+        // there is not enough of the product (hopefully :))
 
-            return order.toDTO();
-        } else {
-            throw new BadRequestException("Not enough " + product.getName() + " to sell!");
-        }
+        balance += product.getPrice() * quantity;
+        team.setBalance(balance);
+        teamRepository.save(team);
+
+        Order order = new Order();
+        order.setSubmitDate(new Date());
+        order.setSubmitter(team);
+        order.setAcceptDate(new Date());
+        order.setCancelled(false);
+        order.setProduct(product);
+        order.setUnitPrice(product.getPrice());
+        order.setProductAmount(quantity);
+        // TODO set accepter to gamein team
+        orderRepository.save(order);
+
+        return order.toDTO();
     }
 }

@@ -34,7 +34,7 @@ public class TradeController {
                     authInfo.getTeam(),
                     request.getProductId(),
                     request.getQuantity(),
-                    request.getMethod()
+                    request.getShippingMethod()
             );
             return new ResponseEntity<>(ServiceResult.createResult(result), HttpStatus.OK);
         } catch (BadRequestException e) {

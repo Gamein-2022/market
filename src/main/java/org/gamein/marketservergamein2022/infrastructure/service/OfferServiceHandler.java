@@ -48,7 +48,6 @@ public class OfferServiceHandler implements OfferService {
         Offer offer = new Offer();
         offer.setOrder(order);
         offer.setCreationDate(new Date());
-        offer.setDeclined(false);
         offer.setOfferer(team);
 
         if (order.getType() == OrderType.SELL) {
