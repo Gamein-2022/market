@@ -11,6 +11,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -25,11 +26,14 @@ public class OfferServiceHandler implements OfferService {
     private final ShippingRepository shippingRepository;
     private final OfferRepository offerRepository;
 
+    private final TaskScheduler taskScheduler;
+
     public OfferServiceHandler(OrderRepository orderRepository, ShippingRepository shippingRepository,
-                              OfferRepository offerRepository) {
+                              OfferRepository offerRepository, TaskScheduler taskScheduler) {
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
         this.offerRepository = offerRepository;
+        this.taskScheduler = taskScheduler;
     }
 
     @Override
@@ -110,6 +114,7 @@ public class OfferServiceHandler implements OfferService {
             shipping.setSourceRegion(order.getSubmitter().getRegion());
         }
         shippingRepository.save(shipping);
+//        taskScheduler.schedule(collectShipping, shipping.getArrivalTime());
         // TODO notify players of new shipping
         return offer.toDTO();
     }

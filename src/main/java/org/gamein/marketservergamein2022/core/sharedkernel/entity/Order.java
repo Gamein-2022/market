@@ -62,7 +62,8 @@ public class Order {
                 unitPrice,
                 submitDate,
                 cancelled,
-                acceptDate
+                acceptDate,
+                submitter.getRegion()
         );
     }
 }

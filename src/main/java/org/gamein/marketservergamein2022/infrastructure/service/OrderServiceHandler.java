@@ -6,14 +6,12 @@ import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;

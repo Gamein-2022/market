@@ -50,7 +50,8 @@ public class Offer {
                 order.getId(),
                 creationDate,
                 declined,
-                acceptDate
+                acceptDate,
+                offerer.getRegion()
         );
     }
 }

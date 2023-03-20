@@ -19,4 +19,5 @@ public class OrderDTO {
     private final Date submitDate;
     private final Boolean cancelled;
     private final Date acceptDate;
+    private final int region;
 }

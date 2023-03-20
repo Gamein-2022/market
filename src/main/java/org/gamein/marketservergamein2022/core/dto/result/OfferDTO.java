@@ -15,4 +15,5 @@ public class OfferDTO {
     private Date creationDate;
     private Boolean declined;
     private Date acceptDate;
+    private int region;
 }
