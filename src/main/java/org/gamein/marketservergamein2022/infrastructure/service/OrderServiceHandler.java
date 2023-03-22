@@ -115,7 +115,7 @@ public class OrderServiceHandler implements OrderService {
             teamRepository.save(team);
         } else {
             TeamUtil.addProductToStorage(team, order.getProduct(), order.getProductAmount(),
-                    teamRepository, storageProductRepository);
+                    teamRepository, storageProductRepository, "storage", false);
         }
 
         order.setCancelled(true);

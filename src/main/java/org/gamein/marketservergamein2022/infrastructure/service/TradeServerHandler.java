@@ -61,8 +61,9 @@ public class TradeServerHandler implements TradeService {
             team.setBalance(balance);
             teamRepository.save(team);
 
-            TeamUtil.addProductToStorage(team, product, quantity, teamRepository, storageProductRepository);
-            // TODO do this on shipping arrival time
+            TeamUtil.addProductToStorage(team, product, quantity, teamRepository, storageProductRepository,
+                    "shipping", false);
+            // TODO schedule a task for shipping arrival time
 
             Shipping shipping = new Shipping();
             shipping.setMethod(method);

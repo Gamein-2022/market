@@ -26,14 +26,11 @@ public class OfferServiceHandler implements OfferService {
     private final ShippingRepository shippingRepository;
     private final OfferRepository offerRepository;
 
-    private final TaskScheduler taskScheduler;
-
     public OfferServiceHandler(OrderRepository orderRepository, ShippingRepository shippingRepository,
-                              OfferRepository offerRepository, TaskScheduler taskScheduler) {
+                              OfferRepository offerRepository) {
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
         this.offerRepository = offerRepository;
-        this.taskScheduler = taskScheduler;
     }
 
     @Override
