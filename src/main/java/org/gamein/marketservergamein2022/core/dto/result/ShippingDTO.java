@@ -16,4 +16,6 @@ public class ShippingDTO {
     private ShippingMethod method;
     private Date departureTime;
     private Date arrivalTime;
+    private ProductDTO product;
+    private int amount;
 }

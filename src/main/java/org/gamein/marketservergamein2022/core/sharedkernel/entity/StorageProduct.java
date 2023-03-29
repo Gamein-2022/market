@@ -26,9 +26,6 @@ public class StorageProduct {
     @Column(name = "in_storage_amount", nullable = false)
     private long inStorageAmount;
 
-    @Column(name = "in_queue_amount", nullable = false)
-    private long inQueueAmount;
-
     @Column(name = "manufacturing_amount", nullable = false)
     private long manufacturingAmount;
 

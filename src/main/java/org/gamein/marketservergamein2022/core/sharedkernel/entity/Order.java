@@ -44,7 +44,7 @@ public class Order {
     private Product product;
 
     @Column(name = "product_amount", nullable = false)
-    private Long productAmount;
+    private Integer productAmount;
 
     @ManyToOne(optional = false)
     private Team submitter;

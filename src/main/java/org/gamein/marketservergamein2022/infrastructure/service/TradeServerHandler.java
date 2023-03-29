@@ -9,25 +9,33 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Optional;
 
+import static java.lang.Math.abs;
+
 
 @Service
 public class TradeServerHandler implements TradeService {
+    private final TaskScheduler taskScheduler;
     private final ProductRepository productRepository;
     private final TeamRepository teamRepository;
     private final OrderRepository orderRepository;
     private final ShippingRepository shippingRepository;
     private final StorageProductRepository storageProductRepository;
 
-    public TradeServerHandler(ProductRepository productRepository, TeamRepository teamRepository,
-                              OrderRepository orderRepository, ShippingRepository shippingRepository,
+    public TradeServerHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
+                              TeamRepository teamRepository, OrderRepository orderRepository,
+                              ShippingRepository shippingRepository,
                               StorageProductRepository storageProductRepository) {
+        this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
@@ -36,7 +44,7 @@ public class TradeServerHandler implements TradeService {
     }
 
     @Override
-    public ShippingDTO buyFromGamein(Team team, Long productId, Long quantity, ShippingMethod method)
+    public ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException {
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
@@ -62,16 +70,23 @@ public class TradeServerHandler implements TradeService {
             teamRepository.save(team);
 
             TeamUtil.addProductToStorage(team, product, quantity, teamRepository, storageProductRepository,
-                    "shipping", false);
-            // TODO schedule a task for shipping arrival time
+                    "shipping");
 
             Shipping shipping = new Shipping();
             shipping.setMethod(method);
             shipping.setTeam(team);
             shipping.setDepartureTime(new Date());
-            shipping.setArrivalTime(new Date((new Date()).getTime() + 60000));
-            shipping.setSourceRegion(0); // TODO find the right region for this
+            // TODO make product region an array & find the nearest region for this
+            shipping.setArrivalTime(new Date((new Date()).getTime() +
+                    abs(product.getRegion() - team.getRegion()) * 10000L));
+            shipping.setSourceRegion(product.getRegion());
+            shipping.setStatus(ShippingStatus.IN_ROUTE);
+            shipping.setProduct(product);
+            shipping.setAmount(quantity);
             shippingRepository.save(shipping);
+
+            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
+                    shipping.getArrivalTime());
 
             return shipping.toDTO();
         } else {
@@ -80,7 +95,7 @@ public class TradeServerHandler implements TradeService {
     }
 
     @Override
-    public OrderDTO sellToGamein(Team team, Long productId, Long quantity)
+    public OrderDTO sellToGamein(Team team, Long productId, Integer quantity)
             throws BadRequestException {
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {

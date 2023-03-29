@@ -14,7 +14,7 @@ public class OrderDTO {
     private final OrderType orderType;
     private final String submitterTeamName;
     private final String productName;
-    private final Long quantity;
+    private final Integer quantity;
     private final Long unitPrice;
     private final Date submitDate;
     private final Boolean cancelled;

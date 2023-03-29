@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findAllByOrder_Submitter_Id(Long submitterId);
+    List<Offer> findAllByOrder_Submitter_IdAndOrder_Id(Long submitterId, Long orderId);
     List<Offer> findAllByOfferer_Id(Long id);
     List<Offer> findAllByOrder_Id(Long id);
+    List<Offer> findAllByOfferer_IdAndOrder_IdAndDeclined(Long offererId, Long orderId, Boolean declined);
 }

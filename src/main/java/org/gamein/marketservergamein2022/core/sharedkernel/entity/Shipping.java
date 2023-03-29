@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -35,12 +36,21 @@ public class Shipping {
     @Column(name = "arrival_time", nullable = false)
     private Date arrivalTime;
 
+    @Column(name = "status")
+    private ShippingStatus status;
+
     @ManyToOne(optional = false)
     private Team team;
 
+    @ManyToOne(optional = false)
+    private Product product;
+
+    @Column(name = "amount", nullable = false)
+    private int amount;
+
     public ShippingDTO toDTO() {
         return new ShippingDTO(
-                sourceRegion, team.getId(), method, departureTime, arrivalTime
+                sourceRegion, team.getId(), method, departureTime, arrivalTime, product.toDTO(), amount
         );
     }
 }

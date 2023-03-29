@@ -8,6 +8,6 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 public class CreateOrderRequestDTO {
     private OrderType orderType;
     private Long productId;
-    private Long quantity;
+    private Integer quantity;
     private Long price;
 }

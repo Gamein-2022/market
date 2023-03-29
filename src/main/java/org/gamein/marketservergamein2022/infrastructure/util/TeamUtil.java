@@ -12,17 +12,17 @@ import java.util.Optional;
 
 public class TeamUtil {
     public static long calculateAvailableSpace(Team team) {
-        long result = team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() * 10000;
+        long result =
+                (team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 100000000;
         for (StorageProduct storageProduct : team.getStorageProducts()) {
             result -= storageProduct.getInStorageAmount() * storageProduct.getProduct().getUnitVolume();
         }
-        result -= team.getReservedSpace();
         return result;
     }
 
-    public static void addProductToStorage(Team team, Product product, Long amount,
+    public static void addProductToStorage(Team team, Product product, Integer amount,
                                            TeamRepository teamRepo, StorageProductRepository spRepo,
-                                           String where, boolean queueable) throws BadRequestException {
+                                           String where) throws BadRequestException {
         Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
                 storageProduct -> storageProduct.getProduct().getId() == product.getId()
         ).findFirst();
@@ -30,16 +30,9 @@ public class TeamUtil {
         StorageProduct sp;
 
         long availableSpace = calculateAvailableSpace(team);
-        long queueableAmount = 0;
 
-        if (queueable) {
-            queueableAmount = amount - (availableSpace / product.getUnitVolume());
-            if (queueableAmount < 0) {
-                queueableAmount = 0;
-            }
-            amount -= queueableAmount;
-        } else if (availableSpace > amount * product.getUnitVolume()) {
-            throw new BadRequestException("You don't have enough space in storage!");
+        if (availableSpace < amount * product.getUnitVolume()) {
+            throw new BadRequestException("انبار شما فضای کافی ندارد!");
         }
 
         if (storageProductOptional.isPresent()) {
@@ -49,7 +42,6 @@ public class TeamUtil {
             sp.setProduct(product);
             sp.setTeam(team);
             sp.setInStorageAmount(0);
-            sp.setInQueueAmount(0);
             sp.setManufacturingAmount(0);
             sp.setInRouteAmount(0);
 
@@ -59,9 +51,7 @@ public class TeamUtil {
         switch (where) {
             case "storage" -> {
                 sp.setInStorageAmount(sp.getInStorageAmount() + amount);
-                sp.setInQueueAmount(sp.getInQueueAmount() + queueableAmount);
             }
-            case "queue" -> sp.setInQueueAmount(sp.getInQueueAmount() + amount);
             case "manufacture" -> sp.setManufacturingAmount(sp.getManufacturingAmount() + amount);
             case "shipping" -> sp.setInRouteAmount(sp.getInRouteAmount() + amount);
         }
@@ -70,26 +60,23 @@ public class TeamUtil {
         teamRepo.save(team);
     }
 
-    public static void removeProductFromStorage(Team team, Product product, Long amount, StorageProductRepository repo)
+    public static void removeProductFromStorage(Team team, Product product, Integer amount,
+                                                StorageProductRepository repo)
             throws BadRequestException {
         Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
                 storageProduct ->
                         product.getId() == storageProduct.getProduct().getId()
         ).findFirst();
         if (storageProductOptional.isEmpty()) {
-            throw new BadRequestException("You don't have this amount of " + product.getName() + "!");
+            throw new BadRequestException("شما مقدار کافی " + product.getName() + " برای فروش ندارید!");
         }
 
         StorageProduct sp = storageProductOptional.get();
-        if (sp.getInStorageAmount() + sp.getInQueueAmount() < amount) {
-            throw new BadRequestException("You don't have this amount of " + product.getName() + "!");
+        if (sp.getInStorageAmount() < amount) { // TODO find in queue amount from shipping and consider it too
+            throw new BadRequestException("شما مقدار کافی " + product.getName() + " برای فروش ندارید!");
         }
 
-        if (amount > sp.getInQueueAmount()) {
-            sp.setInStorageAmount(sp.getInStorageAmount() + sp.getInQueueAmount() - amount);
-        } else {
-            sp.setInQueueAmount(sp.getInQueueAmount() - amount);
-        }
+        sp.setInStorageAmount(sp.getInStorageAmount() - amount);
         repo.save(sp);
     }
 }

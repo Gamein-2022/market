@@ -32,18 +32,18 @@ public class Product {
     private List<Product> components;
 
     @Column(name = "region", nullable = false)
-    int region;
+    private int region;
 
     @Column(name = "price", nullable = false)
-    long price;
-
-    @Column(name = "unit_volume", nullable = false)
-    byte unitVolume;
+    private long price;
 
     @Column(name = "available_year", nullable = false)
-    long availableYear;
+    private long availableYear;
+
+    @Column(name = "unit_volume", nullable = false)
+    private long unitVolume;
 
     public ProductDTO toDTO() {
-        return new ProductDTO(id, name, price);
+        return new ProductDTO(id, name, price, level);
     }
 }

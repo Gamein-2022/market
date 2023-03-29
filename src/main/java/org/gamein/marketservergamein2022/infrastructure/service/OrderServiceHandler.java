@@ -36,7 +36,7 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public OrderDTO createOrder(Team team, OrderType orderType, Long productId, Long quantity, Long price)
+    public OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException {
         if (productId == null) {
             throw new BadRequestException("\"productId\" is a required field!");
@@ -115,7 +115,7 @@ public class OrderServiceHandler implements OrderService {
             teamRepository.save(team);
         } else {
             TeamUtil.addProductToStorage(team, order.getProduct(), order.getProductAmount(),
-                    teamRepository, storageProductRepository, "storage", false);
+                    teamRepository, storageProductRepository, "shipping");
         }
 
         order.setCancelled(true);

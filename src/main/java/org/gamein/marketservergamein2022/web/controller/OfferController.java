@@ -24,30 +24,6 @@ public class OfferController {
     public OfferController(OfferService offerService) {
         this.offerService = offerService;
     }
-    @PostMapping(value = "accept",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> acceptOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
-                                                  @RequestBody AcceptOfferRequestDTO request) {
-        try {
-            return new ResponseEntity<>(
-                    ServiceResult.createResult(offerService.acceptOffer(
-                            authInfo.getTeam(),
-                            request.getOfferId(),
-                            request.getShippingMethod()
-                    )),
-                    HttpStatus.OK
-            );
-        } catch (BadRequestException e) {
-            logger.error(e.toString());
-            ErrorResult error = new ErrorResult(e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-        } catch (NotFoundException e) {
-            logger.error(e.toString());
-            ErrorResult error = new ErrorResult(e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-        }
-    }
 
     @PostMapping(value = "",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -77,7 +53,22 @@ public class OfferController {
     @GetMapping(value = "received", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> getIncomingOffers(@ModelAttribute("authInfo") AuthInfo authInfo) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(offerService.getReceivedOffers(authInfo.getTeam().getId())),
+                ServiceResult.createResult(
+                        new ReceivedOffersDTO(offerService.getReceivedOffers(authInfo.getTeam().getId()),
+                                authInfo.getTeam().getBalance())
+                ),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping(value = "received/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> getRecievedOfferByOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                              @PathVariable(value = "id") Long orderId) {
+        return new ResponseEntity<>(
+                ServiceResult.createResult(
+                        new ReceivedOffersDTO(offerService.getOrderOffers(authInfo.getTeam().getId(), orderId),
+                                authInfo.getTeam().getBalance())
+                ),
                 HttpStatus.OK
         );
     }
@@ -92,6 +83,51 @@ public class OfferController {
 
     @DeleteMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> cancelOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                  @PathVariable(value = "id") Long offerId) {
+        try {
+            return new ResponseEntity<>(
+                    ServiceResult.createResult(offerService.cancelOffer(authInfo.getTeam(), offerId)),
+                    HttpStatus.OK
+            );
+        } catch (BadRequestException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "{id}/accept",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> acceptOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                  @RequestBody AcceptOfferRequestDTO request,
+                                                  @PathVariable(value = "id") Long offerId) {
+        try {
+            return new ResponseEntity<>(
+                    ServiceResult.createResult(offerService.acceptOffer(
+                            authInfo.getTeam(),
+                            offerId,
+                            request.getShippingMethod()
+                    )),
+                    HttpStatus.OK
+            );
+        } catch (BadRequestException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "{id}/decline", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> declineOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                   @PathVariable(value = "id") Long offerId) {
         try {
             return new ResponseEntity<>(

@@ -11,6 +11,8 @@ import org.hibernate.annotations.DynamicInsert;
 import javax.persistence.*;
 import java.util.Date;
 
+import static java.lang.Math.abs;
+
 
 @DynamicInsert
 @Entity
@@ -40,18 +42,28 @@ public class Offer {
     @Column(name = "declined", nullable = false, columnDefinition = "boolean default false")
     private Boolean declined = false;
 
+    @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
+    private Boolean cancelled = false;
+
     @Column
     private ShippingMethod shippingMethod;
 
     public OfferDTO toDTO() {
+        int distance = abs(offerer.getRegion() - order.getSubmitter().getRegion());
         return new OfferDTO(
                 id,
                 offerer.getId(),
-                order.getId(),
+                order.toDTO(),
                 creationDate,
                 declined,
                 acceptDate,
-                offerer.getRegion()
+                cancelled,
+                offerer.getRegion(),
+                distance * 5,
+                distance * 25,
+                distance * 50,
+                distance * 10,
+                null
         );
     }
 }

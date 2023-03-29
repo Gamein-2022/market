@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 public class SellToGameinRequestDTO {
     private Long productId;
-    private Long quantity;
+    private Integer quantity;
 }

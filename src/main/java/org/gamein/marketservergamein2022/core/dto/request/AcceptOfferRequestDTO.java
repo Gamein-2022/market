@@ -6,6 +6,5 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 
 @Getter
 public class AcceptOfferRequestDTO {
-    private Long offerId;
     private ShippingMethod shippingMethod;
 }

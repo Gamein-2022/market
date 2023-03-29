@@ -11,9 +11,19 @@ import java.util.Date;
 public class OfferDTO {
     private Long id;
     private Long offererId;
-    private Long orderId;
+    private OrderDTO order;
     private Date creationDate;
     private Boolean declined;
     private Date acceptDate;
+    private Boolean cancelled;
     private int region;
+    private int planeDuration;
+    private int shipDuration;
+    private int planePrice;
+    private int shipPrice;
+    private Long balance;
+
+    public void setBalance(Long balance) {
+        this.balance = balance;
+    }
 }

@@ -15,11 +15,16 @@ public interface OfferService {
 
     List<OfferDTO> getReceivedOffers(Long teamId);
 
+    List<OfferDTO> getOrderOffers(Long teamId, Long orderId);
+
     List<OfferDTO> getSentOffers(Long teamId);
 
     OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException;
 
     OfferDTO declineOffer(Team team, Long offerId)
+            throws BadRequestException, NotFoundException;
+
+    OfferDTO cancelOffer(Team team, Long offerId)
             throws BadRequestException, NotFoundException;
 }

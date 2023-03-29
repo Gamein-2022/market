@@ -10,7 +10,7 @@ import java.util.List;
 
 
 public interface OrderService {
-    OrderDTO createOrder(Team team, OrderType orderType, Long productId, Long quantity, Long price)
+    OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException;
 
     List<OrderDTO> getAllOrders();

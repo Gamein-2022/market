@@ -7,9 +7,9 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 
 
 public interface TradeService {
-    ShippingDTO buyFromGamein(Team team, Long productId, Long quantity, ShippingMethod method)
+    ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException;
 
-    OrderDTO sellToGamein(Team team, Long productId, Long quantity)
+    OrderDTO sellToGamein(Team team, Long productId, Integer quantity)
             throws BadRequestException;
 }
