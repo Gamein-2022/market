@@ -46,6 +46,9 @@ public class Order {
     @Column(name = "product_amount", nullable = false)
     private Integer productAmount;
 
+    @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
+    private Boolean archived = false;
+
     @ManyToOne(optional = false)
     private Team submitter;
 

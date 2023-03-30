@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.ShippingInfoDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
@@ -16,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.abs;
 
 
 @Service
@@ -83,13 +86,13 @@ public class OrderServiceHandler implements OrderService {
 
     @Override
     public List<OrderDTO> getAllOrders() {
-        return orderRepository.findAllByCancelled(false).stream()
+        return orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse().stream()
                 .map(Order::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<OrderDTO> getTeamTrades(Long teamId) {
-        return orderRepository.findAllByAccepter_IdOrSubmitter_Id(teamId, teamId).stream()
+        return orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
                 .map(Order::toDTO).collect(Collectors.toList());
     }
 
@@ -114,13 +117,58 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
             teamRepository.save(team);
         } else {
-            TeamUtil.addProductToStorage(team, order.getProduct(), order.getProductAmount(),
-                    teamRepository, storageProductRepository, "shipping");
+            TeamUtil.addProductToRoute(team, order.getProduct(), order.getProductAmount());
         }
 
         order.setCancelled(true);
         orderRepository.save(order);
 
         return order.toDTO();
+    }
+
+    @Override
+    public OrderDTO archiveOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
+        Optional<Order> orderOptional = orderRepository.findById(orderId); // TODO refactor this
+        if (orderOptional.isEmpty()) {
+            throw new NotFoundException("Order not found!");
+        }
+        Order order = orderOptional.get();
+
+        if (!team.getId().equals(order.getSubmitter().getId())) {
+            throw new NotFoundException("Order not found!");
+        }
+
+        if (order.getCancelled()) {
+            throw new BadRequestException("Order can't be archived, it is cancelled!");
+        }
+        if (order.getArchived()) {
+            throw new BadRequestException("Order already archived!");
+        }
+        if (order.getAcceptDate() == null) {
+            throw new BadRequestException("You can't archive an open order!");
+        }
+
+        order.setArchived(true);
+        orderRepository.save(order);
+        return order.toDTO();
+    }
+
+    @Override
+    public ShippingInfoDTO getOrderShippingPrices(Team team, Long orderId) throws NotFoundException {
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new NotFoundException("Order not found!");
+        }
+        Order order = orderOptional.get();
+
+        int distance = abs(team.getRegion() - order.getSubmitter().getRegion());
+
+        return new ShippingInfoDTO(
+                distance * 5,
+                distance * 25,
+                distance * 50,
+                distance * 10,
+                team.getBalance()
+        );
     }
 }

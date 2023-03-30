@@ -27,4 +27,7 @@ public interface OfferService {
 
     OfferDTO cancelOffer(Team team, Long offerId)
             throws BadRequestException, NotFoundException;
+
+    OfferDTO archiveOffer(Team team, Long offerId)
+        throws BadRequestException, NotFoundException;
 }

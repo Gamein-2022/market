@@ -11,57 +11,52 @@ import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepositor
 import java.util.Optional;
 
 public class TeamUtil {
+    public static long calculateStorageSpace(Team team) {
+        return (team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 100000000;
+    }
     public static long calculateAvailableSpace(Team team) {
-        long result =
-                (team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 100000000;
+        long result = calculateStorageSpace(team);
         for (StorageProduct storageProduct : team.getStorageProducts()) {
-            result -= storageProduct.getInStorageAmount() * storageProduct.getProduct().getUnitVolume();
+            long unitVolume = storageProduct.getProduct().getUnitVolume();
+            result -= storageProduct.getInStorageAmount() * unitVolume;
+            result -= storageProduct.getManufacturingAmount() * unitVolume;
         }
         return result;
     }
 
-    public static void addProductToStorage(Team team, Product product, Integer amount,
-                                           TeamRepository teamRepo, StorageProductRepository spRepo,
-                                           String where) throws BadRequestException {
+    public static long calculateUsedSpace(Team team) {
+        long result = 0;
+        for (StorageProduct storageProduct : team.getStorageProducts()) {
+            result += storageProduct.getInStorageAmount() * storageProduct.getProduct().getUnitVolume();
+        }
+        return result;
+    }
+
+    public static StorageProduct addProductToRoute(Team team, Product product, Integer amount) {
         Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
                 storageProduct -> storageProduct.getProduct().getId() == product.getId()
         ).findFirst();
 
         StorageProduct sp;
-
-        long availableSpace = calculateAvailableSpace(team);
-
-        if (availableSpace < amount * product.getUnitVolume()) {
-            throw new BadRequestException("انبار شما فضای کافی ندارد!");
-        }
-
         if (storageProductOptional.isPresent()) {
             sp = storageProductOptional.get();
+            sp.setInRouteAmount(sp.getInRouteAmount() + amount);
         } else {
             sp = new StorageProduct();
             sp.setProduct(product);
             sp.setTeam(team);
             sp.setInStorageAmount(0);
             sp.setManufacturingAmount(0);
-            sp.setInRouteAmount(0);
+            sp.setInRouteAmount(amount);
 
             team.getStorageProducts().add(sp);
         }
 
-        switch (where) {
-            case "storage" -> {
-                sp.setInStorageAmount(sp.getInStorageAmount() + amount);
-            }
-            case "manufacture" -> sp.setManufacturingAmount(sp.getManufacturingAmount() + amount);
-            case "shipping" -> sp.setInRouteAmount(sp.getInRouteAmount() + amount);
-        }
-
-        spRepo.save(sp);
-        teamRepo.save(team);
+        return sp;
     }
 
     public static void removeProductFromStorage(Team team, Product product, Integer amount,
-                                                StorageProductRepository repo)
+                                                StorageProductRepository repo) // TODO refactor this & usages
             throws BadRequestException {
         Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
                 storageProduct ->

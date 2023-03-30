@@ -16,26 +16,32 @@ public class CollectShipping implements Runnable {
     private final ShippingRepository shippingRepo;
     private final StorageProductRepository spRepo;
 
+//    @Override
+//    public void run() {
+//        if (TeamUtil.calculateAvailableSpace(shipping.getTeam()) >=
+//                shipping.getProduct().getUnitVolume() * shipping.getAmount()) {
+//            Optional<StorageProduct> storageProductOptional = shipping.getTeam().getStorageProducts().stream().filter(
+//                    storageProduct -> storageProduct.getProduct().getId() == shipping.getProduct().getId()
+//            ).findFirst();
+//            if (storageProductOptional.isPresent()) {
+//                StorageProduct sp = storageProductOptional.get();
+//                sp.setInRouteAmount(sp.getInRouteAmount() - shipping.getAmount());
+//                sp.setInStorageAmount(sp.getInStorageAmount() + shipping.getAmount());
+//                spRepo.save(sp);
+//            }
+////            else {
+////                // TODO throw some error
+////            }
+//            shipping.setStatus(ShippingStatus.DONE);
+//        } else {
+//            shipping.setStatus(ShippingStatus.IN_QUEUE);
+//            // TODO schedule expiration after 1 minute
+//        }
+//        shippingRepo.save(shipping);
+//    }
     @Override
     public void run() {
-        if (TeamUtil.calculateAvailableSpace(shipping.getTeam()) >=
-                shipping.getProduct().getUnitVolume() * shipping.getAmount()) {
-            Optional<StorageProduct> storageProductOptional = shipping.getTeam().getStorageProducts().stream().filter(
-                    storageProduct -> storageProduct.getProduct().getId() == shipping.getProduct().getId()
-            ).findFirst();
-            if (storageProductOptional.isPresent()) {
-                StorageProduct sp = storageProductOptional.get();
-                sp.setInRouteAmount(sp.getInRouteAmount() - shipping.getAmount());
-                sp.setInStorageAmount(sp.getInStorageAmount() + shipping.getAmount());
-                spRepo.save(sp);
-            }
-//            else {
-//                // TODO throw some error
-//            }
-            shipping.setStatus(ShippingStatus.DONE);
-        } else {
-            shipping.setStatus(ShippingStatus.IN_QUEUE);
-        }
+        shipping.setStatus(ShippingStatus.IN_QUEUE);
         shippingRepo.save(shipping);
     }
 }

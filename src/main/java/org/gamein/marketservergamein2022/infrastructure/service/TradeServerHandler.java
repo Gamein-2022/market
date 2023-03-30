@@ -4,10 +4,7 @@ import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
@@ -67,10 +64,10 @@ public class TradeServerHandler implements TradeService {
             balance -= product.getPrice() * quantity;
             // TODO reduce shipping amount from balance
             team.setBalance(balance);
+            StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity);
+            storageProductRepository.save(sp);
             teamRepository.save(team);
 
-            TeamUtil.addProductToStorage(team, product, quantity, teamRepository, storageProductRepository,
-                    "shipping");
 
             Shipping shipping = new Shipping();
             shipping.setMethod(method);

@@ -84,4 +84,38 @@ public class OrderController {
             return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @PutMapping(value = "{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> archiveOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                   @PathVariable(value = "id") Long orderId) {
+        try {
+            return new ResponseEntity<>(
+                    ServiceResult.createResult(orderService.archiveOrder(authInfo.getTeam(), orderId)),
+                    HttpStatus.OK
+            );
+        } catch (BadRequestException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping(value = "{id}/shipping-info", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> getShippingInfo(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                   @PathVariable(value = "id") Long orderId) {
+        try {
+            return new ResponseEntity<>(
+                    ServiceResult.createResult(orderService.getOrderShippingPrices(authInfo.getTeam(), orderId)),
+                    HttpStatus.OK
+            );
+        } catch (NotFoundException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
 }

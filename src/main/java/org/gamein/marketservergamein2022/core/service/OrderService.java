@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.core.service;
 
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.ShippingInfoDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
@@ -17,6 +18,12 @@ public interface OrderService {
 
     List<OrderDTO> getTeamTrades(Long teamId);
 
-    OrderDTO cancelOrder(Team team, Long offerId)
+    OrderDTO cancelOrder(Team team, Long orderId)
             throws NotFoundException, BadRequestException;
+
+    OrderDTO archiveOrder(Team team, Long orderId)
+            throws NotFoundException, BadRequestException;
+
+    ShippingInfoDTO getOrderShippingPrices(Team team, Long orderId) throws
+            NotFoundException;
 }

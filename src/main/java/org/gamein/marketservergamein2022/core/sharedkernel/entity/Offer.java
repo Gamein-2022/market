@@ -48,6 +48,9 @@ public class Offer {
     @Column
     private ShippingMethod shippingMethod;
 
+    @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
+    private Boolean archived = false;
+
     public OfferDTO toDTO() {
         int distance = abs(offerer.getRegion() - order.getSubmitter().getRegion());
         return new OfferDTO(

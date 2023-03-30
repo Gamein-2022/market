@@ -62,8 +62,7 @@ public class OfferServiceHandler implements OfferService {
             throw new BadRequestException("شما نمی‌توانید سفارش خود را قبول کنید!");
         }
 
-        List<Offer> prevOffers = offerRepository.findAllByOfferer_IdAndOrder_IdAndDeclined(team.getId(), order.getId(),
-                false);
+        List<Offer> prevOffers = offerRepository.findAllByOfferer_IdAndOrder_IdAndCancelledIsFalse(team.getId(), order.getId());
         if (prevOffers.size() > 0) {
             throw new BadRequestException("شما نمی‌توانید به یک سفارش بیش از یک بار پیشنهاد بدهید!");
         }
@@ -99,19 +98,19 @@ public class OfferServiceHandler implements OfferService {
 
     @Override
     public List<OfferDTO> getReceivedOffers(Long teamId) {
-        return offerRepository.findAllByOrder_Submitter_Id(teamId).stream()
+        return offerRepository.findAllByOrder_Submitter_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId).stream()
                 .map(Offer::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getOrderOffers(Long teamId, Long orderId) {
-        return offerRepository.findAllByOrder_Submitter_IdAndOrder_Id(teamId, orderId).stream()
+        return offerRepository.findAllByOrder_Submitter_IdAndOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId, orderId).stream()
                 .map(Offer::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getSentOffers(Long teamId) {
-        return offerRepository.findAllByOfferer_Id(teamId).stream()
+        return offerRepository.findAllByOfferer_IdAndArchivedIsFalse(teamId).stream()
                 .map(Offer::toDTO).collect(Collectors.toList());
     }
 
@@ -206,6 +205,36 @@ public class OfferServiceHandler implements OfferService {
         offer.setCancelled(true);
         offerRepository.save(offer);
 
+        return offer.toDTO();
+    }
+
+    @Override
+    public OfferDTO archiveOffer(Team team, Long offerId) throws BadRequestException, NotFoundException {
+        Optional<Offer> offerOptional = offerRepository.findById(offerId); // TODO refactor this
+        if (offerOptional.isEmpty()) {
+            throw new NotFoundException("Offer not found!");
+        }
+        Offer offer = offerOptional.get();
+
+        if (!team.getId().equals(offer.getOfferer().getId())) {
+            throw new NotFoundException("Offer not found!");
+        }
+
+        if (offer.getCancelled()) {
+            throw new BadRequestException("Offer can't be archived, it is cancelled!");
+        }
+        if (offer.getDeclined()) {
+            throw new BadRequestException("Offer can't be archived, it is declined!");
+        }
+        if (offer.getArchived()) {
+            throw new BadRequestException("Offer already archived!");
+        }
+        if (offer.getAcceptDate() == null) {
+            throw new BadRequestException("You can't archive an open offer!");
+        }
+
+        offer.setArchived(true);
+        offerRepository.save(offer);
         return offer.toDTO();
     }
 

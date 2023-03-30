@@ -144,4 +144,23 @@ public class OfferController {
             return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
+
+    @PutMapping(value = "{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> archiveOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                   @PathVariable(value = "id") Long offerId) {
+        try {
+            return new ResponseEntity<>(
+                    ServiceResult.createResult(offerService.archiveOffer(authInfo.getTeam(), offerId)),
+                    HttpStatus.OK
+            );
+        } catch (BadRequestException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.toString());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
 }
