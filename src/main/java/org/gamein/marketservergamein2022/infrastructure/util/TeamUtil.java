@@ -45,8 +45,6 @@ public class TeamUtil {
             sp = new StorageProduct();
             sp.setProduct(product);
             sp.setTeam(team);
-            sp.setInStorageAmount(0);
-            sp.setManufacturingAmount(0);
             sp.setInRouteAmount(amount);
 
             team.getStorageProducts().add(sp);
@@ -55,8 +53,7 @@ public class TeamUtil {
         return sp;
     }
 
-    public static void removeProductFromStorage(Team team, Product product, Integer amount,
-                                                StorageProductRepository repo) // TODO refactor this & usages
+    public static StorageProduct blockProductInStorage(Team team, Product product, Integer amount)
             throws BadRequestException {
         Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
                 storageProduct ->
@@ -71,7 +68,8 @@ public class TeamUtil {
             throw new BadRequestException("شما مقدار کافی " + product.getName() + " برای فروش ندارید!");
         }
 
-        sp.setInStorageAmount(sp.getInStorageAmount() - amount);
-        repo.save(sp);
+        sp.setBlockedAmount(sp.getBlockedAmount() + amount);
+
+        return sp;
     }
 }

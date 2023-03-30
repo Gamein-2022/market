@@ -3,6 +3,7 @@ package org.gamein.marketservergamein2022.web.controller;
 import org.gamein.marketservergamein2022.core.dto.request.*;
 import org.gamein.marketservergamein2022.core.dto.result.*;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.iao.AuthInfo;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.slf4j.Logger;
@@ -50,16 +51,20 @@ public class TradeController {
     public ResponseEntity<BaseResult> sellToGamein(@ModelAttribute("authInfo") AuthInfo authInfo,
                                                    @RequestBody SellToGameinRequestDTO request) {
         try {
-            OrderDTO result = tradeService.sellToGamein(
+            return new ResponseEntity<>(ServiceResult.createResult(tradeService.sellToGamein(
                     authInfo.getTeam(),
                     request.getProductId(),
-                    request.getQuantity()
-            );
-            return new ResponseEntity<>(ServiceResult.createResult(result), HttpStatus.OK);
+                    request.getQuantity(),
+                    request.getPrice()
+            )), HttpStatus.OK);
         } catch (BadRequestException e) {
             logger.error(e.getMessage());
             ErrorResult error = new ErrorResult(e.getMessage());
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.getMessage());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
 }

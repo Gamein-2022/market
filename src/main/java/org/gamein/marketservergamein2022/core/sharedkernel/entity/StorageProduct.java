@@ -23,14 +23,17 @@ public class StorageProduct {
     @ManyToOne(optional = false)
     private Product product;
 
-    @Column(name = "in_storage_amount", nullable = false)
-    private long inStorageAmount;
+    @Column(name = "in_storage_amount", nullable = false, columnDefinition = "integer default 0")
+    private int inStorageAmount = 0;
 
-    @Column(name = "manufacturing_amount", nullable = false)
-    private long manufacturingAmount;
+    @Column(name = "manufacturing_amount", nullable = false, columnDefinition = "integer default 0")
+    private int manufacturingAmount = 0;
 
-    @Column(name = "in_route_amount", nullable = false)
-    private long inRouteAmount;
+    @Column(name = "in_route_amount", nullable = false, columnDefinition = "integer default 0")
+    private int inRouteAmount = 0;
+
+    @Column(name = "blocked_amount", nullable = false, columnDefinition = "integer default 0")
+    private int blockedAmount = 0;
 
     @ManyToOne(optional = false)
     private Team team;

@@ -7,4 +7,5 @@ import lombok.Getter;
 public class SellToGameinRequestDTO {
     private Long productId;
     private Integer quantity;
+    private Long price;
 }

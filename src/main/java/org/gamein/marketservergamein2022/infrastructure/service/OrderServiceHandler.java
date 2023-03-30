@@ -7,6 +7,7 @@ import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
@@ -69,7 +70,8 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(balance);
             teamRepository.save(team);
         } else {
-            TeamUtil.removeProductFromStorage(team, product, quantity, storageProductRepository);
+            StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+            storageProductRepository.save(sp);
         }
 
         Order order = new Order();

@@ -39,4 +39,13 @@ public class ProductController {
                 HttpStatus.OK
         );
     }
+
+    @GetMapping(value = "final-products",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> getFinalProducts(@ModelAttribute("authInfo") AuthInfo authInfo) {
+        return new ResponseEntity<>(
+                ServiceResult.createResult(productService.getFinalProducts(authInfo.getTeam().getId())),
+                HttpStatus.OK
+        );
+    }
 }

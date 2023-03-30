@@ -37,7 +37,6 @@ public class InitController {
         if (token == null || token.length() < 8) {
             throw new InvalidTokenException("Invalid token!");
         }
-        logger.info(token);
 
         try {
             AuthInfoResponse result = RestUtil.getAuthInfo(token, authUrl);

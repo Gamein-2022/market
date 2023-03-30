@@ -1,43 +1,49 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
-import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
+import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 
 
 @Service
-public class TradeServerHandler implements TradeService {
+public class TradeServiceHandler implements TradeService {
     private final TaskScheduler taskScheduler;
     private final ProductRepository productRepository;
     private final TeamRepository teamRepository;
-    private final OrderRepository orderRepository;
     private final ShippingRepository shippingRepository;
     private final StorageProductRepository storageProductRepository;
+    private final FinalProductSellOrderRepository finalProductSellOrderRepository;
 
-    public TradeServerHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
-                              TeamRepository teamRepository, OrderRepository orderRepository,
-                              ShippingRepository shippingRepository,
-                              StorageProductRepository storageProductRepository) {
+    public TradeServiceHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
+                               TeamRepository teamRepository, ShippingRepository shippingRepository,
+                               StorageProductRepository storageProductRepository,
+                               FinalProductSellOrderRepository finalProductSellOrderRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
-        this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
         this.storageProductRepository = storageProductRepository;
+        this.finalProductSellOrderRepository = finalProductSellOrderRepository;
     }
 
     @Override
@@ -92,39 +98,38 @@ public class TradeServerHandler implements TradeService {
     }
 
     @Override
-    public OrderDTO sellToGamein(Team team, Long productId, Integer quantity)
-            throws BadRequestException {
+    public FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
+            throws NotFoundException, BadRequestException {
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
-            throw new BadRequestException("Invalid product!");
+            throw new NotFoundException("محصول مورد نظر یافت نشد!");
         }
         Product product = productOptional.get();
 
         if (product.getLevel() < 2) {
-            throw new BadRequestException("Gamein only buys final products!");
+            throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
-        // TODO validate the amount they can sell to gamein
 
-        long balance = team.getBalance();
+        StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+        storageProductRepository.save(sp);
 
-        TeamUtil.removeProductFromStorage(team, product, quantity, storageProductRepository); // throws error if
-        // there is not enough of the product (hopefully :))
-
-        balance += product.getPrice() * quantity;
-        team.setBalance(balance);
-        teamRepository.save(team);
-
-        Order order = new Order();
+        FinalProductSellOrder order = new FinalProductSellOrder();
         order.setSubmitDate(new Date());
         order.setSubmitter(team);
-        order.setAcceptDate(new Date());
-        order.setCancelled(false);
         order.setProduct(product);
-        order.setUnitPrice(product.getPrice());
-        order.setProductAmount(quantity);
-        // TODO set accepter to gamein team
-        orderRepository.save(order);
+        order.setUnitPrice(price);
+        order.setQuantity(quantity);
+        finalProductSellOrderRepository.save(order);
 
         return order.toDTO();
+    }
+
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    private void buy() {
+        System.out.println("scheduled task");
+        List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
+        new GameinTradeTasks(orders).run();
+        finalProductSellOrderRepository.saveAll(orders);
+        teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
     }
 }

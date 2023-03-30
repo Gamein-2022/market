@@ -4,10 +4,7 @@ import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OfferService;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Offer;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
@@ -68,7 +65,8 @@ public class OfferServiceHandler implements OfferService {
         }
 
         if (order.getType() == OrderType.BUY) {
-            TeamUtil.removeProductFromStorage(team, order.getProduct(), order.getProductAmount(), storageProductRepository);
+            StorageProduct sp = TeamUtil.blockProductInStorage(team, order.getProduct(), order.getProductAmount());
+            storageProductRepository.save(sp);
         } else {
             long balance = team.getBalance();
             balance -= order.getUnitPrice() * order.getProductAmount();
