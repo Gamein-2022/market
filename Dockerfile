@@ -1,4 +1,4 @@
-FROM gradle:7-jdk8 AS build
+FROM gradle:8.0.2-jdk17 AS build
 WORKDIR /app
 COPY . .
 RUN gradle build -x test --stacktrace
