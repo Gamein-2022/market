@@ -10,6 +10,5 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 public class BuildingDTO {
     private long id;
     private BuildingType type;
-    private int position;
     private boolean upgraded;
 }

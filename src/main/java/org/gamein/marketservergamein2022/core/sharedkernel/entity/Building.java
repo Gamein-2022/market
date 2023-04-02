@@ -31,14 +31,11 @@ public class Building {
     @Column(name = "upgraded")
     private boolean upgraded;
 
-    @Column(name = "position")
-    private byte position;
 
     public BuildingDTO toDTO() {
         return new BuildingDTO(
                 id,
                 type,
-                position,
                 upgraded
         );
     }
