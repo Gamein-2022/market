@@ -1,0 +1,9 @@
+version: "3.3"
+
+services:
+  market:
+    build: .
+    container_name: market
+    restart: always
+    ports:
+      - 8080:8080
