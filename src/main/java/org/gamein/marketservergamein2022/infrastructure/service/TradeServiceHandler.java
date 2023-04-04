@@ -72,7 +72,7 @@ public class TradeServiceHandler implements TradeService {
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity);
             storageProductRepository.save(sp);
-            teamRepository.save(team);
+
 
 
             Shipping shipping = new Shipping();
@@ -86,7 +86,9 @@ public class TradeServiceHandler implements TradeService {
             shipping.setStatus(ShippingStatus.IN_ROUTE);
             shipping.setProduct(product);
             shipping.setAmount(quantity);
-            shippingRepository.save(shipping);
+            shipping = shippingRepository.save(shipping);
+            team.getShippings().add(shipping);
+            teamRepository.save(team);
 
             taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                     shipping.getArrivalTime());

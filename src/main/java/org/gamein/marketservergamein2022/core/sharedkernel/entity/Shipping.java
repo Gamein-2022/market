@@ -42,7 +42,7 @@ public class Shipping {
     @ManyToOne(optional = false)
     private Team team;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false,cascade = CascadeType.ALL)
     private Product product;
 
     @Column(name = "amount", nullable = false)

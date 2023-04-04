@@ -26,7 +26,7 @@ public class Team {
     @OneToMany
     private List<User> users;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     private List<Shipping> shippings;
 
     @OneToOne(optional = false)
