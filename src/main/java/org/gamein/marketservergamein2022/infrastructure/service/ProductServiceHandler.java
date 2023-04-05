@@ -44,7 +44,8 @@ public class ProductServiceHandler implements ProductService {
                     int distance = abs(team.getRegion() - product.getRegion());
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
-                }).collect(Collectors.toList())
+                }).collect(Collectors.toList()),
+                team.getBalance()
         );
     }
 

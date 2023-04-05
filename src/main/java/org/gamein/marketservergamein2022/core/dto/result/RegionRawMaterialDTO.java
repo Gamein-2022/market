@@ -11,4 +11,5 @@ import java.util.List;
 public class RegionRawMaterialDTO {
     private List<RawMaterialDTO> myRegion;
     private List<RawMaterialDTO> otherRegions;
+    private long balance;
 }
