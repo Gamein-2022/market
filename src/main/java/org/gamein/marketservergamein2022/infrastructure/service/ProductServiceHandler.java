@@ -8,12 +8,15 @@ import org.gamein.marketservergamein2022.core.service.ProductService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
-import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.abs;
 
 
 @Service
@@ -31,8 +34,17 @@ public class ProductServiceHandler implements ProductService {
         List<Product> myRegion = productRepository.findAllByLevelAndRegion(0, team.getRegion());
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionIsNot(0, team.getRegion());
         return new RegionRawMaterialDTO(
-                myRegion.stream().map(Product::toDTO).map(RawMaterialDTO::new).collect(Collectors.toList()),
-                otherRegions.stream().map(Product::toDTO).map(RawMaterialDTO::new).collect(Collectors.toList())
+                myRegion.stream().map(product -> {
+                            int distance = abs(team.getRegion() - product.getRegion());
+                            return new RawMaterialDTO(product.getId(), product.getName(),
+                                    product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
+                        })
+                        .collect(Collectors.toList()),
+                otherRegions.stream().map(product -> {
+                    int distance = abs(team.getRegion() - product.getRegion());
+                    return new RawMaterialDTO(product.getId(), product.getName(),
+                            product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
+                }).collect(Collectors.toList())
         );
     }
 

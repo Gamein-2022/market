@@ -165,12 +165,22 @@ public class OfferServiceHandler implements OfferService {
             shipping.setSourceRegion(offer.getOfferer().getRegion());
             shipping.setArrivalTime(new Date(new Date().getTime() +
                     abs(offer.getOfferer().getRegion() - team.getRegion()) * 10000L));
+            StorageProduct sp = TeamUtil.addProductToRoute(order.getSubmitter(), shipping.getProduct(), shipping.getAmount());
+            storageProductRepository.save(sp);
+            sp = TeamUtil.removeProductFromBlocked(order.getAccepter(), shipping.getProduct(),
+                    shipping.getAmount());
+            storageProductRepository.save(sp);
         } else {
             shipping.setTeam(offer.getOfferer());
             shipping.setMethod(offer.getShippingMethod());
             shipping.setSourceRegion(order.getSubmitter().getRegion());
             shipping.setArrivalTime(new Date(new Date().getTime() +
                     abs(order.getSubmitter().getRegion() - team.getRegion()) * 10000L));
+            StorageProduct sp = TeamUtil.addProductToRoute(order.getAccepter(), shipping.getProduct(), shipping.getAmount());
+            storageProductRepository.save(sp);
+            sp = TeamUtil.removeProductFromBlocked(order.getSubmitter(), shipping.getProduct(),
+                    shipping.getAmount());
+            storageProductRepository.save(sp);
         }
         shippingRepository.save(shipping);
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
