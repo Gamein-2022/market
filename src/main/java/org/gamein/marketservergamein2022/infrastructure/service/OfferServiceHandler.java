@@ -132,8 +132,7 @@ public class OfferServiceHandler implements OfferService {
                 throw new BadRequestException("شما پول کافی برای پرداخت هزینه‌ی حمل را ندارید!");
             }
         }
-        team.setBalance(team.getBalance() - shippingCost);
-        teamRepository.save(team);
+
 
         offer.setAcceptDate(new Date());
         offerRepository.save(offer);
@@ -151,6 +150,10 @@ public class OfferServiceHandler implements OfferService {
                 }
         );
 
+        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount());
+        storageProductRepository.save(sp);
+        team.setBalance(team.getBalance() - shippingCost);
+        teamRepository.save(team);
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
         shipping.setStatus(ShippingStatus.IN_ROUTE);
