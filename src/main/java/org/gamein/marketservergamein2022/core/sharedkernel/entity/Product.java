@@ -28,9 +28,6 @@ public class Product {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToMany
-    private List<Product> components;
-
     @Column(name = "region", nullable = false)
     private int region;
 
@@ -38,10 +35,13 @@ public class Product {
     private long price;
 
     @Column(name = "available_year", nullable = false)
-    private long availableYear;
+    private int availableYear;
 
     @Column(name = "unit_volume", nullable = false)
     private long unitVolume;
+
+    @Column(name = "demand_coefficient")
+    private double demandCoefficient;
 
 
     public ProductDTO toDTO() {

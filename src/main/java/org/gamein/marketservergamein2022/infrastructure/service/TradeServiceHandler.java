@@ -16,6 +16,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -33,17 +35,27 @@ public class TradeServiceHandler implements TradeService {
     private final ShippingRepository shippingRepository;
     private final StorageProductRepository storageProductRepository;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
+    private final TeamResearchRepository teamResearchRepository;
+    private final TimeRepository timeRepository;
+    private final DemandRepository demandRepository;
+    private final BrandRepository brandRepository;
 
     public TradeServiceHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
                                TeamRepository teamRepository, ShippingRepository shippingRepository,
                                StorageProductRepository storageProductRepository,
-                               FinalProductSellOrderRepository finalProductSellOrderRepository) {
+                               FinalProductSellOrderRepository finalProductSellOrderRepository,
+                               TeamResearchRepository teamResearchRepository,
+                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.shippingRepository = shippingRepository;
         this.storageProductRepository = storageProductRepository;
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
+        this.teamResearchRepository = teamResearchRepository;
+        this.timeRepository = timeRepository;
+        this.demandRepository = demandRepository;
+        this.brandRepository = brandRepository;
     }
 
     @Override
@@ -72,7 +84,6 @@ public class TradeServiceHandler implements TradeService {
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity);
             storageProductRepository.save(sp);
-
 
 
             Shipping shipping = new Shipping();
@@ -128,10 +139,39 @@ public class TradeServiceHandler implements TradeService {
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     private void buy() {
-        System.out.println("scheduled task");
-        List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
-        new GameinTradeTasks(orders).run();
-        finalProductSellOrderRepository.saveAll(orders);
-        teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
+        try {
+
+            System.out.println("scheduled task");
+            Time time = timeRepository.findById(1L).get();
+            long fiveMinutesFromBeginning =
+                    Duration.ofSeconds(
+                            Duration.between(time.getBeginTime(), LocalDateTime.now()).toSeconds() - time.getStoppedTimeSeconds()
+                    ).toMinutes() / 5;
+            List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
+            List<Product> products = productRepository.findAllByLevelBetween(3, 3);
+            TeamResearch first = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(11L);
+            TeamResearch second = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(12L);
+            TeamResearch third = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(13L);
+            TeamResearch fourth = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(14L);
+            Demand demand = demandRepository.findById(fiveMinutesFromBeginning).get();
+            List<Team> teams = teamRepository.findAll();
+            List<Brand> previousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 1);
+            List<Brand> previousPreviousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 2);
+
+            new GameinTradeTasks(
+                    previousBrands, previousPreviousBrands, demand.getDemand(),
+                    first != null ? first.getEndTime() : null,
+                    second != null ? second.getEndTime() : null,
+                    third != null ? third.getEndTime() : null,
+                    fourth != null ? fourth.getEndTime() : null,
+                    products,
+                    orders,
+                    teams).run();
+            finalProductSellOrderRepository.saveAll(orders);
+            teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
+        } catch (Exception e) {
+            System.err.println("Error in scheduled task: trade service handler:");
+            System.err.println(e.getMessage());
+        }
     }
 }
