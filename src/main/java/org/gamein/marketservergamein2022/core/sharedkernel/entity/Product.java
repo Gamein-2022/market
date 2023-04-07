@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.ProductDTO;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
 
 import javax.persistence.*;
 import java.util.List;
@@ -37,12 +38,21 @@ public class Product {
     @Column(name = "available_year", nullable = false)
     private int availableYear;
 
+    @ManyToOne
+    private ResearchSubject RAndD;
+
+    @Column(name = "production_rate")
+    private Long productionRate;
+
     @Column(name = "unit_volume", nullable = false)
-    private long unitVolume;
+    private int unitVolume;
 
     @Column(name = "demand_coefficient")
     private double demandCoefficient;
 
+    @Column(name = "product_group")
+    @Enumerated(EnumType.STRING)
+    private ProductGroup group;
 
     public ProductDTO toDTO() {
         return new ProductDTO(id, name, price, level);
