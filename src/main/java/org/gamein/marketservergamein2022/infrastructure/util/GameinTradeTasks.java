@@ -4,6 +4,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Brand;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.FinalProductSellOrder;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.infrastructure.repository.FinalProductSellOrderRepository;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,11 +15,7 @@ import java.util.stream.Collectors;
 
 public class GameinTradeTasks {
     private final HashMap<Long, Integer> demands = new HashMap<>();
-    private final HashMap<Long, Integer> brands = new HashMap<>();
-    private final HashMap<Long, Integer> prevBrandsMap = new HashMap<>();
-    private final HashMap<Long, Integer> prevPrevBrandsMap = new HashMap<>();
-    private final List<Brand> previousBrands;
-    private final List<Brand> previousPreviousBrands;
+    private final HashMap<Long, Double> brands = new HashMap<>();
     private final int totalDemand;
     private final Date firstTime;
     private final Date secondTime;
@@ -27,10 +24,14 @@ public class GameinTradeTasks {
     private final List<Product> products;
     private final List<FinalProductSellOrder> orders;
     private final List<Team> teams;
+    private final FinalProductSellOrderRepository finalProductSellOrderRepository;
+    private HashMap<Long, Double> prevBrandsMap = null;
+    private HashMap<Long, Double> prevPrevBrandsMap = null;
 
-    public GameinTradeTasks(List<Brand> previousBrands, List<Brand> previousPreviousBrands, int totalDemand, Date firstTime, Date secondTime, Date thirdTime, Date fourthTime, List<Product> products, List<FinalProductSellOrder> orders, List<Team> teams) {
-        this.previousBrands = previousBrands;
-        this.previousPreviousBrands = previousPreviousBrands;
+    public GameinTradeTasks(List<Brand> previousBrands, List<Brand> previousPreviousBrands, int totalDemand,
+                            Date firstTime, Date secondTime, Date thirdTime, Date fourthTime, List<Product> products,
+                            List<FinalProductSellOrder> orders, List<Team> teams,
+                            FinalProductSellOrderRepository finalProductSellOrderRepository) {
         this.totalDemand = totalDemand;
         this.firstTime = firstTime;
         this.secondTime = secondTime;
@@ -39,10 +40,25 @@ public class GameinTradeTasks {
         this.products = products;
         this.orders = orders;
         this.teams = teams;
+        this.finalProductSellOrderRepository = finalProductSellOrderRepository;
+
+        if (previousPreviousBrands.size() > 0) {
+            prevPrevBrandsMap = new HashMap<>();
+            for (Brand brand : previousBrands) {
+                prevPrevBrandsMap.put(brand.getTeam().getId(), brand.getBrand());
+            }
+        }
+        if (previousBrands.size() > 0) {
+            prevBrandsMap = new HashMap<>();
+            for (Brand brand : previousBrands) {
+                prevBrandsMap.put(brand.getTeam().getId(), brand.getBrand());
+            }
+        }
     }
 
-    public void run() {
+    public HashMap<Long, Double> run() {
         calculateDemands();
+        calculateBrands();
         for (Product product : products) {
             divideDemandByProduct(
                     orders.stream()
@@ -50,8 +66,10 @@ public class GameinTradeTasks {
                             .collect(Collectors.toList()), product
             );
         }
+        return brands;
     }
 
+    // TODO refactor this functions (make brandOnPrices HashMap, filter out completed orders to iterate less each time)
     public void divideDemandByProduct(List<FinalProductSellOrder> orders,
                                       Product product) {
         int demand = demands.get(product.getId());
@@ -59,8 +77,8 @@ public class GameinTradeTasks {
         double totalBrandOnPrice;
         List<Double> brandOnPrices = new ArrayList<>();
         for (FinalProductSellOrder order : orders) {
-            int brand = brands.get(order.getSubmitter().getId());
-            double brandOnPrice = (double) brand / order.getQuantity();
+            double brand = brands.get(order.getSubmitter().getId());
+            double brandOnPrice = brand / order.getQuantity();
             brandOnPrices.add(brandOnPrice);
         }
         while (true) {
@@ -149,27 +167,52 @@ public class GameinTradeTasks {
     }
 
     private void calculateBrands() {
-//        for (Brand brand : previousBrands) {
-//            prevBrandsMap.put(brand.getTeam().getId(), brand.getBrand());
-//        }
-//        for (Brand brand : previousPreviousBrands) {
-//            prevPrevBrandsMap.put(brand.getTeam().getId(), brand.getBrand());
-//        }
-//        double alpha = 1.0;
-//        double betta = 1.0;
-//        double theta = 1.0;
-//        double lambda = 1.0;
-//
-//        ArrayList<Integer> formulae;
-//        int sumFormulae;
-//        for (Team team : teams) {
-//            int formula =
-//                    (int) (alpha * Math.pow((double) getCarbonFootprint(), lambda)) +
-//                    betta * calculateSellShareForProduct;
-//        }
+        double alpha = -1.0;
+        double betta = -1.0;
+        double theta = 1.0;
+        double lambda = 1.0;
+
+        HashMap<Long, Double> formulae = new HashMap<>();
+        double sumFormulae = 0;
         for (Team team : teams) {
-            brands.put(team.getId(), 50);
+            Long totalSellAmount = finalProductSellOrderRepository.totalSoldAmount(team.getId());
+            if (totalSellAmount == null) totalSellAmount = 0L;
+            double formula =
+                    alpha * Math.pow(getCarbonFootprint(), lambda) +
+                            betta * calculateSecondBrandFactor(team.getId(), totalSellAmount) +
+                            theta * totalSellAmount;
+            formulae.put(team.getId(), formula);
+            sumFormulae += formula;
         }
+        for (Team team : teams) {
+            brands.put(team.getId(), (formulae.get(team.getId()) / sumFormulae) * 100);
+        }
+    }
+
+    private double calculateSecondBrandFactor(Long teamId, Long totalSellAmount) {
+        double result = 0;
+        for (Long productId : finalProductSellOrderRepository.findProduct_IdsByTeam_Id(teamId)) {
+            double deltaBrand = meanDeltaBrand(productId);
+            if (deltaBrand == 0) {
+                continue;
+            }
+            Long sellAmount = finalProductSellOrderRepository.totalProductSoldAmount(teamId, productId);
+            if (sellAmount == null) sellAmount = 0L;
+            result += ((double) sellAmount / totalSellAmount) * deltaBrand;
+        }
+        return result;
+    }
+
+    private double meanDeltaBrand(Long productId) {
+        if (prevBrandsMap == null || prevPrevBrandsMap == null) {
+            return 0;
+        }
+        List<Long> teamIds = finalProductSellOrderRepository.findTeam_IdsByProduct_Id(productId);
+        double sumDeltaBrand = 0;
+        for (Long teamId : teamIds) {
+            sumDeltaBrand += prevBrandsMap.get(teamId) - prevPrevBrandsMap.get(teamId);
+        }
+        return sumDeltaBrand / teamIds.size();
     }
 
     private int getCarbonFootprint() {

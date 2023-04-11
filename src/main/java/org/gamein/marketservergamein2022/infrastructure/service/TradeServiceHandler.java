@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -158,7 +156,7 @@ public class TradeServiceHandler implements TradeService {
             List<Brand> previousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 1);
             List<Brand> previousPreviousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 2);
 
-            new GameinTradeTasks(
+            HashMap<Long, Double> newBrandsMap = new GameinTradeTasks(
                     previousBrands, previousPreviousBrands, demand.getDemand(),
                     first != null ? first.getEndTime() : null,
                     second != null ? second.getEndTime() : null,
@@ -166,7 +164,17 @@ public class TradeServiceHandler implements TradeService {
                     fourth != null ? fourth.getEndTime() : null,
                     products,
                     orders,
-                    teams).run();
+                    teams,
+                    finalProductSellOrderRepository).run();
+            List<Brand> newBrands = new ArrayList<>();
+            for (Map.Entry<Long, Double> brand : newBrandsMap.entrySet()) {
+                Brand b = new Brand();
+                b.setTeam(teamRepository.findById(brand.getKey()).get());
+                b.setBrand(brand.getValue());
+                b.setPeriod(fiveMinutesFromBeginning);
+                newBrands.add(b);
+            }
+            brandRepository.saveAll(newBrands);
             finalProductSellOrderRepository.saveAll(orders);
             teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
         } catch (Exception e) {

@@ -24,7 +24,7 @@ public class Brand {
     private Long period;
 
     @Column(name = "brand")
-    private Integer brand;
+    private Double brand;
 
     @ManyToOne
     Team team;
