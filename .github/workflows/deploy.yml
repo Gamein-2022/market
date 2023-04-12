@@ -1,22 +1,11 @@
-name: deploy market
+name: build market
 
 on:
   push:
     branches: [ "master" ]
 
 jobs:
-  deploy-market:
+  build-market:
     runs-on: ubuntu-20.04
     steps:
-      - name: Deploy
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          password: ${{ secrets.PASSWORD }}
-          command_timeout: 200m
-          script: |
-            cd /home/ubuntu/market
-            git checkout master
-            git pull origin master
-            sudo docker-compose up --build -d
+      - run: docker ps
