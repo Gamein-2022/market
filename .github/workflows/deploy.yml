@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-market:
-    runs-on: ubuntu-20.04
+    runs-on: [self-hosted, linux]
     steps:
       - run: |
               docker ps
