@@ -2,6 +2,7 @@ package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingInfoDTO;
+import org.gamein.marketservergamein2022.core.dto.result.TradeLogsDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
@@ -172,5 +173,13 @@ public class OrderServiceHandler implements OrderService {
                 distance * 10,
                 team.getBalance()
         );
+    }
+
+    @Override
+    public List<TradeLogsDTO> getTeamLogs(Long teamId) {
+        return orderRepository.findAllBySubmitter_IdOrAccepter_IdAndAcceptDateIsNotNull(teamId, teamId)
+                        .stream().map(order -> ((order.getSubmitter().getId().equals(teamId) && order.getType() == OrderType.BUY) ||
+                                    (order.getAccepter().getId().equals(teamId) && order.getType() == OrderType.SELL))
+                                    ? order.toBuyLogDTO() : order.toSellLogDTO()).collect(Collectors.toList());
     }
 }

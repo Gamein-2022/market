@@ -182,6 +182,8 @@ public class OfferServiceHandler implements OfferService {
                     shipping.getAmount());
             storageProductRepository.save(sp);
         }
+        order.setShipping(shipping);
+        orderRepository.save(order);
         shippingRepository.save(shipping);
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                 shipping.getArrivalTime());

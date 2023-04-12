@@ -118,4 +118,12 @@ public class OrderController {
             return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping(value = "logs", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> getOrderLogs(@ModelAttribute("authInfo") AuthInfo authInfo) {
+        return new ResponseEntity<>(
+                ServiceResult.createResult(orderService.getTeamLogs(authInfo.getTeam().getId())),
+                HttpStatus.OK
+        );
+    }
 }

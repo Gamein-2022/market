@@ -5,11 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.TradeLogsDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.Date;
+
+import static java.lang.Math.abs;
 
 
 @DynamicInsert
@@ -52,6 +56,9 @@ public class Order {
     @ManyToOne(optional = false)
     private Team submitter;
 
+    @OneToOne
+    private Shipping shipping;
+
     @ManyToOne
     private Team accepter;
 
@@ -67,6 +74,23 @@ public class Order {
                 cancelled,
                 acceptDate,
                 submitter.getRegion()
+        );
+    }
+
+    public TradeLogsDTO toBuyLogDTO() {
+        int distance = abs(submitter.getRegion() - accepter.getRegion());
+        return new TradeLogsDTO(
+                OrderType.BUY, product.toDTO(), productAmount, submitter.getRegion(), accepter.getRegion(),
+                shipping.toDTO(),
+                (int) -(unitPrice * productAmount + (shipping.getMethod() == ShippingMethod.PLANE ? distance * 50 :
+                        shipping.getMethod() == ShippingMethod.SHIP ? distance * 10 : 0))
+        );
+    }
+
+    public TradeLogsDTO toSellLogDTO() {
+        return new TradeLogsDTO(
+                OrderType.SELL, product.toDTO(), productAmount, submitter.getRegion(), accepter.getRegion(), null,
+                (int) (unitPrice * productAmount)
         );
     }
 }
