@@ -162,7 +162,7 @@ public class GameinTradeTasks {
         yearDemand.put(2023, fifthEraDemand);
 
         for (Product p : products) {
-            demands.put(p.getId(), (int) p.getDemandCoefficient() * yearDemand.get(p.getAvailableYear()));
+            demands.put(p.getId(), (int) (p.getDemandCoefficient() * yearDemand.get(p.getAvailableYear())));
         }
     }
 
