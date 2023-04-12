@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: |
-              whoami
-              docker ps
-              ls -lah 
+              ls -lah
+              docker rm -f market      
+              docker-compose up --build -d
+              docker-compose ps
