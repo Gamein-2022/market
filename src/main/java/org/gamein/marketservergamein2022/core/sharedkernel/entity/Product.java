@@ -48,7 +48,7 @@ public class Product {
     private int unitVolume;
 
     @Column(name = "demand_coefficient")
-    private double demandCoefficient;
+    private Double demandCoefficient;
 
     @Column(name = "product_group")
     @Enumerated(EnumType.STRING)
