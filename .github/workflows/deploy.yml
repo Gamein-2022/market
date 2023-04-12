@@ -10,5 +10,5 @@ jobs:
     steps:
       - run: |
               whoami
-              #docker ps
-              #ls -lah /home
+              docker ps
+              ls -lah /home
