@@ -1,5 +1,8 @@
 version: "3.3"
-
+networks:
+   gamein:
+     external: true
+     
 services:
   market:
     build: .
@@ -7,3 +10,9 @@ services:
     restart: always
     ports:
       - 8080:8080
+    networks:
+      - gamein
+    environment:
+      - spring.datasource.url=jdbc:postgresql://pgsql/gamein
+      - spring.datasource.username=gamin
+      - spring.datasource.password=gamin123
