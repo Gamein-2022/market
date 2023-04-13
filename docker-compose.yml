@@ -14,5 +14,5 @@ services:
       - gamein
     environment:
       - spring.datasource.url=jdbc:postgresql://pgsql/gamein
-      - spring.datasource.username=gamin
-      - spring.datasource.password=gamin123
+      - spring.datasource.username=gamein
+      - spring.datasource.password=gamein123
