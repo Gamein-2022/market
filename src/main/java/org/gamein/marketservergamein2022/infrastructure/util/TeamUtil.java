@@ -5,14 +5,17 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
+import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 
 import java.util.Optional;
 
 
 public class TeamUtil {
+
     public static int calculateStorageSpace(Team team) {
         return (int) ((team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 3000);
     }
+
     public static int calculateAvailableSpace(Team team) {
         int result = calculateStorageSpace(team);
         for (StorageProduct storageProduct : team.getStorageProducts()) {
@@ -39,10 +42,8 @@ public class TeamUtil {
         return result;
     }
 
-    public static StorageProduct addProductToRoute(Team team, Product product, Integer amount) {
-        Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
-                storageProduct -> storageProduct.getProduct().getId() == product.getId()
-        ).findFirst();
+    public static StorageProduct addProductToRoute(Team team, Product product, Integer amount,StorageProductRepository repository) {
+        Optional<StorageProduct> storageProductOptional = repository.findFirstByProduct_IdAndTeam_Id(product.getId(),team.getId());
 
         StorageProduct sp;
         if (storageProductOptional.isPresent()) {
@@ -60,11 +61,8 @@ public class TeamUtil {
         return sp;
     }
 
-    public static StorageProduct addProductToStorage(Team team, Product product, Integer amount) {
-        Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
-                storageProduct -> storageProduct.getProduct().getId() == product.getId()
-        ).findFirst();
-
+    public static StorageProduct addProductToStorage(Team team, Product product, Integer amount,StorageProductRepository repository) {
+        Optional<StorageProduct> storageProductOptional = repository.findFirstByProduct_IdAndTeam_Id(product.getId(),team.getId());
         StorageProduct sp;
         if (storageProductOptional.isPresent()) {
             sp = storageProductOptional.get();
@@ -81,9 +79,9 @@ public class TeamUtil {
         return sp;
     }
 
-    public static StorageProduct blockProductInStorage(Team team, Product product, Integer amount)
+    public static StorageProduct blockProductInStorage(Team team, Product product, Integer amount,StorageProductRepository repository)
             throws BadRequestException {
-        StorageProduct sp = getSPFromProduct(team, product);
+        StorageProduct sp = getSPFromProduct(team, product,repository);
         if (sp.getInStorageAmount() - sp.getBlockedAmount() < amount) {
             throw new BadRequestException("شما مقدار کافی " + product.getName() + " ندارید!");
         }
@@ -93,9 +91,9 @@ public class TeamUtil {
         return sp;
     }
 
-    public static StorageProduct removeProductFromBlocked(Team team, Product product, Integer amount)
+    public static StorageProduct removeProductFromBlocked(Team team, Product product, Integer amount, StorageProductRepository repository)
             throws BadRequestException {
-        StorageProduct sp = getSPFromProduct(team, product);
+        StorageProduct sp = getSPFromProduct(team, product, repository);
         if (sp.getBlockedAmount() < amount) {
             throw new BadRequestException("شما مقدار کافی " + product.getName() + " ندارید!");
         }
@@ -105,9 +103,9 @@ public class TeamUtil {
         return sp;
     }
 
-    public static StorageProduct removeProductFromStorage(Team team, Product product, Integer amount)
+    public static StorageProduct removeProductFromStorage(Team team, Product product, Integer amount, StorageProductRepository repository)
             throws BadRequestException {
-        StorageProduct sp = getSPFromProduct(team, product);
+        StorageProduct sp = getSPFromProduct(team, product, repository);
         if (sp.getInStorageAmount() < amount) {
             throw new BadRequestException("شما مقدار کافی " + product.getName() + " ندارید!");
         }
@@ -117,9 +115,9 @@ public class TeamUtil {
         return sp;
     }
 
-    public static StorageProduct removeProductFromInRoute(Team team, Product product, Integer amount)
+    public static StorageProduct removeProductFromInRoute(Team team, Product product, Integer amount, StorageProductRepository repository)
             throws BadRequestException {
-        StorageProduct sp = getSPFromProduct(team, product);
+        StorageProduct sp = getSPFromProduct(team, product, repository);
         if (sp.getInRouteAmount() < amount) {
             throw new BadRequestException("این مقدار " + product.getName() + " در مسیر نیست!");
         }
@@ -129,11 +127,8 @@ public class TeamUtil {
         return sp;
     }
 
-    private static StorageProduct getSPFromProduct(Team team, Product product) throws BadRequestException {
-        Optional<StorageProduct> storageProductOptional = team.getStorageProducts().stream().filter(
-                storageProduct ->
-                        product.getId() == storageProduct.getProduct().getId()
-        ).findFirst();
+    private static StorageProduct getSPFromProduct(Team team, Product product, StorageProductRepository repository) throws BadRequestException {
+        Optional<StorageProduct> storageProductOptional = repository.findFirstByProduct_IdAndTeam_Id(product.getId(), team.getId());
         if (storageProductOptional.isEmpty()) {
             throw new BadRequestException("شما مقدار کافی " + product.getName() + " ندارید!");
         }

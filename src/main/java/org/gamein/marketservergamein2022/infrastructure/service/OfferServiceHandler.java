@@ -65,7 +65,8 @@ public class OfferServiceHandler implements OfferService {
         }
 
         if (order.getType() == OrderType.BUY) {
-            StorageProduct sp = TeamUtil.blockProductInStorage(team, order.getProduct(), order.getProductAmount());
+            StorageProduct sp = TeamUtil.blockProductInStorage(team, order.getProduct(), order.getProductAmount()
+            ,storageProductRepository);
             storageProductRepository.save(sp);
         } else {
             long balance = team.getBalance();
@@ -150,7 +151,8 @@ public class OfferServiceHandler implements OfferService {
                 }
         );
 
-        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount());
+        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount()
+        ,storageProductRepository);
         storageProductRepository.save(sp);
         team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
@@ -165,10 +167,11 @@ public class OfferServiceHandler implements OfferService {
             shipping.setSourceRegion(offer.getOfferer().getRegion());
             shipping.setArrivalTime(new Date(new Date().getTime() +
                     abs(offer.getOfferer().getRegion() - team.getRegion()) * 10000L));
-            sp = TeamUtil.addProductToRoute(order.getSubmitter(), shipping.getProduct(), shipping.getAmount());
+            sp = TeamUtil.addProductToRoute(order.getSubmitter(), shipping.getProduct(), shipping.getAmount()
+            ,storageProductRepository);
             storageProductRepository.save(sp);
             sp = TeamUtil.removeProductFromBlocked(order.getAccepter(), shipping.getProduct(),
-                    shipping.getAmount());
+                    shipping.getAmount(),storageProductRepository);
             storageProductRepository.save(sp);
         } else {
             shipping.setTeam(offer.getOfferer());
@@ -176,10 +179,11 @@ public class OfferServiceHandler implements OfferService {
             shipping.setSourceRegion(order.getSubmitter().getRegion());
             shipping.setArrivalTime(new Date(new Date().getTime() +
                     abs(order.getSubmitter().getRegion() - team.getRegion()) * 10000L));
-            sp = TeamUtil.addProductToRoute(order.getAccepter(), shipping.getProduct(), shipping.getAmount());
+            sp = TeamUtil.addProductToRoute(order.getAccepter(), shipping.getProduct(), shipping.getAmount()
+            ,storageProductRepository);
             storageProductRepository.save(sp);
             sp = TeamUtil.removeProductFromBlocked(order.getSubmitter(), shipping.getProduct(),
-                    shipping.getAmount());
+                    shipping.getAmount(),storageProductRepository);
             storageProductRepository.save(sp);
         }
         order.setShipping(shipping);

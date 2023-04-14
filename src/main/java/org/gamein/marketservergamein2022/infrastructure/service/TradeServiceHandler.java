@@ -80,7 +80,7 @@ public class TradeServiceHandler implements TradeService {
             balance -= product.getPrice() * quantity;
             // TODO reduce shipping amount from balance
             team.setBalance(balance);
-            StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity);
+            StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity,storageProductRepository);
             storageProductRepository.save(sp);
 
 
@@ -121,7 +121,7 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
 
-        StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+        StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity,storageProductRepository);
         storageProductRepository.save(sp);
 
         FinalProductSellOrder order = new FinalProductSellOrder();

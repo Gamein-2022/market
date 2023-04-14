@@ -71,7 +71,7 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(balance);
             teamRepository.save(team);
         } else {
-            StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+            StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity,storageProductRepository);
             storageProductRepository.save(sp);
         }
 
@@ -120,7 +120,7 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
             teamRepository.save(team);
         } else {
-            TeamUtil.addProductToRoute(team, order.getProduct(), order.getProductAmount());
+            TeamUtil.addProductToRoute(team, order.getProduct(), order.getProductAmount(),storageProductRepository);
         }
 
         order.setCancelled(true);
