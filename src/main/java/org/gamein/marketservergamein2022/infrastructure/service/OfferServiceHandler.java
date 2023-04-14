@@ -187,8 +187,8 @@ public class OfferServiceHandler implements OfferService {
             storageProductRepository.save(sp);
         }
         order.setShipping(shipping);
-        orderRepository.save(order);
         shippingRepository.save(shipping);
+        orderRepository.save(order);
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                 shipping.getArrivalTime());
         // TODO notify players of new shipping
