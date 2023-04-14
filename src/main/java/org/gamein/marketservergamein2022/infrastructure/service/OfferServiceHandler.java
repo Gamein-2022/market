@@ -150,10 +150,11 @@ public class OfferServiceHandler implements OfferService {
                     }
                 }
         );
+        StorageProduct sp;
 
-        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount()
-        ,storageProductRepository);
-        storageProductRepository.save(sp);
+//        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount()
+//                ,storageProductRepository);
+//        storageProductRepository.save(sp);
         team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
         Shipping shipping = new Shipping();
