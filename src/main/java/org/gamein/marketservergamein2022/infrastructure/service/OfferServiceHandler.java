@@ -182,8 +182,11 @@ public class OfferServiceHandler implements OfferService {
             sp = TeamUtil.addProductToRoute(order.getAccepter(), shipping.getProduct(), shipping.getAmount()
             ,storageProductRepository);
             storageProductRepository.save(sp);
+
             sp = TeamUtil.removeProductFromBlocked(order.getSubmitter(), shipping.getProduct(),
                     shipping.getAmount(),storageProductRepository);
+            sp = TeamUtil.removeProductFromStorage(order.getSubmitter(),shipping.getProduct(),shipping.getAmount()
+            ,storageProductRepository);
             storageProductRepository.save(sp);
         }
         order.setShipping(shipping);
