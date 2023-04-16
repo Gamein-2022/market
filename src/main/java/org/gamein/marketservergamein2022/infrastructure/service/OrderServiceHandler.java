@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
 
 
 @Service
@@ -71,7 +72,10 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(balance);
             teamRepository.save(team);
         } else {
-            StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+            StorageProduct sp = TeamUtil.blockProductInStorage(
+                    getSPFromProduct(team, product, storageProductRepository),
+                    quantity
+            );
             storageProductRepository.save(sp);
         }
 
@@ -120,7 +124,10 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
             teamRepository.save(team);
         } else {
-            TeamUtil.addProductToRoute(team, order.getProduct(), order.getProductAmount());
+            TeamUtil.unblockProduct(
+                    getSPFromProduct(team, order.getProduct(), storageProductRepository),
+                    order.getProductAmount()
+            );
         }
 
         order.setCancelled(true);

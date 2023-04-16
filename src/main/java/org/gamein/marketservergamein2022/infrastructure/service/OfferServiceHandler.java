@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getOrCreateSPFromProduct;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
 
 
 @Service
@@ -65,7 +67,10 @@ public class OfferServiceHandler implements OfferService {
         }
 
         if (order.getType() == OrderType.BUY) {
-            StorageProduct sp = TeamUtil.blockProductInStorage(team, order.getProduct(), order.getProductAmount());
+            StorageProduct sp = TeamUtil.blockProductInStorage(
+                    getSPFromProduct(team, order.getProduct(), storageProductRepository),
+                    order.getProductAmount()
+            );
             storageProductRepository.save(sp);
         } else {
             long balance = team.getBalance();
@@ -145,8 +150,10 @@ public class OfferServiceHandler implements OfferService {
                 o -> {
                     StorageProduct sp;
                     try {
-                        sp = TeamUtil.unblockProduct(o.getOfferer(), o.getOrder().getProduct(),
-                                o.getOrder().getProductAmount());
+                        sp = TeamUtil.unblockProduct(
+                                getSPFromProduct(team, order.getProduct(), storageProductRepository),
+                                order.getProductAmount()
+                        );
                     } catch (BadRequestException e) {
                         // TODO so something about this exception
                         throw new RuntimeException(e);
@@ -159,8 +166,12 @@ public class OfferServiceHandler implements OfferService {
                 }
         );
 
-        StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount());
+        StorageProduct sp = TeamUtil.addProductToRoute(
+                getOrCreateSPFromProduct(team, order.getProduct(), storageProductRepository, teamRepository),
+                order.getProductAmount()
+        );
         storageProductRepository.save(sp);
+        team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
@@ -182,12 +193,22 @@ public class OfferServiceHandler implements OfferService {
         shipping.setSourceRegion(seller.getRegion());
         shipping.setArrivalTime(new Date(new Date().getTime() +
                 abs(buyer.getRegion() - seller.getRegion()) * 10000L));
-        sp = TeamUtil.addProductToRoute(buyer, shipping.getProduct(), shipping.getAmount());
+        sp = TeamUtil.addProductToRoute(
+                getOrCreateSPFromProduct(
+                        buyer,
+                        shipping.getProduct(),
+                        storageProductRepository,
+                        teamRepository
+                ),
+                shipping.getAmount()
+        );
         buyer.setBalance(buyer.getBalance() - order.getProductAmount() * order.getUnitPrice() - shippingCost);
         storageProductRepository.save(sp);
         teamRepository.save(buyer);
-        sp = TeamUtil.removeProductFromBlocked(seller, shipping.getProduct(),
-                shipping.getAmount());
+        sp = TeamUtil.removeProductFromBlocked(
+                getSPFromProduct(seller, shipping.getProduct(), storageProductRepository),
+                shipping.getAmount()
+        );
         seller.setBalance(seller.getBalance() + order.getProductAmount() * order.getUnitPrice());
         storageProductRepository.save(sp);
         teamRepository.save(seller);
@@ -208,7 +229,13 @@ public class OfferServiceHandler implements OfferService {
         offer.setDeclined(true);
         offerRepository.save(offer);
 
-        StorageProduct sp = TeamUtil.unblockProduct(offer.getOfferer(), offer.getOrder().getProduct(),
+        StorageProduct sp = TeamUtil.unblockProduct(
+                getOrCreateSPFromProduct(
+                        offer.getOfferer(),
+                        offer.getOrder().getProduct(),
+                        storageProductRepository,
+                        teamRepository
+                ),
                 offer.getOrder().getProductAmount());
         storageProductRepository.save(sp);
 
@@ -232,8 +259,10 @@ public class OfferServiceHandler implements OfferService {
         offer.setCancelled(true);
         offerRepository.save(offer);
 
-        StorageProduct sp = TeamUtil.unblockProduct(offer.getOfferer(), offer.getOrder().getProduct(),
-                offer.getOrder().getProductAmount());
+        StorageProduct sp = TeamUtil.unblockProduct(
+                getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+                offer.getOrder().getProductAmount()
+        );
         storageProductRepository.save(sp);
 
         return offer.toDTO();
@@ -287,7 +316,7 @@ public class OfferServiceHandler implements OfferService {
     }
 
     private void checkOfferClosed(Offer offer)
-            throws BadRequestException{
+            throws BadRequestException {
         if (offer.getAcceptDate() != null) {
             throw new BadRequestException("پیشنهاد قبلا قبول شده است!");
         }

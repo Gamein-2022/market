@@ -8,7 +8,9 @@ jobs:
   build-market:
     runs-on: [self-hosted, linux]
     steps:
+      - uses: actions/checkout@master
       - run: |
-              whoami
-              docker ps
-              ls -lah /home
+              ls -lah
+              docker rm -f market      
+              docker-compose up --build -d
+              docker-compose ps

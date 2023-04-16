@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
 
 
 @Service
@@ -80,7 +81,10 @@ public class TradeServiceHandler implements TradeService {
             balance -= product.getPrice() * quantity;
             // TODO reduce shipping amount from balance
             team.setBalance(balance);
-            StorageProduct sp = TeamUtil.addProductToRoute(team, product, quantity);
+            StorageProduct sp = TeamUtil.addProductToRoute(
+                    getSPFromProduct(team, product, storageProductRepository),
+                    quantity
+            );
             storageProductRepository.save(sp);
 
 
@@ -121,7 +125,10 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
 
-        StorageProduct sp = TeamUtil.blockProductInStorage(team, product, quantity);
+        StorageProduct sp = TeamUtil.blockProductInStorage(
+                getSPFromProduct(team, product, storageProductRepository),
+                quantity
+        );
         storageProductRepository.save(sp);
 
         FinalProductSellOrder order = new FinalProductSellOrder();
