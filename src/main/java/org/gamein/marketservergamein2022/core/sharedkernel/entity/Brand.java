@@ -9,7 +9,7 @@ import javax.persistence.*;
 
 
 @Entity
-@Table(name = "time")
+@Table(name = "brand")
 @Getter
 @Setter
 @AllArgsConstructor

@@ -93,6 +93,19 @@ public class TeamUtil {
         return sp;
     }
 
+    public static StorageProduct unblockProduct(Team team, Product product, Integer amount)
+        throws BadRequestException {
+        StorageProduct sp = getSPFromProduct(team, product);
+        if (sp.getBlockedAmount() < amount) {
+            throw new BadRequestException("شما مقدار کافی " + product.getName() + " ندارید!");
+        }
+
+        sp.setBlockedAmount(sp.getBlockedAmount() - amount);
+        sp.setInStorageAmount(sp.getInStorageAmount() + amount);
+
+        return sp;
+    }
+
     public static StorageProduct removeProductFromBlocked(Team team, Product product, Integer amount)
             throws BadRequestException {
         StorageProduct sp = getSPFromProduct(team, product);

@@ -141,8 +141,17 @@ public class OfferServiceHandler implements OfferService {
         order.setAcceptDate(new Date());
         order.setAccepter(offer.getOfferer());
 
-        offerRepository.findAllByOrder_Id(order.getId()).forEach(
+        offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
                 o -> {
+                    StorageProduct sp;
+                    try {
+                        sp = TeamUtil.unblockProduct(o.getOfferer(), o.getOrder().getProduct(),
+                                o.getOrder().getProductAmount());
+                    } catch (BadRequestException e) {
+                        // TODO so something about this exception
+                        throw new RuntimeException(e);
+                    }
+                    storageProductRepository.save(sp);
                     if (!o.getId().equals(offer.getId())) {
                         o.setDeclined(true);
                         offerRepository.save(o);
@@ -152,42 +161,43 @@ public class OfferServiceHandler implements OfferService {
 
         StorageProduct sp = TeamUtil.addProductToRoute(team,order.getProduct(),order.getProductAmount());
         storageProductRepository.save(sp);
-        team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
         shipping.setStatus(ShippingStatus.IN_ROUTE);
         shipping.setProduct(order.getProduct());
         shipping.setAmount(order.getProductAmount());
+        Team buyer;
+        Team seller;
         if (order.getType() == OrderType.BUY) {
-            shipping.setTeam(order.getSubmitter());
+            buyer = order.getSubmitter();
+            seller = order.getAccepter();
             shipping.setMethod(shippingMethod);
-            shipping.setSourceRegion(offer.getOfferer().getRegion());
-            shipping.setArrivalTime(new Date(new Date().getTime() +
-                    abs(offer.getOfferer().getRegion() - team.getRegion()) * 10000L));
-            sp = TeamUtil.addProductToRoute(order.getSubmitter(), shipping.getProduct(), shipping.getAmount());
-            storageProductRepository.save(sp);
-            sp = TeamUtil.removeProductFromBlocked(order.getAccepter(), shipping.getProduct(),
-                    shipping.getAmount());
-            storageProductRepository.save(sp);
         } else {
-            shipping.setTeam(offer.getOfferer());
+            buyer = order.getAccepter();
+            seller = order.getSubmitter();
             shipping.setMethod(offer.getShippingMethod());
-            shipping.setSourceRegion(order.getSubmitter().getRegion());
-            shipping.setArrivalTime(new Date(new Date().getTime() +
-                    abs(order.getSubmitter().getRegion() - team.getRegion()) * 10000L));
-            sp = TeamUtil.addProductToRoute(order.getAccepter(), shipping.getProduct(), shipping.getAmount());
-            storageProductRepository.save(sp);
-            sp = TeamUtil.removeProductFromBlocked(order.getSubmitter(), shipping.getProduct(),
-                    shipping.getAmount());
-            storageProductRepository.save(sp);
         }
+        shipping.setTeam(buyer);
+        shipping.setSourceRegion(seller.getRegion());
+        shipping.setArrivalTime(new Date(new Date().getTime() +
+                abs(buyer.getRegion() - seller.getRegion()) * 10000L));
+        sp = TeamUtil.addProductToRoute(buyer, shipping.getProduct(), shipping.getAmount());
+        buyer.setBalance(buyer.getBalance() - order.getProductAmount() * order.getUnitPrice() - shippingCost);
+        storageProductRepository.save(sp);
+        teamRepository.save(buyer);
+        sp = TeamUtil.removeProductFromBlocked(seller, shipping.getProduct(),
+                shipping.getAmount());
+        seller.setBalance(seller.getBalance() + order.getProductAmount() * order.getUnitPrice());
+        storageProductRepository.save(sp);
+        teamRepository.save(seller);
         order.setShipping(shipping);
         orderRepository.save(order);
         shippingRepository.save(shipping);
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                 shipping.getArrivalTime());
         // TODO notify players of new shipping
+
         return offer.toDTO();
     }
 
@@ -197,6 +207,10 @@ public class OfferServiceHandler implements OfferService {
         Offer offer = checkOfferAccess(team.getId(), offerId);
         offer.setDeclined(true);
         offerRepository.save(offer);
+
+        StorageProduct sp = TeamUtil.unblockProduct(offer.getOfferer(), offer.getOrder().getProduct(),
+                offer.getOrder().getProductAmount());
+        storageProductRepository.save(sp);
 
         return offer.toDTO();
     }
@@ -217,6 +231,10 @@ public class OfferServiceHandler implements OfferService {
 
         offer.setCancelled(true);
         offerRepository.save(offer);
+
+        StorageProduct sp = TeamUtil.unblockProduct(offer.getOfferer(), offer.getOrder().getProduct(),
+                offer.getOrder().getProductAmount());
+        storageProductRepository.save(sp);
 
         return offer.toDTO();
     }
