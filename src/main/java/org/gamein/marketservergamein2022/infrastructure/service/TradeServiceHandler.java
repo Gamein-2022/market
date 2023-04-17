@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getOrCreateSPFromProduct;
 
 
 @Service
@@ -82,7 +83,7 @@ public class TradeServiceHandler implements TradeService {
             // TODO reduce shipping amount from balance
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(
-                    getSPFromProduct(team, product, storageProductRepository),
+                    getOrCreateSPFromProduct(team, product, storageProductRepository, teamRepository),
                     quantity
             );
             storageProductRepository.save(sp);
