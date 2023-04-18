@@ -133,9 +133,9 @@ public class TeamUtil {
             sp.setProduct(product);
             sp.setTeam(team);
 
+            storageProductRepository.save(sp);
             team.getStorageProducts().add(sp);
             teamRepository.save(team);
-            storageProductRepository.save(sp);
 
             return sp;
         }
