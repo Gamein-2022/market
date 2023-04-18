@@ -148,17 +148,12 @@ public class OfferServiceHandler implements OfferService {
 
         offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
                 o -> {
-                    StorageProduct sp;
                     try {
-                        sp = TeamUtil.unblockProduct(
-                                getSPFromProduct(team, order.getProduct(), storageProductRepository),
-                                order.getProductAmount()
-                        );
+                        undoOffer(o);
                     } catch (BadRequestException e) {
                         // TODO so something about this exception
                         throw new RuntimeException(e);
                     }
-                    storageProductRepository.save(sp);
                     if (!o.getId().equals(offer.getId())) {
                         o.setDeclined(true);
                         offerRepository.save(o);
@@ -229,15 +224,7 @@ public class OfferServiceHandler implements OfferService {
         offer.setDeclined(true);
         offerRepository.save(offer);
 
-        StorageProduct sp = TeamUtil.unblockProduct(
-                getOrCreateSPFromProduct(
-                        offer.getOfferer(),
-                        offer.getOrder().getProduct(),
-                        storageProductRepository,
-                        teamRepository
-                ),
-                offer.getOrder().getProductAmount());
-        storageProductRepository.save(sp);
+        undoOffer(offer);
 
         return offer.toDTO();
     }
@@ -259,11 +246,7 @@ public class OfferServiceHandler implements OfferService {
         offer.setCancelled(true);
         offerRepository.save(offer);
 
-        StorageProduct sp = TeamUtil.unblockProduct(
-                getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
-                offer.getOrder().getProductAmount()
-        );
-        storageProductRepository.save(sp);
+        undoOffer(offer);
 
         return offer.toDTO();
     }
@@ -325,6 +308,21 @@ public class OfferServiceHandler implements OfferService {
         }
         if (offer.getCancelled()) {
             throw new BadRequestException("پیشنهاد قبلا کنسل شده است!");
+        }
+    }
+
+    private void undoOffer(Offer offer)
+            throws BadRequestException {
+        if (offer.getOrder().getType() == OrderType.BUY) {
+            StorageProduct sp = TeamUtil.unblockProduct(
+                    getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+                    offer.getOrder().getProductAmount()
+            );
+            storageProductRepository.save(sp);
+        } else {
+            Team team = offer.getOfferer();
+            team.setBalance(team.getBalance() + offer.getOrder().getProductAmount() * offer.getOrder().getUnitPrice());
+            teamRepository.save(team);
         }
     }
 }
