@@ -17,7 +17,8 @@ import org.springframework.web.client.RestClientException;
 
 import javax.servlet.http.HttpServletRequest;
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = {OfferController.class,OrderController.class,
+        ProductController.class,TradeController.class})
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class InitController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
