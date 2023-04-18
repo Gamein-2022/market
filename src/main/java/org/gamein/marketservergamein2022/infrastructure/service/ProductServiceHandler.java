@@ -10,6 +10,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,17 +32,16 @@ public class ProductServiceHandler implements ProductService {
 
     @Override
     public RegionRawMaterialDTO getRawMaterials(Team team) {
-        List<Product> myRegion = productRepository.findAllByLevelAndRegion(0, team.getRegion());
-        List<Product> otherRegions = productRepository.findAllByLevelAndRegionIsNot(0, team.getRegion());
+        List<Product> myRegion = productRepository.findAllByLevelAndRegionsContaining(0, team.getRegion());
+        List<Product> otherRegions = productRepository.findAllByLevelAndRegionsNotContaining(0, team.getRegion());
         return new RegionRawMaterialDTO(
                 myRegion.stream().map(product -> {
-                            int distance = abs(team.getRegion() - product.getRegion());
                             return new RawMaterialDTO(product.getId(), product.getName(),
-                                    product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
+                                    product.getPrice(), 0, 0, 0, 0);
                         })
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
-                    int distance = abs(team.getRegion() - product.getRegion());
+                    int distance = abs(team.getRegion() - TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion()));
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
                 }).collect(Collectors.toList()),

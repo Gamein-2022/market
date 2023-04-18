@@ -8,7 +8,10 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 
+import java.util.List;
 import java.util.Optional;
+
+import static java.lang.Math.abs;
 
 
 public class TeamUtil {
@@ -140,5 +143,15 @@ public class TeamUtil {
 
             return sp;
         }
+    }
+
+    public static int findMinDistanceRegion(List<Integer> regions, int region) {
+        int result = regions.get(0);
+        for(int i = 1; i < regions.size(); i++) {
+            if (abs(regions.get(i) - region) < abs(result - region)) {
+                result = region;
+            }
+        }
+        return result;
     }
 }
