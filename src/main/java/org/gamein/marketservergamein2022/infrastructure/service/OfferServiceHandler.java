@@ -207,9 +207,9 @@ public class OfferServiceHandler implements OfferService {
         seller.setBalance(seller.getBalance() + order.getProductAmount() * order.getUnitPrice());
         storageProductRepository.save(sp);
         teamRepository.save(seller);
+        shippingRepository.save(shipping);
         order.setShipping(shipping);
         orderRepository.save(order);
-        shippingRepository.save(shipping);
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                 shipping.getArrivalTime());
         // TODO notify players of new shipping
