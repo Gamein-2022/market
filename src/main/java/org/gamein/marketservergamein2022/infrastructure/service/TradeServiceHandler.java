@@ -64,20 +64,19 @@ public class TradeServiceHandler implements TradeService {
             throws BadRequestException {
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
-            throw new BadRequestException("Invalid product!");
+            throw new BadRequestException("کالای مورد نظر یافت نشد!");
         }
         Product product = productOptional.get();
         if (quantity <= 0) {
-            throw new BadRequestException("Invalid quantity!");
+            throw new BadRequestException("تعداد درخواستی نامعتبر است!");
         }
         if (method == ShippingMethod.SAME_REGION) {
-            throw new BadRequestException("Invalid shipping method!");
+            throw new BadRequestException("متد درخواستی نامعتبر است!");
         }
 
-        long balance = team.getBalance();
 
         if (product.getLevel() > 0) {
-            throw new BadRequestException("Gamein only sells raw material or second-hand products!");
+            throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
         }
 
         int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(),team.getRegion());
@@ -86,6 +85,7 @@ public class TradeServiceHandler implements TradeService {
         long shippingPrice = method.equals(ShippingMethod.SHIP) ? 10 : 50;
         long shippingCost = distance * shippingPrice * quantity;
 
+        long balance = team.getBalance();
         if (balance >= product.getPrice() * quantity + shippingCost) {
             balance -= product.getPrice() * quantity + shippingCost;
             team.setBalance(balance);
@@ -115,7 +115,7 @@ public class TradeServiceHandler implements TradeService {
 
             return shipping.toDTO();
         } else {
-            throw new BadRequestException("Not enough balance!");
+            throw new BadRequestException("اعتبار شما کافی نیست!");
         }
     }
 
