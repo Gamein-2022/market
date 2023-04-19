@@ -84,7 +84,7 @@ public class TradeServiceHandler implements TradeService {
         int distance = abs(sourceRegion - team.getRegion());
 
         long shippingPrice = method.equals(ShippingMethod.SHIP) ? 10 : 50;
-        long shippingCost = distance * shippingPrice;
+        long shippingCost = distance * shippingPrice * quantity;
 
         if (balance >= product.getPrice() * quantity + shippingCost) {
             balance -= product.getPrice() * quantity + shippingCost;
