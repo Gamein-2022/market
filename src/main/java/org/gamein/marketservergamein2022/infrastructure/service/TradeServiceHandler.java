@@ -80,7 +80,8 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("Gamein only sells raw material or second-hand products!");
         }
 
-        int distance = abs(team.getRegion() - product.getRegion());
+        int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(),team.getRegion());
+        int distance = abs(sourceRegion - team.getRegion());
 
         long shippingPrice = method.equals(ShippingMethod.SHIP) ? 10 : 50;
         long shippingCost = distance * shippingPrice;
@@ -99,7 +100,6 @@ public class TradeServiceHandler implements TradeService {
             shipping.setTeam(team);
             shipping.setDepartureTime(new Date());
             // TODO make product region an array & find the nearest region for this
-            int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion());
             shipping.setArrivalTime(new Date((new Date()).getTime() +
                     abs(sourceRegion - team.getRegion()) * 10000L));
             shipping.setSourceRegion(sourceRegion);
