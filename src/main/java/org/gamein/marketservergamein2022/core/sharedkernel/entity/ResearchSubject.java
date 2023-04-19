@@ -23,8 +23,8 @@ public class ResearchSubject {
     @Column(name = "name", unique = true, nullable = false)
     private String name;
 
-    @Column(name = "available_year", nullable = false)
-    private int availableYear;
+    @Column(name = "available_day", nullable = false)
+    private int availableDay;
 
     @Column(name = "base_price", nullable = false)
     private int basePrice;

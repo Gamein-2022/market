@@ -34,8 +34,8 @@ public class Product {
     @Column(name = "price", nullable = false)
     private long price;
 
-    @Column(name = "available_year", nullable = false)
-    private int availableYear;
+    @Column(name = "available_day", nullable = false)
+    private int availableDay;
 
     @ManyToOne
     private ResearchSubject RAndD;
