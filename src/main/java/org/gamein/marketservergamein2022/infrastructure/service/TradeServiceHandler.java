@@ -1,5 +1,6 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
+import lombok.extern.java.Log;
 import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
@@ -78,16 +79,20 @@ public class TradeServiceHandler implements TradeService {
         if (product.getLevel() > 0) {
             throw new BadRequestException("Gamein only sells raw material or second-hand products!");
         }
-        if (balance >= product.getPrice() * quantity) {
-            balance -= product.getPrice() * quantity;
-            // TODO reduce shipping amount from balance
+
+        int distance = abs(team.getRegion() - product.getRegion());
+
+        long shippingPrice = method.equals(ShippingMethod.SHIP) ? 10 : 50;
+        long shippingCost = distance * shippingPrice;
+
+        if (balance >= product.getPrice() * quantity + shippingCost) {
+            balance -= product.getPrice() * quantity + shippingCost;
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(
                     getOrCreateSPFromProduct(team, product, storageProductRepository, teamRepository),
                     quantity
             );
             storageProductRepository.save(sp);
-
 
             Shipping shipping = new Shipping();
             shipping.setMethod(method);
