@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.ProductDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
-
 import javax.persistence.*;
 import java.util.List;
 
@@ -29,14 +28,14 @@ public class Product {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "region", nullable = false)
-    private int region;
+    @ElementCollection
+    private List<Integer> regions;
 
     @Column(name = "price", nullable = false)
     private long price;
 
-    @Column(name = "available_year", nullable = false)
-    private int availableYear;
+    @Column(name = "available_day", nullable = false)
+    private int availableDay;
 
     @ManyToOne
     private ResearchSubject RAndD;

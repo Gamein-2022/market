@@ -7,7 +7,7 @@ import java.util.List;
 
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findAllByLevelAndRegion(Integer level, Integer region);
-    List<Product> findAllByLevelAndRegionIsNot(Integer level, Integer region);
+    List<Product> findAllByLevelAndRegionsContaining(Integer level, Integer region);
+    List<Product> findAllByLevelAndRegionsNotContaining(Integer level, Integer region);
     List<Product> findAllByLevelBetween(Integer lower, Integer upper);
 }

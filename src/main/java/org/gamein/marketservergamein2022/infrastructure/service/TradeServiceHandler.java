@@ -99,9 +99,10 @@ public class TradeServiceHandler implements TradeService {
             shipping.setTeam(team);
             shipping.setDepartureTime(new Date());
             // TODO make product region an array & find the nearest region for this
+            int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion());
             shipping.setArrivalTime(new Date((new Date()).getTime() +
-                    abs(product.getRegion() - team.getRegion()) * 10000L));
-            shipping.setSourceRegion(product.getRegion());
+                    abs(sourceRegion - team.getRegion()) * 10000L));
+            shipping.setSourceRegion(sourceRegion);
             shipping.setStatus(ShippingStatus.IN_ROUTE);
             shipping.setProduct(product);
             shipping.setAmount(quantity);

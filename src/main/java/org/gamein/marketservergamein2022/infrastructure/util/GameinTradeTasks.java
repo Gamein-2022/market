@@ -154,15 +154,15 @@ public class GameinTradeTasks {
             }
             fifthEraDemand = totalDemand - fourthEraDemand - thirdEraDemand - secondEraDemand - firstEraDemand;
         }
-        HashMap<Integer, Integer> yearDemand = new HashMap<>();
-        yearDemand.put(2000, firstEraDemand);
-        yearDemand.put(2007, secondEraDemand);
-        yearDemand.put(2011, thirdEraDemand);
-        yearDemand.put(2016, fourthEraDemand);
-        yearDemand.put(2023, fifthEraDemand);
+        HashMap<Integer, Integer> eraDemand = new HashMap<>();
+        eraDemand.put(0, firstEraDemand);
+        eraDemand.put(1163, secondEraDemand);
+        eraDemand.put(2738, thirdEraDemand);
+        eraDemand.put(4688, fourthEraDemand);
+        eraDemand.put(7425, fifthEraDemand);
 
         for (Product p : products) {
-            demands.put(p.getId(), (int) (p.getDemandCoefficient() * yearDemand.get(p.getAvailableYear())));
+            demands.put(p.getId(), (int) (p.getDemandCoefficient() * eraDemand.get(p.getAvailableDay())));
         }
     }
 
