@@ -42,6 +42,8 @@ public class ProductServiceHandler implements ProductService {
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
                     int distance = abs(team.getRegion() - TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion()));
+                    System.out.println(distance);
+                    System.out.println(product.getRegions());
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
                 }).collect(Collectors.toList()),
