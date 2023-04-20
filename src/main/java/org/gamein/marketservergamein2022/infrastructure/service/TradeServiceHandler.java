@@ -1,6 +1,5 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
-import lombok.extern.java.Log;
 import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
