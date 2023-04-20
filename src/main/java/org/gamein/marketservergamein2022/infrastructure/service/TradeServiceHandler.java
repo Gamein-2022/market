@@ -109,7 +109,7 @@ public class TradeServiceHandler implements TradeService {
             team.getShippings().add(shipping);
             teamRepository.save(team);
 
-            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
+            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
                     shipping.getArrivalTime());
 
             return shipping.toDTO();
