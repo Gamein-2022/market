@@ -32,7 +32,8 @@ public class Product {
     @Column(name = "pretty_name", nullable = false, columnDefinition = "character varying(255) default ''")
     private String prettyName;
 
-    @ElementCollection
+    @ElementCollection()
+    @CollectionTable(name = "product_regions",joinColumns = @JoinColumn(name = "product_id"))
     private List<Integer> regions;
 
     @Column(name = "price")

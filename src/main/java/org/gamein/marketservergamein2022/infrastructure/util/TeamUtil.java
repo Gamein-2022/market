@@ -149,7 +149,7 @@ public class TeamUtil {
         int result = regions.get(0);
         for(int i = 1; i < regions.size(); i++) {
             if (abs(regions.get(i) - region) < abs(result - region)) {
-                result = region;
+                result = regions.get(i);
             }
         }
         return result;
