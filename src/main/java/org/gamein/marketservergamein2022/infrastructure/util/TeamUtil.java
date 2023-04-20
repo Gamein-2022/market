@@ -16,7 +16,7 @@ import static java.lang.Math.abs;
 
 public class TeamUtil {
     public static int calculateStorageSpace(Team team) {
-        return (int) ((team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 3000);
+        return (int) ((team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 50_000_000);
     }
 
     public static int calculateAvailableSpace(Team team) {
