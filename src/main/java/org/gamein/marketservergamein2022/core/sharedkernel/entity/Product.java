@@ -21,10 +21,10 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
-    private long id;
+    private Long id;
 
     @Column(name = "level", nullable = false)
-    private int level;
+    private Integer level;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -33,10 +33,10 @@ public class Product {
     private List<Integer> regions;
 
     @Column(name = "price")
-    private double price;
+    private Double price;
 
     @Column(name = "available_day")
-    private int availableDay;
+    private Integer availableDay;
 
     @ManyToOne
     private ResearchSubject RAndD;
@@ -45,22 +45,22 @@ public class Product {
     private Long productionRate;
 
     @Column(name = "unit_volume", nullable = false)
-    private int unitVolume;
+    private Integer unitVolume;
 
     @Column(name = "demand_coefficient")
     private Double demandCoefficient;
 
     @Column(name = "fixed_cost")
-    private int fixedCost;
+    private Integer fixedCost;
 
     @Column(name = "variable_cost")
-    private int variableCost;
+    private Integer variableCost;
 
     @Column(name = "min_price")
-    private int minPrice;
+    private Integer minPrice;
 
     @Column(name = "max_price")
-    private int maxPrice;
+    private Integer maxPrice;
 
     @Column(name = "product_group")
     @Enumerated(EnumType.STRING)
