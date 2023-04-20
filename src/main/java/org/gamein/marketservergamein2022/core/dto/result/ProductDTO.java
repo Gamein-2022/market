@@ -13,4 +13,5 @@ public class ProductDTO {
     private final Integer level;
     private final Integer unitVolume;
     private final Long productionRate;
+    private final String prettyName;
 }

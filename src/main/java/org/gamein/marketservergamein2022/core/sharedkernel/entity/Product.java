@@ -29,6 +29,9 @@ public class Product {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "pretty_name", nullable = false, columnDefinition = "character varying(255) default ''")
+    private String prettyName;
+
     @ElementCollection
     private List<Integer> regions;
 
@@ -67,6 +70,6 @@ public class Product {
     private ProductGroup group;
 
     public ProductDTO toDTO() {
-        return new ProductDTO(id, name, price, level, unitVolume, productionRate);
+        return new ProductDTO(id, name, price, level, unitVolume, productionRate, prettyName);
     }
 }
