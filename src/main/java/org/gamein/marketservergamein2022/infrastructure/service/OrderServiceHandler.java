@@ -1,17 +1,17 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
+import org.gamein.marketservergamein2022.core.dto.result.GetTeamLogsResultDTO;
+import org.gamein.marketservergamein2022.core.dto.result.LogDTO;
 import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingInfoDTO;
-import org.gamein.marketservergamein2022.core.dto.result.TradeLogsDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
+import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
@@ -30,14 +30,17 @@ public class OrderServiceHandler implements OrderService {
     private final TeamRepository teamRepository;
     private final OrderRepository orderRepository;
 
+    private final LogRepository logRepository;
+
     private final StorageProductRepository storageProductRepository;
 
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
-                               StorageProductRepository storageProductRepository) {
+                               LogRepository logRepository, StorageProductRepository storageProductRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
+        this.logRepository = logRepository;
         this.storageProductRepository = storageProductRepository;
     }
 
@@ -183,10 +186,12 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public List<TradeLogsDTO> getTeamLogs(Long teamId) {
-        return orderRepository.findAllBySubmitter_IdOrAccepter_IdAndAcceptDateIsNotNull(teamId, teamId)
-                        .stream().map(order -> ((order.getSubmitter().getId().equals(teamId) && order.getType() == OrderType.BUY) ||
-                                    (order.getAccepter().getId().equals(teamId) && order.getType() == OrderType.SELL))
-                                    ? order.toBuyLogDTO() : order.toSellLogDTO()).collect(Collectors.toList());
+    public GetTeamLogsResultDTO getTeamLogs(Long teamId) {
+        List<LogDTO> firstList = logRepository.findAllByTypeAndTeamId(LogType.BUY,teamId)
+                .stream().map(Log::toDto).collect(Collectors.toList());
+        List<LogDTO> secondList = logRepository.findAllByTypeAndTeamId(LogType.SELL, teamId)
+                .stream().map(Log::toDto).toList();
+        firstList.addAll(secondList);
+        return new GetTeamLogsResultDTO(firstList);
     }
 }

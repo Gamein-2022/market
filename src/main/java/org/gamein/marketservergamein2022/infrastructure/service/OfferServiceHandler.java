@@ -5,6 +5,7 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OfferService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
@@ -31,16 +32,19 @@ public class OfferServiceHandler implements OfferService {
     private final ShippingRepository shippingRepository;
     private final OfferRepository offerRepository;
     private final StorageProductRepository storageProductRepository;
+
+    private final LogRepository logRepository;
     private final TeamRepository teamRepository;
 
     public OfferServiceHandler(TaskScheduler taskScheduler, OrderRepository orderRepository,
                                ShippingRepository shippingRepository, OfferRepository offerRepository,
-                               StorageProductRepository storageProductRepository, TeamRepository teamRepository) {
+                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository) {
         this.taskScheduler = taskScheduler;
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
         this.offerRepository = offerRepository;
         this.storageProductRepository = storageProductRepository;
+        this.logRepository = logRepository;
         this.teamRepository = teamRepository;
     }
 
@@ -166,15 +170,17 @@ public class OfferServiceHandler implements OfferService {
                 order.getProductAmount()
         );
         storageProductRepository.save(sp);
-        team.setBalance(team.getBalance() - shippingCost);
+//        team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
         shipping.setStatus(ShippingStatus.IN_ROUTE);
         shipping.setProduct(order.getProduct());
         shipping.setAmount(order.getProductAmount());
+
         Team buyer;
         Team seller;
+
         if (order.getType() == OrderType.BUY) {
             buyer = order.getSubmitter();
             seller = order.getAccepter();
@@ -184,6 +190,7 @@ public class OfferServiceHandler implements OfferService {
             seller = order.getSubmitter();
             shipping.setMethod(offer.getShippingMethod());
         }
+
         shipping.setTeam(buyer);
         shipping.setSourceRegion(seller.getRegion());
         shipping.setArrivalTime(new Date(new Date().getTime() +
@@ -213,6 +220,22 @@ public class OfferServiceHandler implements OfferService {
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository),
                 shipping.getArrivalTime());
         // TODO notify players of new shipping
+
+        Log buyerLog = new Log();
+        buyerLog.setType(LogType.BUY);
+        buyerLog.setTeam(buyer);
+        buyerLog.setProduct(offer.getOrder().getProduct());
+        buyerLog.setTotalCost(order.getProductAmount() * order.getUnitPrice() + shippingCost);
+        buyerLog.setProductCount(Long.valueOf(offer.getOrder().getProductAmount()));
+        logRepository.save(buyerLog);
+
+        Log sellerLog = new Log();
+        sellerLog.setType(LogType.SELL);
+        sellerLog.setTeam(seller);
+        sellerLog.setProduct(offer.getOrder().getProduct());
+        sellerLog.setProductCount(Long.valueOf(offer.getOrder().getProductAmount()));
+        sellerLog.setTotalCost(order.getProductAmount() * order.getUnitPrice());
+        logRepository.save(sellerLog);
 
         return offer.toDTO();
     }
