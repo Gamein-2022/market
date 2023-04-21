@@ -10,6 +10,7 @@ import org.gamein.marketservergamein2022.core.service.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
@@ -21,7 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
@@ -58,18 +59,20 @@ public class OrderServiceHandler implements OrderService {
         }
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
-            throw new BadRequestException("Product does not exist!");
+            throw new BadRequestException("محصول مورد نظر وجود ندارد!");
         }
         Product product = productOptional.get();
-        if (product.getLevel() >= 3) {
-            throw new BadRequestException("You can't trade this product!");
+        if (product.getLevel() >= 3 || product.getLevel() <= 0) {
+            throw new BadRequestException("شما نمی‌توانید این محصول را معامله کنید!");
         }
-
+        if (price < product.getMinPrice() || price > product.getMaxPrice()) {
+            throw new BadRequestException("قیمت نامعتبر برای این محصول!");
+        }
 
         if (orderType == OrderType.BUY) {
             long balance = team.getBalance();
-            if (balance < price * quantity) { // TODO consider shipping price too
-                throw new BadRequestException("Not enough balance!");
+            if (balance < price * quantity) {
+                throw new BadRequestException("اعتبار شما کافی نیست!");
             }
             balance -= quantity * price;
             team.setBalance(balance);
@@ -177,10 +180,10 @@ public class OrderServiceHandler implements OrderService {
         int distance = abs(team.getRegion() - order.getSubmitter().getRegion());
 
         return new ShippingInfoDTO(
-                distance * 5,
-                distance * 25,
-                distance * 50,
-                distance * 10,
+                calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
+                calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
+                calculateShippingPrice(ShippingMethod.PLANE, distance),
+                calculateShippingPrice(ShippingMethod.SHIP, distance),
                 team.getBalance()
         );
     }

@@ -205,7 +205,7 @@ public class OfferServiceHandler implements OfferService {
                 ),
                 shipping.getAmount()
         );
-        buyer.setBalance(buyer.getBalance() - order.getProductAmount() * order.getUnitPrice() - shippingCost);
+        buyer.setBalance(buyer.getBalance() - shippingCost);
         storageProductRepository.save(sp);
         teamRepository.save(buyer);
         sp = TeamUtil.removeProductFromBlockedAndStorage(
