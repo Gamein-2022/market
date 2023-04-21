@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.List;
@@ -41,12 +43,14 @@ public class Team {
     @Column(name = "region")
     private int region;
 
+    @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany
     private List<StorageProduct> storageProducts;
 
     @Column(name = "reserved_space", nullable = false, columnDefinition = "int default 0")
     private int reservedSpace = 0;
 
+    @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany
     private List<Building> buildings;
 }
