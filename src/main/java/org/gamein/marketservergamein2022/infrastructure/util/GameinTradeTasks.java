@@ -170,6 +170,11 @@ public class GameinTradeTasks {
             fifthEraDemand = totalDemand - fourthEraDemand - thirdEraDemand - secondEraDemand - firstEraDemand;
         }
         HashMap<Integer, Integer> eraDemand = new HashMap<>();
+        System.out.println("first era demand: " + firstEraDemand);
+        System.out.println("second era demand: " + secondEraDemand);
+        System.out.println("third era demand: " + thirdEraDemand);
+        System.out.println("fourth era demand: " + fourthEraDemand);
+        System.out.println("fifth era demand: " + fifthEraDemand);
         eraDemand.put(0, firstEraDemand);
         eraDemand.put(1163, secondEraDemand);
         eraDemand.put(2738, thirdEraDemand);
@@ -178,6 +183,7 @@ public class GameinTradeTasks {
 
         for (Product p : products) {
             demands.put(p.getId(), (int) (p.getDemandCoefficient() * eraDemand.get(p.getAvailableDay())));
+            System.out.println("demand for " + p.getName() + " is: " + (int) (p.getDemandCoefficient() * eraDemand.get(p.getAvailableDay())));
         }
     }
 
