@@ -131,6 +131,9 @@ public class TradeServiceHandler implements TradeService {
         if (product.getLevel() < 2) {
             throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
+        if (price < product.getMinPrice() || price > product.getMaxPrice()) {
+            throw new BadRequestException("قیمت نامعتبر برای این محصول!");
+        }
 
         StorageProduct sp = TeamUtil.blockProductInStorage(
                 getSPFromProduct(team, product, storageProductRepository),

@@ -148,25 +148,18 @@ public class OfferServiceHandler implements OfferService {
 
         offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
                 o -> {
-                    try {
-                        undoOffer(o);
-                    } catch (BadRequestException e) {
-                        // TODO so something about this exception
-                        throw new RuntimeException(e);
-                    }
                     if (!o.getId().equals(offer.getId())) {
+                        try {
+                            undoOffer(o);
+                        } catch (BadRequestException e) {
+                            // TODO so something about this exception
+                            throw new RuntimeException(e);
+                        }
                         o.setDeclined(true);
                         offerRepository.save(o);
                     }
                 }
         );
-
-        StorageProduct sp = TeamUtil.addProductToRoute(
-                getOrCreateSPFromProduct(team, order.getProduct(), storageProductRepository, teamRepository),
-                order.getProductAmount()
-        );
-        storageProductRepository.save(sp);
-        teamRepository.save(team);
 
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
@@ -196,7 +189,7 @@ public class OfferServiceHandler implements OfferService {
         shipping.setSourceRegion(seller.getRegion());
         shipping.setArrivalTime(new Date(new Date().getTime() +
                 calculateShippingDuration(shipping.getMethod(), distance)));
-        sp = TeamUtil.addProductToRoute(
+        StorageProduct sp = TeamUtil.addProductToRoute(
                 getOrCreateSPFromProduct(
                         buyer,
                         shipping.getProduct(),

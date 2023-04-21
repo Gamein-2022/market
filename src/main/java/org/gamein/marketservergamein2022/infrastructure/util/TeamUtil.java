@@ -77,7 +77,6 @@ public class TeamUtil {
         }
 
         sp.setBlockedAmount(sp.getBlockedAmount() - amount);
-        sp.setInStorageAmount(sp.getInStorageAmount() + amount);
 
         return sp;
     }
