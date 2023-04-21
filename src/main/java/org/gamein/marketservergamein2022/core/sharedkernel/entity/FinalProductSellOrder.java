@@ -48,6 +48,9 @@ public class FinalProductSellOrder {
     @Column(name = "sold_quantity", nullable = false, columnDefinition = "integer default 0")
     private Integer soldQuantity = 0;
 
+    @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
+    private Boolean archived = false;
+
     @ManyToOne(optional = false)
     private Team submitter;
 

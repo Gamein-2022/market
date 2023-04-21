@@ -10,6 +10,8 @@ import java.util.List;
 public interface FinalProductSellOrderRepository extends JpaRepository<FinalProductSellOrder, Long> {
     List<FinalProductSellOrder> findAllByClosedIsFalse();
 
+    List<FinalProductSellOrder> findAllBySubmitter_IdAndArchivedIsFalse(Long submitterId);
+
     @Query(value = "SELECT submitter_id FROM final_product_sell_order WHERE product_id = :productId",
             nativeQuery = true)
     List<Long> findTeam_IdsByProduct_Id(Long productId);

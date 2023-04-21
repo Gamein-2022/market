@@ -69,7 +69,6 @@ public class GameinTradeTasks {
         return brands;
     }
 
-    // TODO refactor this functions (make brandOnPrices HashMap, filter out completed orders to iterate less each time)
     public void divideDemandByProduct(List<FinalProductSellOrder> orders,
                                       Product product) {
         int demand = demands.get(product.getId());
@@ -113,6 +112,8 @@ public class GameinTradeTasks {
         }
 
         orders.forEach(order -> order.setClosed(true));
+
+        finalProductSellOrderRepository.saveAll(orders);
     }
 
     private void calculateDemands() {

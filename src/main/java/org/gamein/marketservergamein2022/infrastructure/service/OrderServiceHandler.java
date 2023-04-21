@@ -1,9 +1,6 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
-import org.gamein.marketservergamein2022.core.dto.result.GetTeamLogsResultDTO;
-import org.gamein.marketservergamein2022.core.dto.result.LogDTO;
-import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
-import org.gamein.marketservergamein2022.core.dto.result.ShippingInfoDTO;
+import org.gamein.marketservergamein2022.core.dto.result.*;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OrderService;
@@ -30,19 +27,20 @@ public class OrderServiceHandler implements OrderService {
     private final ProductRepository productRepository;
     private final TeamRepository teamRepository;
     private final OrderRepository orderRepository;
-
     private final LogRepository logRepository;
-
     private final StorageProductRepository storageProductRepository;
+    private final FinalProductSellOrderRepository finalProductSellOrderRepository;
 
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
-                               LogRepository logRepository, StorageProductRepository storageProductRepository) {
+                               LogRepository logRepository, StorageProductRepository storageProductRepository,
+                               FinalProductSellOrderRepository finalProductSellOrderRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
         this.logRepository = logRepository;
         this.storageProductRepository = storageProductRepository;
+        this.finalProductSellOrderRepository = finalProductSellOrderRepository;
     }
 
     @Override
@@ -104,9 +102,12 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getTeamTrades(Long teamId) {
-        return orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
-                .map(Order::toDTO).collect(Collectors.toList());
+    public TeamTradesDTO getTeamTrades(Long teamId) {
+        return new TeamTradesDTO(
+                orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
+                        .map(Order::toDTO).collect(Collectors.toList()),
+                finalProductSellOrderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
+                        .map(FinalProductSellOrder::toDTO).collect(Collectors.toList()));
     }
 
     @Override
