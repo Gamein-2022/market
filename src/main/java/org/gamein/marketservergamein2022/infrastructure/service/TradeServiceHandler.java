@@ -179,7 +179,7 @@ public class TradeServiceHandler implements TradeService {
                     products,
                     orders,
                     teams,
-                    finalProductSellOrderRepository).run();
+                    finalProductSellOrderRepository, storageProductRepository).run();
             List<Brand> newBrands = new ArrayList<>();
             for (Map.Entry<Long, Double> brand : newBrandsMap.entrySet()) {
                 Brand b = new Brand();

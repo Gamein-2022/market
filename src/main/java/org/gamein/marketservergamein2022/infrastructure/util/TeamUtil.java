@@ -116,6 +116,17 @@ public class TeamUtil {
         return sp;
     }
 
+    public static StorageProduct removeProductFromBlocked(StorageProduct sp, Integer amount)
+            throws BadRequestException {
+        if (sp.getBlockedAmount() < amount) {
+            throw new BadRequestException("این مقدار " + sp.getProduct().getName() + " در مسیر نیست!");
+        }
+
+        sp.setBlockedAmount(sp.getBlockedAmount() - amount);
+
+        return sp;
+    }
+
     public static StorageProduct getSPFromProduct(Team team, Product product,
                                            StorageProductRepository storageProductRepository)
             throws BadRequestException {

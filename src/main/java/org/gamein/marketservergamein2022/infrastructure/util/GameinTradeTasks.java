@@ -1,10 +1,9 @@
 package org.gamein.marketservergamein2022.infrastructure.util;
 
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Brand;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.FinalProductSellOrder;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.infrastructure.repository.FinalProductSellOrderRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,13 +24,15 @@ public class GameinTradeTasks {
     private final List<FinalProductSellOrder> orders;
     private final List<Team> teams;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
+    private final StorageProductRepository spRepo;
     private HashMap<Long, Double> prevBrandsMap = null;
     private HashMap<Long, Double> prevPrevBrandsMap = null;
 
     public GameinTradeTasks(List<Brand> previousBrands, List<Brand> previousPreviousBrands, int totalDemand,
                             Date firstTime, Date secondTime, Date thirdTime, Date fourthTime, List<Product> products,
                             List<FinalProductSellOrder> orders, List<Team> teams,
-                            FinalProductSellOrderRepository finalProductSellOrderRepository) {
+                            FinalProductSellOrderRepository finalProductSellOrderRepository,
+                            StorageProductRepository spRepo) {
         this.totalDemand = totalDemand;
         this.firstTime = firstTime;
         this.secondTime = secondTime;
@@ -41,6 +42,7 @@ public class GameinTradeTasks {
         this.orders = orders;
         this.teams = teams;
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
+        this.spRepo = spRepo;
 
         if (previousPreviousBrands.size() > 0) {
             prevPrevBrandsMap = new HashMap<>();
@@ -111,7 +113,19 @@ public class GameinTradeTasks {
             }
         }
 
-        orders.forEach(order -> order.setClosed(true));
+        orders.forEach(order -> {
+            order.setClosed(true);
+            try {
+                StorageProduct sp = TeamUtil.removeProductFromStorage(
+                        TeamUtil.getSPFromProduct(order.getSubmitter(), order.getProduct(), spRepo),
+                        order.getSoldQuantity()
+                );
+                TeamUtil.removeProductFromBlocked(sp, order.getQuantity());
+                spRepo.save(sp);
+            } catch (BadRequestException e) {
+                System.err.println(e.getMessage());
+            }
+        });
 
         finalProductSellOrderRepository.saveAll(orders);
     }
