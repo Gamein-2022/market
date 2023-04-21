@@ -12,6 +12,7 @@ public class FinalProductSellOrderDTO {
     private Long unitPrice;
     private Date submitDate;
     private Boolean cancelled;
+    private Boolean closed;
     private Date acceptDate;
     private ProductDTO product;
     private Integer quantity;

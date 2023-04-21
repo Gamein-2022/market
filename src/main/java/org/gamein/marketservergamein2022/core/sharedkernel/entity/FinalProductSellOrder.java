@@ -60,6 +60,7 @@ public class FinalProductSellOrder {
           unitPrice,
           submitDate,
           cancelled,
+          closed,
           acceptDate,
           product.toDTO(),
           quantity,

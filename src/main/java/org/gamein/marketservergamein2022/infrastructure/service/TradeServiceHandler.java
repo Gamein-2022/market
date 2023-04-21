@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -152,15 +153,14 @@ public class TradeServiceHandler implements TradeService {
         return order.toDTO();
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
     private void buy() {
         try {
-
             System.out.println("scheduled task");
             Time time = timeRepository.findById(1L).get();
             long fiveMinutesFromBeginning =
                     Duration.ofSeconds(
-                            Duration.between(time.getBeginTime(), LocalDateTime.now()).toSeconds() - time.getStoppedTimeSeconds()
+                            Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds() - time.getStoppedTimeSeconds()
                     ).toMinutes() / 5;
             List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
             List<Product> products = productRepository.findAllByLevelBetween(3, 3);

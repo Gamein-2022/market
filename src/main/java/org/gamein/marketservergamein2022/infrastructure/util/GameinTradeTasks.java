@@ -64,7 +64,7 @@ public class GameinTradeTasks {
         for (Product product : products) {
             divideDemandByProduct(
                     orders.stream()
-                            .filter(order -> order.getProduct().getId() == product.getId())
+                            .filter(order -> order.getProduct().getId().equals(product.getId()))
                             .collect(Collectors.toList()), product
             );
         }
