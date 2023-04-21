@@ -138,7 +138,7 @@ public class GameinTradeTasks {
         int fifthEraDemand = 0;
 
         if (firstTime != null) {
-            int timePassed = (int) ((new Date().getTime() - firstTime.getTime()) / (5 * 60 * 1000));
+            int timePassed = (int) ((new Date().getTime() - firstTime.getTime()) / (1 * 60 * 1000));
             while (timePassed != 0) {
                 firstEraDemand *= 0.99; // TODO change this to a better function
                 timePassed -= 1;
@@ -146,7 +146,7 @@ public class GameinTradeTasks {
             secondEraDemand = totalDemand - firstEraDemand;
         }
         if (secondTime != null) {
-            int timePassed = (int) ((new Date().getTime() - secondTime.getTime()) / (5 * 60 * 1000));
+            int timePassed = (int) ((new Date().getTime() - secondTime.getTime()) / (1 * 60 * 1000));
             while (timePassed != 0) {
                 secondEraDemand *= 0.99; // TODO change this to a better function
                 timePassed -= 1;
@@ -154,7 +154,7 @@ public class GameinTradeTasks {
             thirdEraDemand = totalDemand - secondEraDemand - firstEraDemand;
         }
         if (thirdTime != null) {
-            int timePassed = (int) ((new Date().getTime() - thirdTime.getTime()) / (5 * 60 * 1000));
+            int timePassed = (int) ((new Date().getTime() - thirdTime.getTime()) / (1 * 60 * 1000));
             while (timePassed != 0) {
                 thirdEraDemand *= 0.99; // TODO change this to a better function
                 timePassed -= 1;
@@ -162,7 +162,7 @@ public class GameinTradeTasks {
             fourthEraDemand = totalDemand - thirdEraDemand - secondEraDemand - firstEraDemand;
         }
         if (fourthTime != null) {
-            int timePassed = (int) ((new Date().getTime() - fourthTime.getTime()) / (5 * 60 * 1000));
+            int timePassed = (int) ((new Date().getTime() - fourthTime.getTime()) / (1 * 60 * 1000));
             while (timePassed != 0) {
                 fourthEraDemand *= 0.99; // TODO change this to a better function
                 timePassed -= 1;
