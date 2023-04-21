@@ -9,7 +9,7 @@ import lombok.Getter;
 public class ProductDTO {
     private final Long id;
     private final String name;
-    private final Double price;
+    private final Integer price;
     private final Integer level;
     private final Integer unitVolume;
     private final Long productionRate;
