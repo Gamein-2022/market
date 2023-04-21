@@ -32,6 +32,9 @@ public class Product {
     @Column(name = "pretty_name", nullable = false, columnDefinition = "character varying(255) default ''")
     private String prettyName;
 
+    @Column(name = "pretty_group")
+    private String prettyGroup;
+
     @ElementCollection()
     @CollectionTable(name = "product_regions",joinColumns = @JoinColumn(name = "product_id"))
     private List<Integer> regions;
@@ -66,11 +69,15 @@ public class Product {
     @Column(name = "max_price")
     private Integer maxPrice;
 
+    @Column(name = "era")
+    private Byte era;
+
     @Column(name = "product_group")
     @Enumerated(EnumType.STRING)
     private ProductGroup group;
 
     public ProductDTO toDTO() {
-        return new ProductDTO(id, name, price, level, unitVolume, productionRate, prettyName);
+        return new ProductDTO(id, name, price, level, unitVolume, productionRate, prettyName, prettyGroup, minPrice,
+                maxPrice);
     }
 }

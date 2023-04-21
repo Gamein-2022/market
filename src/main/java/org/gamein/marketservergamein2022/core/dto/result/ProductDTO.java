@@ -14,4 +14,7 @@ public class ProductDTO {
     private final Integer unitVolume;
     private final Long productionRate;
     private final String prettyName;
+    private final String prettyGroup;
+    private final Integer minPrice;
+    private final Integer maxPrice;
 }
