@@ -21,8 +21,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getOrCreateSPFromProduct;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
@@ -127,26 +126,23 @@ public class OfferServiceHandler implements OfferService {
         Offer offer = checkOfferAccess(team.getId(), offerId);
 
         int distance = abs(offer.getOfferer().getRegion() - offer.getOrder().getSubmitter().getRegion());
-        long shippingCost = 0;
-        if (offer.getOrder().getType() == OrderType.BUY) {
-            if (shippingMethod == ShippingMethod.PLANE) {
-                shippingCost = distance * 50L;
-            } else if (shippingMethod == ShippingMethod.SHIP) {
-                shippingCost = distance * 10L;
-            } else if (offer.getOrder().getSubmitter().getRegion() != offer.getOfferer().getRegion()) {
-                throw new BadRequestException("روش ارسال نامعتبر است!");
-            }
 
+        Order order = offer.getOrder();
+
+        int shippingCost = calculateShippingPrice(
+                offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
+                distance
+        );
+
+        if (offer.getOrder().getType() == OrderType.BUY) {
             if (shippingCost > team.getBalance()) {
                 throw new BadRequestException("شما پول کافی برای پرداخت هزینه‌ی حمل را ندارید!");
             }
         }
 
-
         offer.setAcceptDate(new Date());
         offerRepository.save(offer);
 
-        Order order = offer.getOrder();
         order.setAcceptDate(new Date());
         order.setAccepter(offer.getOfferer());
 
@@ -170,8 +166,8 @@ public class OfferServiceHandler implements OfferService {
                 order.getProductAmount()
         );
         storageProductRepository.save(sp);
-//        team.setBalance(team.getBalance() - shippingCost);
         teamRepository.save(team);
+
         Shipping shipping = new Shipping();
         shipping.setDepartureTime(new Date());
         shipping.setStatus(ShippingStatus.IN_ROUTE);
@@ -180,21 +176,26 @@ public class OfferServiceHandler implements OfferService {
 
         Team buyer;
         Team seller;
+        ShippingMethod method;
 
         if (order.getType() == OrderType.BUY) {
             buyer = order.getSubmitter();
             seller = order.getAccepter();
-            shipping.setMethod(shippingMethod);
+            method = shippingMethod;
         } else {
             buyer = order.getAccepter();
             seller = order.getSubmitter();
-            shipping.setMethod(offer.getShippingMethod());
+            method = offer.getShippingMethod();
         }
+        if (distance == 0) {
+            method = ShippingMethod.SAME_REGION;
+        }
+        shipping.setMethod(method);
 
         shipping.setTeam(buyer);
         shipping.setSourceRegion(seller.getRegion());
         shipping.setArrivalTime(new Date(new Date().getTime() +
-                abs(buyer.getRegion() - seller.getRegion()) * 10000L));
+                calculateShippingDuration(shipping.getMethod(), distance)));
         sp = TeamUtil.addProductToRoute(
                 getOrCreateSPFromProduct(
                         buyer,

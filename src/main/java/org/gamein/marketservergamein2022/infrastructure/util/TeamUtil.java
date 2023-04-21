@@ -2,9 +2,11 @@ package org.gamein.marketservergamein2022.infrastructure.util;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 
@@ -153,5 +155,15 @@ public class TeamUtil {
             }
         }
         return result;
+    }
+
+    public static int calculateShippingPrice(ShippingMethod method, int distance) {
+        return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
+                700000 + distance * 10000 : 2100000 + distance * 40000;
+    }
+
+    public static int calculateShippingDuration(ShippingMethod method, int distance) {
+        return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
+                distance * 3 * 60 * 1000 : distance * 1 * 60 * 1000;
     }
 }

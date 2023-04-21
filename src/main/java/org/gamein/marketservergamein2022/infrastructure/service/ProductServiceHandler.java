@@ -8,6 +8,7 @@ import org.gamein.marketservergamein2022.core.service.ProductService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
@@ -18,6 +19,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingDuration;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingPrice;
 
 
 @Service
@@ -35,15 +38,16 @@ public class ProductServiceHandler implements ProductService {
         List<Product> myRegion = productRepository.findAllByLevelAndRegionsContaining(0, team.getRegion());
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionsNotContaining(0, team.getRegion());
         return new RegionRawMaterialDTO(
-                myRegion.stream().map(product -> {
-                            return new RawMaterialDTO(product.getId(), product.getName(),
-                                    product.getPrice(), 0, 0, 0, 0);
-                        })
+                myRegion.stream().map(product -> new RawMaterialDTO(product.getId(), product.getName(),
+                        product.getPrice(), 0, 0, 0, 0))
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
                     int distance = abs(team.getRegion() - TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion()));
                     return new RawMaterialDTO(product.getId(), product.getName(),
-                            product.getPrice(), distance * 5, distance * 25, distance * 50, distance * 10);
+                            product.getPrice(), calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
+                            calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
+                            calculateShippingPrice(ShippingMethod.PLANE, distance),
+                            calculateShippingPrice(ShippingMethod.SHIP, distance));
                 }).collect(Collectors.toList()),
                 team.getBalance()
         );

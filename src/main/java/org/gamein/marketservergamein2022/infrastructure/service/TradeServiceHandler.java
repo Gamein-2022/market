@@ -6,6 +6,7 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
@@ -23,8 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getOrCreateSPFromProduct;
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
@@ -69,10 +69,6 @@ public class TradeServiceHandler implements TradeService {
         if (quantity <= 0) {
             throw new BadRequestException("تعداد درخواستی نامعتبر است!");
         }
-        if (method == ShippingMethod.SAME_REGION) {
-            throw new BadRequestException("متد درخواستی نامعتبر است!");
-        }
-
 
         if (product.getLevel() > 0) {
             throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
@@ -80,9 +76,18 @@ public class TradeServiceHandler implements TradeService {
 
         int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(),team.getRegion());
         int distance = abs(sourceRegion - team.getRegion());
+        if (distance == 0) {
+            method = ShippingMethod.SAME_REGION;
+        }
+        int shippingCost = calculateShippingPrice(
+                method,
+                distance
+        );
 
-        long shippingPrice = method.equals(ShippingMethod.SHIP) ? 10 : 50;
-        long shippingCost = distance * shippingPrice * quantity;
+        Shipping shipping = new Shipping();
+        shipping.setMethod(method);
+        shipping.setTeam(team);
+        shipping.setDepartureTime(new Date());
 
         long balance = team.getBalance();
         if (balance >= product.getPrice() * quantity + shippingCost) {
@@ -94,13 +99,9 @@ public class TradeServiceHandler implements TradeService {
             );
             storageProductRepository.save(sp);
 
-            Shipping shipping = new Shipping();
-            shipping.setMethod(method);
-            shipping.setTeam(team);
-            shipping.setDepartureTime(new Date());
             // TODO make product region an array & find the nearest region for this
             shipping.setArrivalTime(new Date((new Date()).getTime() +
-                    abs(sourceRegion - team.getRegion()) * 10000L));
+                    calculateShippingDuration(shipping.getMethod(), distance)));
             shipping.setSourceRegion(sourceRegion);
             shipping.setStatus(ShippingStatus.IN_ROUTE);
             shipping.setProduct(product);
