@@ -153,7 +153,7 @@ public class TradeServiceHandler implements TradeService {
         return order.toDTO();
     }
 
-    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     private void buy() {
         try {
             System.out.println("scheduled task");
