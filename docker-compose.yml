@@ -21,7 +21,7 @@ services:
       
   market-1:
     image: market
-    container_name: market
+    container_name: market-1
     restart: always
     ports:
       - 8090:8080
