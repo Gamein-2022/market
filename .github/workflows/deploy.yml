@@ -15,7 +15,7 @@ jobs:
               docker rm -f market      
               docker-compose up  -d market
               sleep 20
-              docker rm -f market
+              docker rm -f market-1
               docker-compose up  -d market-1
               docker-compose ps
 
