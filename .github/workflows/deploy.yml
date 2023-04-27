@@ -11,8 +11,11 @@ jobs:
       - uses: actions/checkout@master
       - run: |
               ls -lah
+              docker build -t market:dev .
               docker rm -f market      
-              docker-compose up --build -d
-              docker restart market-1
+              docker-compose up  -d market
+              sleep 20
+              docker rm -f market
+              docker-compose up  -d market-1
               docker-compose ps
 
