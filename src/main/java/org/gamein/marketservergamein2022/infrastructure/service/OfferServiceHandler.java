@@ -11,13 +11,15 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
+import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
@@ -34,6 +36,9 @@ public class OfferServiceHandler implements OfferService {
 
     private final LogRepository logRepository;
     private final TeamRepository teamRepository;
+
+    @Value("${live.data.url}")
+    private String liveUrl;
 
     public OfferServiceHandler(TaskScheduler taskScheduler, OrderRepository orderRepository,
                                ShippingRepository shippingRepository, OfferRepository offerRepository,
@@ -97,7 +102,11 @@ public class OfferServiceHandler implements OfferService {
         }
 
         offerRepository.save(offer);
-        // TODO notify players of new offers
+
+        Map<String, String> params = new HashMap<>();
+        params.put("type", "SUCCESS");
+        params.put("message", "یک پیشنهاد جدید برای معامله ی "+order.getProduct().getName() + " آمده است.");
+        RestUtil.sendRawRequest(liveUrl, params, HttpMethod.POST, MediaType.APPLICATION_JSON);
 
         return offer.toDTO();
     }

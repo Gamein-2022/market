@@ -32,4 +32,5 @@ services:
       - spring.datasource.username=gamein
       - spring.datasource.password=gamein123
       - auth.url=http://192.168.0.222:8082/dashboard/auth/info
+      - live.data.url=http://192.168.0.222:8083/websocket/api/notify
  
