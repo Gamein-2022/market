@@ -6,6 +6,7 @@ networks:
 services:
   market:
     build: .
+    image: market
     container_name: market
     restart: always
     ports:
