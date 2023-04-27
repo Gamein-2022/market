@@ -24,7 +24,7 @@ services:
     container_name: market-1
     restart: always
     ports:
-      - 8090:8080
+      - 9080:8080
     networks:
       - gamein
     environment:
