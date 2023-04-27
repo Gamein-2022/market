@@ -106,7 +106,7 @@ public class OfferServiceHandler implements OfferService {
         Map<String, String> params = new HashMap<>();
         params.put("type", "SUCCESS");
         params.put("message", "یک پیشنهاد جدید برای معامله ی "+order.getProduct().getName() + " آمده است.");
-        RestUtil.sendRawRequest(liveUrl, params, HttpMethod.POST, MediaType.APPLICATION_JSON);
+        RestUtil.sendRawRequest(liveUrl + "/team", params, HttpMethod.POST, MediaType.APPLICATION_JSON);
 
         return offer.toDTO();
     }
