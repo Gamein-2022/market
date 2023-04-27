@@ -104,6 +104,7 @@ public class OfferServiceHandler implements OfferService {
         offerRepository.save(offer);
 
         Map<String, String> params = new HashMap<>();
+        params.put("teamId", String.valueOf(order.getSubmitter().getId()));
         params.put("type", "SUCCESS");
         params.put("message", "یک پیشنهاد جدید برای معامله ی "+order.getProduct().getName() + " آمده است.");
         RestUtil.sendRawRequest(liveUrl + "/team", params, HttpMethod.POST, MediaType.APPLICATION_JSON);
