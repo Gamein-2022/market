@@ -105,13 +105,8 @@ public class OfferServiceHandler implements OfferService {
         String oType = "خرید ";
         if (order.getType().equals(OrderType.SELL))
             oType = "فروش ";
-
-        Map<String, String> params = new HashMap<>();
-        params.put("teamId", String.valueOf(order.getSubmitter().getId()));
-        params.put("type", "SUCCESS");
-        params.put("message", "یک پیشنهاد جدید برای معامله ی " + oType + order.getProduct().getName() + " آمده است.");
-        RestUtil.sendRawRequest(liveUrl + "/team", params, HttpMethod.POST, MediaType.APPLICATION_JSON);
-
+        String text = "یک پیشنهاد جدید برای معامله ی " + oType + order.getProduct().getName() + " آمده است.";
+        RestUtil.sendNotificationToATeam(text,"SUCCESS", String.valueOf(order.getSubmitter().getId()),liveUrl);
         return offer.toDTO();
     }
 
