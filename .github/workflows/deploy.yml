@@ -13,4 +13,6 @@ jobs:
               ls -lah
               docker rm -f market      
               docker-compose up --build -d
+              docker restart market-1
               docker-compose ps
+
