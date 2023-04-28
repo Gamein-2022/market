@@ -66,7 +66,13 @@ public class ProductServiceHandler implements ProductService {
 
     @Override
     public List<ProductInStorageDTO> getFinalProducts(Long teamId) {
+
         return productRepository.findAllByLevelBetween(3, 3).stream()
+                .filter(product -> {
+                    Optional<StorageProduct> st = storageProductRepository
+                            .findFirstByProduct_IdAndTeam_Id(product.getId(),teamId);
+                    return st.isPresent();
+                })
                 .map(product -> {
                     Optional<StorageProduct> spOptional = storageProductRepository
                             .findFirstByProduct_IdAndTeam_Id(product.getId(), teamId);
