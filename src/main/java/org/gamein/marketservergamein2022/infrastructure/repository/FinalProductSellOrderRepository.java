@@ -8,7 +8,7 @@ import java.util.List;
 
 
 public interface FinalProductSellOrderRepository extends JpaRepository<FinalProductSellOrder, Long> {
-    List<FinalProductSellOrder> findAllByClosedIsFalse();
+    List<FinalProductSellOrder> findAllByClosedIsFalseAndCancelledIsFalse();
 
     List<FinalProductSellOrder> findAllBySubmitter_IdAndArchivedIsFalse(Long submitterId);
 
