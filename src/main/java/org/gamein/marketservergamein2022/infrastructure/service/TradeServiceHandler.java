@@ -77,7 +77,7 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
         }
 
-        int sourceRegion = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions());
+        int sourceRegion = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions()).get(0);
         int distance = regionDistanceRepository.findById(
                 new RegionDistancePK(sourceRegion, team.getRegion())
         ).get().getDistance();

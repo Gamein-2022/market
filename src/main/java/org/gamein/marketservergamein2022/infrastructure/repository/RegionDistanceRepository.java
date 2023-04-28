@@ -13,6 +13,6 @@ public interface RegionDistanceRepository extends JpaRepository<RegionDistance, 
     Integer minDistance(List<Integer> sources, Integer dest);
 
     @Query(value = "SELECT rd.id.sourceRegion FROM RegionDistance AS rd WHERE rd.id.destRegion = :dest AND rd.id" +
-            ".sourceRegion IN :sources ORDER BY rd.distance LIMIT 1")
-    Integer minDistanceRegion(Integer dest, List<Integer> sources);
+            ".sourceRegion IN :sources ORDER BY rd.distance")
+    List<Integer> minDistanceRegion(Integer dest, List<Integer> sources);
 }
