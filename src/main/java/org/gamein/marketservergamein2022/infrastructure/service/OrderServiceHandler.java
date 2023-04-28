@@ -186,9 +186,10 @@ public class OrderServiceHandler implements OrderService {
         return new ShippingInfoDTO(
                 calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
                 calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
-                calculateShippingPrice(ShippingMethod.PLANE, distance),
-                calculateShippingPrice(ShippingMethod.SHIP, distance),
-                team.getBalance()
+                calculateShippingPrice(ShippingMethod.PLANE, distance, 0),
+                calculateShippingPrice(ShippingMethod.SHIP, distance, 0),
+                team.getBalance(),
+                distance
         );
     }
 

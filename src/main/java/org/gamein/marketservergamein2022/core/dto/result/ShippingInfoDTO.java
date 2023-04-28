@@ -12,4 +12,5 @@ public class ShippingInfoDTO {
     private int planePrice;
     private int shipPrice;
     private long balance;
+    private int distance;
 }

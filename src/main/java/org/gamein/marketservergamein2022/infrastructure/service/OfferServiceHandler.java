@@ -160,7 +160,8 @@ public class OfferServiceHandler implements OfferService {
 
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
-                distance
+                distance,
+                order.getProductAmount() * order.getProduct().getUnitVolume()
         );
 
         if (offer.getOrder().getType() == OrderType.BUY) {

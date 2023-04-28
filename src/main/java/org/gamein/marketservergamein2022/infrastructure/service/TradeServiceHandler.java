@@ -86,7 +86,8 @@ public class TradeServiceHandler implements TradeService {
         }
         int shippingCost = calculateShippingPrice(
                 method,
-                distance
+                distance,
+                quantity * product.getUnitVolume()
         );
 
         Shipping shipping = new Shipping();
