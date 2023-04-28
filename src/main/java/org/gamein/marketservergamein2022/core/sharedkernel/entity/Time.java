@@ -26,4 +26,19 @@ public class Time {
 
     @Column(name = "stopped_time")
     private Long stoppedTimeSeconds;
+
+    @Column(name = "choose_region_duration")
+    private Long chooseRegionDuration;
+
+    @Column(name = "last_stop")
+    private LocalDateTime lastStopTime;
+
+    @Column(name = "is_game_paused", columnDefinition = "boolean default false")
+    private Boolean isGamePaused;
+
+    @Column(name = "is_region_payed", columnDefinition = "boolean default false")
+    private Boolean isRegionPayed;
+
+    @Column(name = "r_and_d_price_multiplier", nullable = false, columnDefinition = "double precision default 0.25")
+    private Double rAndDPriceMultiplier = 0.25;
 }
