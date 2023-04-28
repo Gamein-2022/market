@@ -14,15 +14,14 @@ import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
@@ -33,16 +32,16 @@ public class OfferServiceHandler implements OfferService {
     private final ShippingRepository shippingRepository;
     private final OfferRepository offerRepository;
     private final StorageProductRepository storageProductRepository;
-
     private final LogRepository logRepository;
     private final TeamRepository teamRepository;
+    private final RegionDistanceRepository regionDistanceRepository;
 
     @Value("${live.data.url}")
     private String liveUrl;
 
     public OfferServiceHandler(TaskScheduler taskScheduler, OrderRepository orderRepository,
                                ShippingRepository shippingRepository, OfferRepository offerRepository,
-                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository) {
+                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository, RegionDistanceRepository regionDistanceRepository) {
         this.taskScheduler = taskScheduler;
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
@@ -50,6 +49,7 @@ public class OfferServiceHandler implements OfferService {
         this.storageProductRepository = storageProductRepository;
         this.logRepository = logRepository;
         this.teamRepository = teamRepository;
+        this.regionDistanceRepository = regionDistanceRepository;
     }
 
     @Override
@@ -106,26 +106,45 @@ public class OfferServiceHandler implements OfferService {
         if (order.getType().equals(OrderType.SELL))
             oType = "فروش ";
         String text = "یک پیشنهاد جدید برای معامله ی " + oType + order.getProduct().getName() + " آمده است.";
-        RestUtil.sendNotificationToATeam(text,"SUCCESS", String.valueOf(order.getSubmitter().getId()),liveUrl);
-        return offer.toDTO();
+        RestUtil.sendNotificationToATeam(text, "SUCCESS", String.valueOf(order.getSubmitter().getId()), liveUrl);
+        return offer.toDTO(
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                ).get().getDistance()
+        );
     }
 
     @Override
     public List<OfferDTO> getReceivedOffers(Long teamId) {
         return offerRepository.findAllByOrder_Submitter_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId).stream()
-                .map(Offer::toDTO).collect(Collectors.toList());
+                .map(offer -> offer.toDTO(
+                        regionDistanceRepository.findById(
+                                new RegionDistancePK(offer.getOfferer().getRegion(),
+                                        offer.getOrder().getSubmitter().getRegion())
+                        ).get().getDistance()
+                )).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getOrderOffers(Long teamId, Long orderId) {
         return offerRepository.findAllByOrder_Submitter_IdAndOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId, orderId).stream()
-                .map(Offer::toDTO).collect(Collectors.toList());
+                .map(offer -> offer.toDTO(
+                        regionDistanceRepository.findById(
+                                new RegionDistancePK(offer.getOfferer().getRegion(),
+                                        offer.getOrder().getSubmitter().getRegion())
+                        ).get().getDistance()
+                )).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getSentOffers(Long teamId) {
         return offerRepository.findAllByOfferer_IdAndArchivedIsFalse(teamId).stream()
-                .map(Offer::toDTO).collect(Collectors.toList());
+                .map(offer -> offer.toDTO(
+                        regionDistanceRepository.findById(
+                                new RegionDistancePK(offer.getOfferer().getRegion(),
+                                        offer.getOrder().getSubmitter().getRegion())
+                        ).get().getDistance()
+                )).collect(Collectors.toList());
     }
 
     @Override
@@ -133,7 +152,9 @@ public class OfferServiceHandler implements OfferService {
             throws BadRequestException, NotFoundException {
         Offer offer = checkOfferAccess(team.getId(), offerId);
 
-        int distance = abs(offer.getOfferer().getRegion() - offer.getOrder().getSubmitter().getRegion());
+        int distance = regionDistanceRepository.findById(
+                new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+        ).get().getDistance();
 
         Order order = offer.getOrder();
 
@@ -239,7 +260,11 @@ public class OfferServiceHandler implements OfferService {
         sellerLog.setTotalCost(order.getProductAmount() * order.getUnitPrice());
         logRepository.save(sellerLog);
 
-        return offer.toDTO();
+        return offer.toDTO(
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                ).get().getDistance()
+        );
     }
 
     @Override
@@ -251,7 +276,11 @@ public class OfferServiceHandler implements OfferService {
 
         undoOffer(offer);
 
-        return offer.toDTO();
+        return offer.toDTO(
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                ).get().getDistance()
+        );
     }
 
     @Override
@@ -273,7 +302,11 @@ public class OfferServiceHandler implements OfferService {
 
         undoOffer(offer);
 
-        return offer.toDTO();
+        return offer.toDTO(
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                ).get().getDistance()
+        );
     }
 
     @Override
@@ -303,7 +336,11 @@ public class OfferServiceHandler implements OfferService {
 
         offer.setArchived(true);
         offerRepository.save(offer);
-        return offer.toDTO();
+        return offer.toDTO(
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                ).get().getDistance()
+        );
     }
 
 

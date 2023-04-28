@@ -157,16 +157,6 @@ public class TeamUtil {
         }
     }
 
-    public static int findMinDistanceRegion(List<Integer> regions, int region) {
-        int result = regions.get(0);
-        for(int i = 1; i < regions.size(); i++) {
-            if (abs(regions.get(i) - region) < abs(result - region)) {
-                result = regions.get(i);
-            }
-        }
-        return result;
-    }
-
     public static int calculateShippingPrice(ShippingMethod method, int distance) {
         return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
                 7000 + distance * 100 : 21000 + distance * 400;

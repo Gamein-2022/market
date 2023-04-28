@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
+import org.gamein.marketservergamein2022.infrastructure.repository.RegionDistanceRepository;
 import org.hibernate.annotations.DynamicInsert;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import java.util.Date;
-
-import static java.lang.Math.abs;
 
 
 @DynamicInsert
@@ -26,33 +26,26 @@ public class Offer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     private Long id;
-
     @ManyToOne(optional = false)
     private Order order;
-
     @ManyToOne(optional = false)
     private Team offerer;
-
     @Column(name = "creation_date", nullable = false)
     private Date creationDate;
-
     @Column(name = "accept_date")
     private Date acceptDate;
-
     @Column(name = "declined", nullable = false, columnDefinition = "boolean default false")
     private Boolean declined = false;
-
     @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
     private Boolean cancelled = false;
-
     @Column
     private ShippingMethod shippingMethod;
-
     @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
     private Boolean archived = false;
 
-    public OfferDTO toDTO() {
-        int distance = abs(offerer.getRegion() - order.getSubmitter().getRegion());
+    public OfferDTO toDTO(int distance) {
+//        int distance = abs(offerer.getRegion() - order.getSubmitter().getRegion());
+
         return new OfferDTO(
                 id,
                 offerer.getId(),

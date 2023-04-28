@@ -7,7 +7,6 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
@@ -41,13 +40,14 @@ public class TradeServiceHandler implements TradeService {
     private final TimeRepository timeRepository;
     private final DemandRepository demandRepository;
     private final BrandRepository brandRepository;
+    private final RegionDistanceRepository regionDistanceRepository;
 
     public TradeServiceHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
                                TeamRepository teamRepository, ShippingRepository shippingRepository,
                                StorageProductRepository storageProductRepository,
                                FinalProductSellOrderRepository finalProductSellOrderRepository,
                                TeamResearchRepository teamResearchRepository,
-                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository) {
+                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository, RegionDistanceRepository regionDistanceRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
@@ -58,6 +58,7 @@ public class TradeServiceHandler implements TradeService {
         this.timeRepository = timeRepository;
         this.demandRepository = demandRepository;
         this.brandRepository = brandRepository;
+        this.regionDistanceRepository = regionDistanceRepository;
     }
 
     @Override
@@ -76,8 +77,10 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
         }
 
-        int sourceRegion = TeamUtil.findMinDistanceRegion(product.getRegions(),team.getRegion());
-        int distance = abs(sourceRegion - team.getRegion());
+        int sourceRegion = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions());
+        int distance = regionDistanceRepository.findById(
+                new RegionDistancePK(sourceRegion, team.getRegion())
+        ).get().getDistance();
         if (distance == 0) {
             method = ShippingMethod.SAME_REGION;
         }

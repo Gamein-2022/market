@@ -76,21 +76,4 @@ public class Order {
                 submitter.getRegion()
         );
     }
-
-    public TradeLogsDTO toBuyLogDTO() {
-        int distance = abs(submitter.getRegion() - accepter.getRegion());
-        return new TradeLogsDTO(
-                OrderType.BUY, product.toDTO(), productAmount, submitter.getRegion(), accepter.getRegion(),
-                shipping.toDTO(),
-                (int) -(unitPrice * productAmount + (shipping.getMethod() == ShippingMethod.PLANE ? distance * 50 :
-                        shipping.getMethod() == ShippingMethod.SHIP ? distance * 10 : 0))
-        );
-    }
-
-    public TradeLogsDTO toSellLogDTO() {
-        return new TradeLogsDTO(
-                OrderType.SELL, product.toDTO(), productAmount, submitter.getRegion(), accepter.getRegion(), null,
-                (int) (unitPrice * productAmount)
-        );
-    }
 }
