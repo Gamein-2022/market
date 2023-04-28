@@ -13,4 +13,10 @@ public interface TradeService {
 
     FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
             throws NotFoundException, BadRequestException;
+
+    FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId)
+            throws NotFoundException, BadRequestException;
+
+    FinalProductSellOrderDTO archiveSellOrder(Team team, Long orderId)
+            throws NotFoundException, BadRequestException;
 }

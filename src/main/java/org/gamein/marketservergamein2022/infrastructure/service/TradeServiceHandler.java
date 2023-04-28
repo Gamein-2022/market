@@ -153,6 +153,46 @@ public class TradeServiceHandler implements TradeService {
         return order.toDTO();
     }
 
+    @Override
+    public FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
+        FinalProductSellOrder order = validateAndReturnOrder(team.getId(), orderId);
+        order.setCancelled(true);
+        finalProductSellOrderRepository.save(order);
+        return order.toDTO();
+    }
+
+    @Override
+    public FinalProductSellOrderDTO archiveSellOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
+        FinalProductSellOrder order = validateAndReturnOrder(team.getId(), orderId);
+        if (!order.getClosed()) {
+            throw new BadRequestException("سفارش باز را نمی‌توان بایگانی کرد!");
+        }
+        order.setArchived(true);
+        finalProductSellOrderRepository.save(order);
+        return order.toDTO();
+    }
+
+    private FinalProductSellOrder validateAndReturnOrder(Long teamId, Long orderId) throws NotFoundException,
+            BadRequestException {
+        Optional<FinalProductSellOrder> orderOptional = finalProductSellOrderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            throw new NotFoundException("سفارش فروش شما یافت نشد!");
+        }
+        FinalProductSellOrder order = orderOptional.get();
+
+        if (!teamId.equals(order.getSubmitter().getId())) {
+            throw new NotFoundException("سفارش فروش شما یافت نشد!");
+        }
+
+        if (order.getCancelled()) {
+            throw new BadRequestException("این سفارش قبلا حذف شده است!");
+        }
+        if (order.getArchived()) {
+            throw new BadRequestException("این سفارش قبلا بایگانی شده است!");
+        }
+        return order;
+    }
+
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     private void buy() {
         try {
@@ -162,13 +202,20 @@ public class TradeServiceHandler implements TradeService {
                     (Duration.ofSeconds(
                             Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds() - time.getStoppedTimeSeconds()
                     ).toMinutes() / 5) * 5;
-            List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
+            List<FinalProductSellOrder> orders =
+                    finalProductSellOrderRepository.findAllByClosedIsFalseAndCancelledIsFalse();
             List<Product> products = productRepository.findAllByLevelBetween(3, 3);
             TeamResearch first = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(11L);
             TeamResearch second = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(12L);
             TeamResearch third = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(13L);
             TeamResearch fourth = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(14L);
-            Demand demand = demandRepository.findById(fiveMinutesFromBeginning).get();
+            Optional<Demand> demandOptional =  demandRepository.findById(fiveMinutesFromBeginning);
+            if (demandOptional.isEmpty()) {
+                System.err.printf("Demand %d not found!\n", fiveMinutesFromBeginning);
+                return;
+            }
+            Demand demand = demandOptional.get();
+
             List<Team> teams = teamRepository.findAll();
             List<Brand> previousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 1);
             List<Brand> previousPreviousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 2);

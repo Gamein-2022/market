@@ -67,4 +67,42 @@ public class TradeController {
             return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
+
+    @DeleteMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> cancelOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                  @PathVariable Long id) {
+        try {
+            return new ResponseEntity<>(ServiceResult.createResult(tradeService.cancelSellOrder(
+                    authInfo.getTeam(),
+                    id
+            )), HttpStatus.OK);
+        } catch (BadRequestException e) {
+            logger.error(e.getMessage());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.getMessage());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value = "{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> archiveOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+                                                   @PathVariable Long id) {
+        try {
+            return new ResponseEntity<>(ServiceResult.createResult(tradeService.archiveSellOrder(
+                    authInfo.getTeam(),
+                    id
+            )), HttpStatus.OK);
+        } catch (BadRequestException e) {
+            logger.error(e.getMessage());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        } catch (NotFoundException e) {
+            logger.error(e.getMessage());
+            ErrorResult error = new ErrorResult(e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+    }
 }
