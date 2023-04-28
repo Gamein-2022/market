@@ -1,17 +1,17 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
-import org.gamein.marketservergamein2022.core.dto.result.ProductDTO;
-import org.gamein.marketservergamein2022.core.dto.result.ProductInStorageDTO;
-import org.gamein.marketservergamein2022.core.dto.result.RawMaterialDTO;
-import org.gamein.marketservergamein2022.core.dto.result.RegionRawMaterialDTO;
+import org.gamein.marketservergamein2022.core.dto.result.*;
 import org.gamein.marketservergamein2022.core.service.ProductService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Time;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
+import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,9 +28,12 @@ public class ProductServiceHandler implements ProductService {
     private final ProductRepository productRepository;
     private final StorageProductRepository storageProductRepository;
 
-    public ProductServiceHandler(ProductRepository productRepository, StorageProductRepository storageProductRepository) {
+    private final TimeRepository timeRepository;
+
+    public ProductServiceHandler(ProductRepository productRepository, StorageProductRepository storageProductRepository, TimeRepository timeRepository) {
         this.productRepository = productRepository;
         this.storageProductRepository = storageProductRepository;
+        this.timeRepository = timeRepository;
     }
 
     @Override
@@ -55,7 +58,9 @@ public class ProductServiceHandler implements ProductService {
 
     @Override
     public List<ProductDTO> getIntermediateProducts() {
-        return productRepository.findAllByLevelBetween(1, 2).stream()
+        Time time = timeRepository.findById(1L).get();
+        TimeResultDTO resultDTO = TimeUtil.getTime(time);
+        return productRepository.findAllByLevelBetweenAndEraBefore(1, 2, (byte) (resultDTO.getEra() + 1)).stream()
                 .map(Product::toDTO).collect(Collectors.toList());
     }
 
