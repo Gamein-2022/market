@@ -9,7 +9,6 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
-import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
@@ -30,17 +29,19 @@ public class OrderServiceHandler implements OrderService {
     private final LogRepository logRepository;
     private final StorageProductRepository storageProductRepository;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
+    private final RegionDistanceRepository regionDistanceRepository;
 
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
                                LogRepository logRepository, StorageProductRepository storageProductRepository,
-                               FinalProductSellOrderRepository finalProductSellOrderRepository) {
+                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
         this.logRepository = logRepository;
         this.storageProductRepository = storageProductRepository;
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
+        this.regionDistanceRepository = regionDistanceRepository;
     }
 
     @Override
@@ -178,14 +179,17 @@ public class OrderServiceHandler implements OrderService {
         }
         Order order = orderOptional.get();
 
-        int distance = abs(team.getRegion() - order.getSubmitter().getRegion());
+        int distance = regionDistanceRepository.findById(
+                new RegionDistancePK(order.getSubmitter().getRegion(), team.getRegion())
+        ).get().getDistance();
 
         return new ShippingInfoDTO(
                 calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
                 calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
-                calculateShippingPrice(ShippingMethod.PLANE, distance),
-                calculateShippingPrice(ShippingMethod.SHIP, distance),
-                team.getBalance()
+                calculateShippingPrice(ShippingMethod.PLANE, distance, 0),
+                calculateShippingPrice(ShippingMethod.SHIP, distance, 0),
+                team.getBalance(),
+                distance
         );
     }
 

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.pow;
 
 
 public class TeamUtil {
@@ -157,19 +158,10 @@ public class TeamUtil {
         }
     }
 
-    public static int findMinDistanceRegion(List<Integer> regions, int region) {
-        int result = regions.get(0);
-        for(int i = 1; i < regions.size(); i++) {
-            if (abs(regions.get(i) - region) < abs(result - region)) {
-                result = regions.get(i);
-            }
-        }
-        return result;
-    }
-
-    public static int calculateShippingPrice(ShippingMethod method, int distance) {
-        return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
-                7000 + distance * 100 : 21000 + distance * 400;
+    public static int calculateShippingPrice(ShippingMethod method, int distance, int volume) {
+        int price = 10000 + 100 * (int) pow(distance * volume, 0.5);
+        return method == ShippingMethod.SAME_REGION ? 10000 : method == ShippingMethod.SHIP ?
+                price : 3 * price;
     }
 
     public static int calculateShippingDuration(ShippingMethod method, int distance) {

@@ -8,9 +8,9 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Time;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.ProductRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.RegionDistanceRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
-import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingDuration;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingPrice;
 
@@ -27,13 +26,14 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.cal
 public class ProductServiceHandler implements ProductService {
     private final ProductRepository productRepository;
     private final StorageProductRepository storageProductRepository;
-
     private final TimeRepository timeRepository;
+    private final RegionDistanceRepository regionDistanceRepository;
 
-    public ProductServiceHandler(ProductRepository productRepository, StorageProductRepository storageProductRepository, TimeRepository timeRepository) {
+    public ProductServiceHandler(ProductRepository productRepository, StorageProductRepository storageProductRepository, TimeRepository timeRepository, RegionDistanceRepository regionDistanceRepository) {
         this.productRepository = productRepository;
         this.storageProductRepository = storageProductRepository;
         this.timeRepository = timeRepository;
+        this.regionDistanceRepository = regionDistanceRepository;
     }
 
     @Override
@@ -42,15 +42,16 @@ public class ProductServiceHandler implements ProductService {
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionsNotContaining(0, team.getRegion());
         return new RegionRawMaterialDTO(
                 myRegion.stream().map(product -> new RawMaterialDTO(product.getId(), product.getName(),
-                        product.getPrice(), 0, 0, 0, 0))
+                        product.getPrice(), 0, 0, 0, 0, 0, product.getUnitVolume()))
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
-                    int distance = abs(team.getRegion() - TeamUtil.findMinDistanceRegion(product.getRegions(), team.getRegion()));
+                    int distance = regionDistanceRepository.minDistance(product.getRegions(), team.getRegion());
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(), calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
                             calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
-                            calculateShippingPrice(ShippingMethod.PLANE, distance),
-                            calculateShippingPrice(ShippingMethod.SHIP, distance));
+                            calculateShippingPrice(ShippingMethod.PLANE, distance, 0),
+                            calculateShippingPrice(ShippingMethod.SHIP, distance, 0),
+                            distance, product.getUnitVolume());
                 }).collect(Collectors.toList()),
                 team.getBalance()
         );
