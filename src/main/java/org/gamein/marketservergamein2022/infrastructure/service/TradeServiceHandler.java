@@ -159,9 +159,9 @@ public class TradeServiceHandler implements TradeService {
             System.out.println("scheduled task");
             Time time = timeRepository.findById(1L).get();
             long fiveMinutesFromBeginning =
-                    Duration.ofSeconds(
+                    (Duration.ofSeconds(
                             Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds() - time.getStoppedTimeSeconds()
-                    ).toMinutes() / 5;
+                    ).toMinutes() / 5) * 5;
             List<FinalProductSellOrder> orders = finalProductSellOrderRepository.findAllByClosedIsFalse();
             List<Product> products = productRepository.findAllByLevelBetween(3, 3);
             TeamResearch first = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(11L);
