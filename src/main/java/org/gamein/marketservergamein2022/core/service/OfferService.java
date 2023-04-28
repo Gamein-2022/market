@@ -22,6 +22,7 @@ public interface OfferService {
     OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException;
 
+
     OfferDTO declineOffer(Team team, Long offerId)
             throws BadRequestException, NotFoundException;
 
