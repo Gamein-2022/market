@@ -19,4 +19,6 @@ public interface TradeService {
 
     FinalProductSellOrderDTO archiveSellOrder(Team team, Long orderId)
             throws NotFoundException, BadRequestException;
+
+    NextTradeTaskDTO nextTime();
 }

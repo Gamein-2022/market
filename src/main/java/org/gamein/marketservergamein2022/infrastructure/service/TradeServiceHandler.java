@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.NextTradeTaskDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
@@ -100,7 +101,6 @@ public class TradeServiceHandler implements TradeService {
             );
             storageProductRepository.save(sp);
 
-            // TODO make product region an array & find the nearest region for this
             shipping.setArrivalTime(new Date((new Date()).getTime() +
                     calculateShippingDuration(shipping.getMethod(), distance)));
             shipping.setSourceRegion(sourceRegion);
@@ -172,6 +172,11 @@ public class TradeServiceHandler implements TradeService {
         return order.toDTO();
     }
 
+    @Override
+    public NextTradeTaskDTO nextTime() {
+        return new NextTradeTaskDTO(timeRepository.findById(1L).get().getNextFinalOrderTime());
+    }
+
     private FinalProductSellOrder validateAndReturnOrder(Long teamId, Long orderId) throws NotFoundException,
             BadRequestException {
         Optional<FinalProductSellOrder> orderOptional = finalProductSellOrderRepository.findById(orderId);
@@ -241,6 +246,11 @@ public class TradeServiceHandler implements TradeService {
             brandRepository.saveAll(newBrands);
             finalProductSellOrderRepository.saveAll(orders);
             teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
+            Date nextTime = new Date(
+                    (new Date().getTime()) + (5 * 60 * 1000)
+            );
+            time.setNextFinalOrderTime(nextTime);
+            timeRepository.save(time);
         } catch (Exception e) {
             System.err.println("Error in scheduled task: trade service handler:");
             System.err.println(e.getMessage());

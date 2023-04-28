@@ -105,4 +105,11 @@ public class TradeController {
             return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping(value = "next-time", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseResult> getNextTime() {
+        return new ResponseEntity<>(
+                ServiceResult.createResult(tradeService.nextTime()), HttpStatus.OK
+        );
+    }
 }

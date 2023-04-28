@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "time")
@@ -41,4 +42,10 @@ public class Time {
 
     @Column(name = "r_and_d_price_multiplier", nullable = false, columnDefinition = "double precision default 0.25")
     private Double rAndDPriceMultiplier = 0.25;
+
+    @Column(name = "scale", nullable = false, columnDefinition = "bigint default 0.25")
+    private Long scale = 1000000L;
+
+    @Column(name = "next_final_order_time")
+    private Date nextFinalOrderTime;
 }
