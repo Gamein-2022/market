@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "time")
@@ -26,4 +27,25 @@ public class Time {
 
     @Column(name = "stopped_time")
     private Long stoppedTimeSeconds;
+
+    @Column(name = "choose_region_duration")
+    private Long chooseRegionDuration;
+
+    @Column(name = "last_stop")
+    private LocalDateTime lastStopTime;
+
+    @Column(name = "is_game_paused", columnDefinition = "boolean default false")
+    private Boolean isGamePaused;
+
+    @Column(name = "is_region_payed", columnDefinition = "boolean default false")
+    private Boolean isRegionPayed;
+
+    @Column(name = "r_and_d_price_multiplier", nullable = false, columnDefinition = "double precision default 0.25")
+    private Double rAndDPriceMultiplier = 0.25;
+
+    @Column(name = "scale", nullable = false, columnDefinition = "bigint default 0.25")
+    private Long scale = 1000000L;
+
+    @Column(name = "next_final_order_time")
+    private Date nextFinalOrderTime;
 }
