@@ -19,7 +19,7 @@ public class TimeUtil {
         long daySeconds = 8L;
         long daysFromBeginning = durationSeconds / daySeconds;
 
-        long days = 255 + daysFromBeginning;
+        long days = 254 + daysFromBeginning;
         byte era = 0;
         if (daysFromBeginning >= 7425)
             era = 4;
@@ -39,7 +39,7 @@ public class TimeUtil {
 
         days -= (month - 1) * 30;
 
-        long day = days;
+        long day = days + 1;
 
 
         TimeResultDTO timeResultDTO = new TimeResultDTO();
