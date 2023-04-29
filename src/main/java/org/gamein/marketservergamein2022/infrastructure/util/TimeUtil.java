@@ -12,17 +12,14 @@ public class TimeUtil {
         LocalDateTime beginDate = time.getBeginTime();
         Long stoppedSeconds = time.getStoppedTimeSeconds();
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+
         long durationSeconds = Duration.between(beginDate, now).toSeconds() - stoppedSeconds - time.getChooseRegionDuration();
-
-
-
+        long durationMilliSeconds = Duration.between(beginDate, now).toMillis() - stoppedSeconds * 1000
+                - time.getChooseRegionDuration() * 1000;
         long daySeconds = 8L;
-        long monthSeconds = 30L * daySeconds;
-        long yearSeconds = 12 * monthSeconds;
         long daysFromBeginning = durationSeconds / daySeconds;
-        long monthFromBeginning = durationSeconds / monthSeconds;
-        long yearFromBeginning = durationSeconds / yearSeconds;
 
+        long days = 255 + daysFromBeginning;
         byte era = 0;
         if (daysFromBeginning >= 7425)
             era = 4;
@@ -34,19 +31,24 @@ public class TimeUtil {
             era = 1;
         }
 
-        long year = 2002 + (yearFromBeginning) + 1;
+        long year = 2003 + days / 360;
 
-        long month = ((8 + monthFromBeginning) % 12) + 1;
+        days -= (year - 2003) * 360;
 
-        long day = ((14 + daysFromBeginning) % 30) + 1;
+        long month = 1 + days / 30;
+
+        days -= (month - 1) * 30;
+
+        long day = days;
 
 
         TimeResultDTO timeResultDTO = new TimeResultDTO();
-        timeResultDTO.setSecondOfDate(durationSeconds);
+        timeResultDTO.setDurationMillis(durationMilliSeconds);
         timeResultDTO.setDay(day);
         timeResultDTO.setMonth(month);
         timeResultDTO.setYear(year);
         timeResultDTO.setEra(era);
+        timeResultDTO.setIsGamePaused(time.getIsGamePaused());
         return timeResultDTO;
     }
 }

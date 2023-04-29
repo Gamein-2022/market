@@ -12,6 +12,6 @@ public class TimeResultDTO {
     private Long month;
     private Long year;
     private Byte era;
-    private Long secondOfDate;
+    private Long durationMillis;
     private Boolean isGamePaused;
 }
