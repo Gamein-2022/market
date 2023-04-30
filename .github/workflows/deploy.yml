@@ -5,6 +5,25 @@ on:
     branches: [ "master" ]
 
 jobs:
+
+
+
+  check-code:
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@master
+      - run: |
+             export PATH=$PATH:/opt/gradle/gradle-8.1.1/bin
+             echo $PATH
+             gradle -v
+             gradle sonar \
+                -Dsonar.projectKey=market \
+                -Dsonar.projectName='market' \
+                -Dsonar.host.url=http://192.168.0.202:9000 \
+                -Dsonar.token=sqp_80250f384a53857804d2fd15fdbe6da21e948c66
+             
+             
+             
   build-market:
     runs-on: [self-hosted, linux]
     steps:
