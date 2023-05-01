@@ -166,6 +166,6 @@ public class TeamUtil {
 
     public static int calculateShippingDuration(ShippingMethod method, int distance) {
         return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
-                distance * 3 * 60 * 1000 : distance * 1 * 60 * 1000;
+                distance * 3 * 60 : distance * 60;
     }
 }
