@@ -13,7 +13,7 @@ public class OrderDTO {
     private final Long id;
     private final OrderType orderType;
     private final String submitterTeamName;
-    private final String productName;
+    private final ProductDTO product;
     private final Integer quantity;
     private final Long unitPrice;
     private final Date submitDate;

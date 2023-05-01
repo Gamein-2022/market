@@ -2,6 +2,7 @@ package org.gamein.marketservergamein2022.infrastructure.repository;
 
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Repository
 public class OrderRepoCustomImpl implements OrderRepoCustom {
+    @Autowired
     private EntityManager em;
     @Override
     public List<Order> allOrders(OrderType type, Long productId) {
@@ -28,10 +30,10 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
                 cb.equal(orderRoot.get("archived"), false)
         );
         cq.where(
-                cb.equal(orderRoot.get("accept_date"), null)
+                cb.isNotNull(orderRoot.get("acceptDate"))
         );
         if (productId != null) {
-            Predicate productPredicate = cb.equal(orderRoot.get("product_id"), productId);
+            Predicate productPredicate = cb.equal(orderRoot.get("product").get("id"), productId);
             cq.where(productPredicate);
         }
         if (type != null) {
@@ -39,9 +41,9 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
             cq.where(typePredicate);
 
             if (type == OrderType.SELL) {
-                cq.orderBy(cb.asc(orderRoot.get("unit_price")));
+                cq.orderBy(cb.asc(orderRoot.get("unitPrice")));
             } else {
-                cq.orderBy(cb.desc(orderRoot.get("unit_price")));
+                cq.orderBy(cb.desc(orderRoot.get("unitPrice")));
             }
         }
 

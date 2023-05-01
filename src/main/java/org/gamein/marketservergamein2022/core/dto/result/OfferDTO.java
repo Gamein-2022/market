@@ -17,10 +17,7 @@ public class OfferDTO {
     private Date acceptDate;
     private Boolean cancelled;
     private int region;
-    private int planeDuration;
-    private int shipDuration;
-    private int planePrice;
-    private int shipPrice;
+    private int distance;
     private Long balance;
 
     public void setBalance(Long balance) {

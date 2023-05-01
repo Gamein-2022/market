@@ -63,12 +63,12 @@ public class Order {
     @ManyToOne
     private Team accepter;
 
-    public OrderDTO toDTO(Integer offerCount) {
+    public OrderDTO toDTO(Integer offerCount, int distance) {
         return new OrderDTO(
                 id,
                 type,
                 submitter.getName(),
-                product.getName(),
+                product.toDTO(),
                 productAmount,
                 unitPrice,
                 submitDate,
