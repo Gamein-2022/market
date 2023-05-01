@@ -98,14 +98,23 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getAllOrders(Optional<Long> productId) {
+    public List<OrderDTO> getAllOrders(Optional<Long> productId, Optional<OrderType> type) {
 
-        return (productId.isEmpty() ?
-                orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse() :
-                orderRepository.findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(productId.get()))
+        return (productId.map(aLong -> (type.map(orderType -> (orderType == OrderType.SELL ?
+                orderRepository.findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPrice(aLong, orderType)
+                        .stream().map(order -> order.toDTO(
+                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                        )).collect(Collectors.toList()) :
+                orderRepository.findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPriceDesc(aLong, orderType)
+                        .stream().map(order -> order.toDTO(
+                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                        )).collect(Collectors.toList()))).orElseGet(() -> orderRepository.findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(aLong)
                 .stream().map(order -> order.toDTO(
                         offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
-                )).collect(Collectors.toList());
+                )).collect(Collectors.toList())))).orElseGet(() -> orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse()
+                .stream().map(order -> order.toDTO(
+                        offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                )).collect(Collectors.toList())));
     }
 
     @Override

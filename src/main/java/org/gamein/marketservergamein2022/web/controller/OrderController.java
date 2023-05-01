@@ -6,6 +6,7 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.iao.AuthInfo;
 import org.gamein.marketservergamein2022.core.service.OrderService;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -53,10 +54,11 @@ public class OrderController {
     @GetMapping(value = "",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> getOrders(
-            @RequestParam("product") Optional<Long> productId
+            @RequestParam("product") Optional<Long> productId,
+            @RequestParam("type") Optional<OrderType> type
     ) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(orderService.getAllOrders(productId)),
+                ServiceResult.createResult(orderService.getAllOrders(productId, type)),
                 HttpStatus.OK
         );
     }
