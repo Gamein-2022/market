@@ -30,7 +30,7 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
                 cb.equal(orderRoot.get("archived"), false)
         );
         cq.where(
-                cb.isNotNull(orderRoot.get("acceptDate"))
+                cb.isNull(orderRoot.get("acceptDate"))
         );
         if (productId != null) {
             Predicate productPredicate = cb.equal(orderRoot.get("product").get("id"), productId);
