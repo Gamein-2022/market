@@ -58,7 +58,8 @@ public class OrderController {
             @RequestParam("type") Optional<OrderType> type
     ) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(orderService.getAllOrders(productId, type)),
+                ServiceResult.createResult(orderService.getAllOrders(type.orElse(null),
+                        productId.orElse(null))),
                 HttpStatus.OK
         );
     }

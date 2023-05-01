@@ -14,7 +14,7 @@ public interface OrderService {
     OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException;
 
-    List<OrderDTO> getAllOrders(Optional<Long> productId, Optional<OrderType> type);
+    List<OrderDTO> getAllOrders(OrderType type, Long productId);
 
     TeamTradesDTO getTeamTrades(Long teamId);
 
