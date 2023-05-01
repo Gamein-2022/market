@@ -21,4 +21,5 @@ public class OrderDTO {
     private final Date acceptDate;
     private final int region;
     private final Integer offerCount;
+    private final Integer distance;
 }

@@ -75,7 +75,8 @@ public class Order {
                 cancelled,
                 acceptDate,
                 submitter.getRegion(),
-                offerCount
+                offerCount,
+                distance
         );
     }
 }
