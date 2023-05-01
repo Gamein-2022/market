@@ -93,7 +93,7 @@ public class TradeServiceHandler implements TradeService {
         Shipping shipping = new Shipping();
         shipping.setMethod(method);
         shipping.setTeam(team);
-        shipping.setDepartureTime(new Date());
+        shipping.setDepartureTime(LocalDateTime.now(ZoneOffset.UTC));
 
         long balance = team.getBalance();
         if (balance >= product.getPrice() * quantity + shippingCost) {
@@ -105,8 +105,9 @@ public class TradeServiceHandler implements TradeService {
             );
             storageProductRepository.save(sp);
 
-            shipping.setArrivalTime(new Date((new Date()).getTime() +
-                    calculateShippingDuration(shipping.getMethod(), distance)));
+            shipping.setArrivalTime(
+                    shipping.getArrivalTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
+            );
             shipping.setSourceRegion(sourceRegion);
             shipping.setStatus(ShippingStatus.IN_ROUTE);
             shipping.setProduct(product);
@@ -116,7 +117,7 @@ public class TradeServiceHandler implements TradeService {
             teamRepository.save(team);
 
             taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
-                    shipping.getArrivalTime());
+                    java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
 
             return shipping.toDTO();
         } else {

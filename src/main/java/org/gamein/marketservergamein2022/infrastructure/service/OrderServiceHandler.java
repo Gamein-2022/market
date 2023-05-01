@@ -12,6 +12,8 @@ import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -91,7 +93,7 @@ public class OrderServiceHandler implements OrderService {
         order.setType(orderType);
         order.setProductAmount(quantity);
         order.setUnitPrice(price);
-        order.setSubmitDate(new Date());
+        order.setSubmitDate(LocalDateTime.now(ZoneOffset.UTC));
         orderRepository.save(order);
 
         return order.toDTO(0, 0);
