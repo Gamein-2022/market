@@ -19,7 +19,7 @@ import static java.lang.Math.pow;
 
 public class TeamUtil {
     public static int calculateStorageSpace(Team team) {
-        return (int) ((team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 50_000_000);
+        return team.getIsStorageUpgraded() ? 75_000_000 : 50_000_000;
     }
 
     public static int calculateAvailableSpace(Team team) {
@@ -166,6 +166,6 @@ public class TeamUtil {
 
     public static int calculateShippingDuration(ShippingMethod method, int distance) {
         return method == ShippingMethod.SAME_REGION ? 0 : method == ShippingMethod.SHIP ?
-                distance * 3 * 60 * 1000 : distance * 1 * 60 * 1000;
+                distance * 3 * 60 : distance * 60;
     }
 }

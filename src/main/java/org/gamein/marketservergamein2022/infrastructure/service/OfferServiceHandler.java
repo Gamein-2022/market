@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -92,7 +94,7 @@ public class OfferServiceHandler implements OfferService {
 
         Offer offer = new Offer();
         offer.setOrder(order);
-        offer.setCreationDate(new Date());
+        offer.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
         offer.setOfferer(team);
 
         if (order.getType() == OrderType.SELL) {
@@ -152,13 +154,13 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
+
         Offer offer = checkOfferAccess(team.getId(), offerId);
+        Order order = offer.getOrder();
 
         int distance = regionDistanceRepository.findById(
-                new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
+                new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
         ).get().getDistance();
-
-        Order order = offer.getOrder();
 
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
@@ -172,29 +174,48 @@ public class OfferServiceHandler implements OfferService {
             }
         }
 
-        offer.setAcceptDate(new Date());
-        offerRepository.save(offer);
-
-        order.setAcceptDate(new Date());
+        offer.setAcceptDate(LocalDateTime.now(ZoneOffset.UTC));
+        order.setAcceptDate(LocalDateTime.now(ZoneOffset.UTC));
         order.setAccepter(offer.getOfferer());
 
-        offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
-                o -> {
-                    if (!o.getId().equals(offer.getId())) {
-                        try {
-                            undoOffer(o);
-                        } catch (BadRequestException e) {
-                            // TODO so something about this exception
-                            throw new RuntimeException(e);
-                        }
-                        o.setDeclined(true);
-                        offerRepository.save(o);
-                    }
-                }
-        );
 
+        removingOtherOffers(order, offer);
+
+        Shipping shipping = createShipping(order, offer, shippingMethod, distance);
+
+        order.setShipping(shipping);
+        orderRepository.save(order);
+        offerRepository.save(offer);
+
+        Team buyer;
+        Team seller;
+        if (order.getType() == OrderType.BUY) {
+            buyer = order.getSubmitter();
+            seller = order.getAccepter();
+        } else {
+            buyer = order.getAccepter();
+            seller = order.getSubmitter();
+        }
+
+        updateTeamsBalanceAndStorage(buyer, seller, order, shippingCost);
+
+        taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
+                java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
+
+        sendNotificationToOfferer(order, offer);
+
+        addLog(buyer, LogType.BUY, order.getProduct(), Long.valueOf(order.getProductAmount()),
+                order.getProductAmount() * order.getUnitPrice());
+
+        addLog(seller, LogType.SELL, order.getProduct(), Long.valueOf(order.getProductAmount()),
+                order.getProductAmount() * order.getUnitPrice());
+
+        return offer.toDTO(distance);
+    }
+
+    private Shipping createShipping(Order order, Offer offer, ShippingMethod shippingMethod, int distance) {
         Shipping shipping = new Shipping();
-        shipping.setDepartureTime(new Date());
+        shipping.setDepartureTime(LocalDateTime.now(ZoneOffset.UTC));
         shipping.setStatus(ShippingStatus.IN_ROUTE);
         shipping.setProduct(order.getProduct());
         shipping.setAmount(order.getProductAmount());
@@ -215,59 +236,74 @@ public class OfferServiceHandler implements OfferService {
         if (distance == 0) {
             method = ShippingMethod.SAME_REGION;
         }
+
         shipping.setMethod(method);
 
         shipping.setTeam(buyer);
         shipping.setSourceRegion(seller.getRegion());
-        shipping.setArrivalTime(new Date(new Date().getTime() +
-                calculateShippingDuration(shipping.getMethod(), distance)));
+        shipping.setArrivalTime(
+                shipping.getDepartureTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
+        );
+        return shippingRepository.save(shipping);
+    }
+
+    private void sendNotificationToOfferer(Order order, Offer offer) {
+        String type;
+        if (order.getType().equals(OrderType.SELL))
+            type = "خرید";
+        else
+            type = "فروش";
+
+        String text = "پیشنهاد شما برای " + type + " کالای " + order.getProduct().getName() + " تایید شد.";
+        RestUtil.sendNotificationToATeam(text, "SUCCESS", String.valueOf(offer.getOfferer().getId()), liveUrl);
+    }
+
+    private void updateTeamsBalanceAndStorage(Team buyer, Team seller, Order order, int shippingCost) throws BadRequestException {
         StorageProduct sp = TeamUtil.addProductToRoute(
                 getOrCreateSPFromProduct(
                         buyer,
-                        shipping.getProduct(),
+                        order.getProduct(),
                         storageProductRepository,
                         teamRepository
                 ),
-                shipping.getAmount()
+                order.getProductAmount()
         );
         buyer.setBalance(buyer.getBalance() - shippingCost);
         storageProductRepository.save(sp);
         teamRepository.save(buyer);
         sp = TeamUtil.removeProductFromBlockedAndStorage(
-                getSPFromProduct(seller, shipping.getProduct(), storageProductRepository),
-                shipping.getAmount()
+                getSPFromProduct(seller, order.getProduct(), storageProductRepository),
+                order.getProductAmount()
         );
         seller.setBalance(seller.getBalance() + order.getProductAmount() * order.getUnitPrice());
         storageProductRepository.save(sp);
         teamRepository.save(seller);
-        shippingRepository.save(shipping);
-        order.setShipping(shipping);
-        orderRepository.save(order);
-        taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
-                shipping.getArrivalTime());
-        // TODO notify players of new shipping
+    }
 
-        Log buyerLog = new Log();
-        buyerLog.setType(LogType.BUY);
-        buyerLog.setTeam(buyer);
-        buyerLog.setProduct(offer.getOrder().getProduct());
-        buyerLog.setTotalCost(order.getProductAmount() * order.getUnitPrice() + shippingCost);
-        buyerLog.setProductCount(Long.valueOf(offer.getOrder().getProductAmount()));
-        logRepository.save(buyerLog);
-
-        Log sellerLog = new Log();
-        sellerLog.setType(LogType.SELL);
-        sellerLog.setTeam(seller);
-        sellerLog.setProduct(offer.getOrder().getProduct());
-        sellerLog.setProductCount(Long.valueOf(offer.getOrder().getProductAmount()));
-        sellerLog.setTotalCost(order.getProductAmount() * order.getUnitPrice());
-        logRepository.save(sellerLog);
-
-        return offer.toDTO(
-                regionDistanceRepository.findById(
-                        new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
-                ).get().getDistance()
+    private void removingOtherOffers(Order order, Offer offer) {
+        offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
+                o -> {
+                    if (!o.getId().equals(offer.getId())) {
+                        try {
+                            undoOffer(o);
+                        } catch (BadRequestException e) {
+                            throw new RuntimeException(e);
+                        }
+                        o.setDeclined(true);
+                        offerRepository.save(o);
+                    }
+                }
         );
+    }
+
+    private void addLog(Team team, LogType logType, Product product, Long count, Long cost) {
+        Log log = new Log();
+        log.setType(logType);
+        log.setTeam(team);
+        log.setProduct(product);
+        log.setProductCount(count);
+        log.setTotalCost(cost);
+        logRepository.save(log);
     }
 
     @Override

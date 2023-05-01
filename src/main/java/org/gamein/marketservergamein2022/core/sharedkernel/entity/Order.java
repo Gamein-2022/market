@@ -11,6 +11,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import static java.lang.Math.abs;
@@ -37,13 +38,13 @@ public class Order {
     private Long unitPrice;
 
     @Column(name = "submit_date", nullable = false)
-    private Date submitDate;
+    private LocalDateTime submitDate;
 
     @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
     private Boolean cancelled = false;
 
     @Column(name = "accept_date")
-    private Date acceptDate;
+    private LocalDateTime acceptDate;
 
     @ManyToOne(optional = false)
     private Product product;

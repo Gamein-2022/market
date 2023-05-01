@@ -9,6 +9,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -31,10 +32,10 @@ public class Shipping {
     private Integer sourceRegion;
 
     @Column(name = "departure_time", nullable = false)
-    private Date departureTime;
+    private LocalDateTime departureTime;
 
     @Column(name = "arrival_time", nullable = false)
-    private Date arrivalTime;
+    private LocalDateTime arrivalTime;
 
     @Column(name = "status")
     private ShippingStatus status;

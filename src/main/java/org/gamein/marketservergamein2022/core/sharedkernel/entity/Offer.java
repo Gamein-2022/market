@@ -11,6 +11,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -31,9 +32,9 @@ public class Offer {
     @ManyToOne(optional = false)
     private Team offerer;
     @Column(name = "creation_date", nullable = false)
-    private Date creationDate;
+    private LocalDateTime creationDate;
     @Column(name = "accept_date")
-    private Date acceptDate;
+    private LocalDateTime acceptDate;
     @Column(name = "declined", nullable = false, columnDefinition = "boolean default false")
     private Boolean declined = false;
     @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
