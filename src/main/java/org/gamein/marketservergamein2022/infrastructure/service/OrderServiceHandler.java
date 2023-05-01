@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
@@ -30,11 +29,12 @@ public class OrderServiceHandler implements OrderService {
     private final StorageProductRepository storageProductRepository;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
     private final RegionDistanceRepository regionDistanceRepository;
+    private final OfferRepository offerRepository;
 
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
                                LogRepository logRepository, StorageProductRepository storageProductRepository,
-                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository) {
+                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository, OfferRepository offerRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
@@ -42,6 +42,7 @@ public class OrderServiceHandler implements OrderService {
         this.storageProductRepository = storageProductRepository;
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
         this.regionDistanceRepository = regionDistanceRepository;
+        this.offerRepository = offerRepository;
     }
 
     @Override
@@ -93,7 +94,7 @@ public class OrderServiceHandler implements OrderService {
         order.setSubmitDate(new Date());
         orderRepository.save(order);
 
-        return order.toDTO();
+        return order.toDTO(0);
     }
 
     @Override
@@ -102,14 +103,18 @@ public class OrderServiceHandler implements OrderService {
         return (productId.isEmpty() ?
                 orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse() :
                 orderRepository.findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(productId.get()))
-                .stream().map(Order::toDTO).collect(Collectors.toList());
+                .stream().map(order -> order.toDTO(
+                        offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                )).collect(Collectors.toList());
     }
 
     @Override
     public TeamTradesDTO getTeamTrades(Long teamId) {
         return new TeamTradesDTO(
                 orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
-                        .map(Order::toDTO).collect(Collectors.toList()),
+                        .map(order -> order.toDTO(
+                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                        )).collect(Collectors.toList()),
                 finalProductSellOrderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
                         .map(FinalProductSellOrder::toDTO).collect(Collectors.toList()));
     }
@@ -144,7 +149,9 @@ public class OrderServiceHandler implements OrderService {
         order.setCancelled(true);
         orderRepository.save(order);
 
-        return order.toDTO();
+        return order.toDTO(
+                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+        );
     }
 
     @Override
@@ -171,7 +178,9 @@ public class OrderServiceHandler implements OrderService {
 
         order.setArchived(true);
         orderRepository.save(order);
-        return order.toDTO();
+        return order.toDTO(
+                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+        );
     }
 
     @Override
@@ -198,7 +207,7 @@ public class OrderServiceHandler implements OrderService {
 
     @Override
     public GetTeamLogsResultDTO getTeamLogs(Long teamId) {
-        List<LogDTO> firstList = logRepository.findAllByTypeAndTeamId(LogType.BUY,teamId)
+        List<LogDTO> firstList = logRepository.findAllByTypeAndTeamId(LogType.BUY, teamId)
                 .stream().map(Log::toDto).collect(Collectors.toList());
         List<LogDTO> secondList = logRepository.findAllByTypeAndTeamId(LogType.SELL, teamId)
                 .stream().map(Log::toDto).toList();

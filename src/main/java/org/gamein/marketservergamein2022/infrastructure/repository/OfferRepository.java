@@ -13,4 +13,5 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findAllByOfferer_IdAndArchivedIsFalse(Long id);
     List<Offer> findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(Long id);
     List<Offer> findAllByOfferer_IdAndOrder_IdAndCancelledIsFalse(Long offererId, Long orderId);
+    Integer countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(Long orderId);
 }

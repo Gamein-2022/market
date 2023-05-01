@@ -63,7 +63,7 @@ public class Order {
     @ManyToOne
     private Team accepter;
 
-    public OrderDTO toDTO() {
+    public OrderDTO toDTO(Integer offerCount) {
         return new OrderDTO(
                 id,
                 type,
@@ -74,7 +74,8 @@ public class Order {
                 submitDate,
                 cancelled,
                 acceptDate,
-                submitter.getRegion()
+                submitter.getRegion(),
+                offerCount
         );
     }
 }

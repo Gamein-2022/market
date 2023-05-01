@@ -50,7 +50,7 @@ public class Offer {
         return new OfferDTO(
                 id,
                 offerer.getId(),
-                order.toDTO(),
+                order.toDTO(null),
                 creationDate,
                 declined,
                 acceptDate,
