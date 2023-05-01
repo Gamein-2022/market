@@ -94,37 +94,31 @@ public class OrderServiceHandler implements OrderService {
         order.setSubmitDate(new Date());
         orderRepository.save(order);
 
-        return order.toDTO(0);
+        return order.toDTO(0, 0);
     }
 
     @Override
-    public List<OrderDTO> getAllOrders(Optional<Long> productId, Optional<OrderType> type) {
-
-        return (productId.map(aLong -> (type.map(orderType -> (orderType == OrderType.SELL ?
-                orderRepository.findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPrice(aLong, orderType)
-                        .stream().map(order -> order.toDTO(
-                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
-                        )).collect(Collectors.toList()) :
-                orderRepository.findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPriceDesc(aLong, orderType)
-                        .stream().map(order -> order.toDTO(
-                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
-                        )).collect(Collectors.toList()))).orElseGet(() -> orderRepository.findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(aLong)
+    public List<OrderDTO> getAllOrders(Team team, OrderType type, Long productId) {
+        return orderRepository.allOrders(type, productId)
                 .stream().map(order -> order.toDTO(
-                        offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
-                )).collect(Collectors.toList())))).orElseGet(() -> orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse()
-                .stream().map(order -> order.toDTO(
-                        offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
-                )).collect(Collectors.toList())));
+                        offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId()),
+                        regionDistanceRepository.findById(
+                                new RegionDistancePK(team.getRegion(), order.getSubmitter().getRegion())
+                        ).get().getDistance()
+                )).collect(Collectors.toList());
     }
 
     @Override
-    public TeamTradesDTO getTeamTrades(Long teamId) {
+    public TeamTradesDTO getTeamTrades(Team team) {
         return new TeamTradesDTO(
-                orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
+                orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(team.getId()).stream()
                         .map(order -> order.toDTO(
-                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId()),
+                                regionDistanceRepository.findById(
+                                        new RegionDistancePK(team.getRegion(), order.getSubmitter().getRegion())
+                                ).get().getDistance()
                         )).collect(Collectors.toList()),
-                finalProductSellOrderRepository.findAllBySubmitter_IdAndArchivedIsFalse(teamId).stream()
+                finalProductSellOrderRepository.findAllBySubmitter_IdAndArchivedIsFalse(team.getId()).stream()
                         .map(FinalProductSellOrder::toDTO).collect(Collectors.toList()));
     }
 
@@ -172,7 +166,10 @@ public class OrderServiceHandler implements OrderService {
         orderRepository.save(order);
 
         return order.toDTO(
-                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId()),
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(team.getRegion(), order.getSubmitter().getRegion())
+                ).get().getDistance()
         );
     }
 
@@ -201,7 +198,10 @@ public class OrderServiceHandler implements OrderService {
         order.setArchived(true);
         orderRepository.save(order);
         return order.toDTO(
-                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId())
+                offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId()),
+                regionDistanceRepository.findById(
+                        new RegionDistancePK(team.getRegion(), order.getSubmitter().getRegion())
+                ).get().getDistance()
         );
     }
 

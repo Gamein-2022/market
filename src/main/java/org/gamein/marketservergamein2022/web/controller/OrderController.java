@@ -54,11 +54,13 @@ public class OrderController {
     @GetMapping(value = "",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> getOrders(
+            @ModelAttribute("authInfo") AuthInfo authInfo,
             @RequestParam("product") Optional<Long> productId,
             @RequestParam("type") Optional<OrderType> type
     ) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(orderService.getAllOrders(productId, type)),
+                ServiceResult.createResult(orderService.getAllOrders(authInfo.getTeam(), type.orElse(null),
+                        productId.orElse(null))),
                 HttpStatus.OK
         );
     }
@@ -67,7 +69,7 @@ public class OrderController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> getTradeHistory(@ModelAttribute("authInfo") AuthInfo authInfo) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(orderService.getTeamTrades(authInfo.getTeam().getId())),
+                ServiceResult.createResult(orderService.getTeamTrades(authInfo.getTeam())),
                 HttpStatus.OK
         );
     }

@@ -14,7 +14,7 @@ public class OrderDTO {
     private final Long id;
     private final OrderType orderType;
     private final String submitterTeamName;
-    private final String productName;
+    private final ProductDTO product;
     private final Integer quantity;
     private final Long unitPrice;
     private final LocalDateTime submitDate;
@@ -22,4 +22,5 @@ public class OrderDTO {
     private final LocalDateTime acceptDate;
     private final int region;
     private final Integer offerCount;
+    private final Integer distance;
 }

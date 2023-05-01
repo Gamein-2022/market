@@ -9,11 +9,8 @@ import java.util.Date;
 import java.util.List;
 
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse();
-    List<Order> findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(Long productId);
-    List<Order> findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPrice(Long productId, OrderType orderType);
-    List<Order> findAllByProduct_IdAndTypeAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalseOrderByUnitPriceDesc(Long productId, OrderType orderType);
+public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepoCustom {
+    List<Order> allOrders(OrderType type, Long productId);
     List<Order> findAllBySubmitter_IdAndArchivedIsFalse(Long submitterId);
     List<Order> findAllBySubmitter_IdOrAccepter_IdAndAcceptDateIsNotNull(Long submitterId, Long accepterId);
 }

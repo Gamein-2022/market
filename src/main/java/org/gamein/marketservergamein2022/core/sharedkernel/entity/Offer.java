@@ -46,21 +46,16 @@ public class Offer {
     private Boolean archived = false;
 
     public OfferDTO toDTO(int distance) {
-//        int distance = abs(offerer.getRegion() - order.getSubmitter().getRegion());
-
         return new OfferDTO(
                 id,
                 offerer.getId(),
-                order.toDTO(null),
+                order.toDTO(null, distance),
                 creationDate,
                 declined,
                 acceptDate,
                 cancelled,
                 offerer.getRegion(),
-                distance * 5,
-                distance * 25,
-                distance * 50,
-                distance * 10,
+                distance,
                 null
         );
     }
