@@ -30,6 +30,7 @@ public class Order {
     private Long id;
 
     @Column(name = "type", updatable = false, nullable = false)
+    @Enumerated(EnumType.STRING)
     private OrderType type;
 
     @Column(name = "unit_price", updatable = false, nullable = false)

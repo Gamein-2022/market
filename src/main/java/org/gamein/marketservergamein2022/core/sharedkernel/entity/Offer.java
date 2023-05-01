@@ -39,6 +39,7 @@ public class Offer {
     @Column(name = "cancelled", nullable = false, columnDefinition = "boolean default false")
     private Boolean cancelled = false;
     @Column
+    @Enumerated(EnumType.STRING)
     private ShippingMethod shippingMethod;
     @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
     private Boolean archived = false;
