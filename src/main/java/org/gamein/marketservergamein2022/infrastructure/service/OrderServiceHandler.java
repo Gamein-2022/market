@@ -146,6 +146,19 @@ public class OrderServiceHandler implements OrderService {
             );
         }
 
+        offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
+                o -> {
+                    try {
+                        undoOffer(o);
+                    } catch (BadRequestException e) {
+                        // TODO so something about this exception
+                        throw new RuntimeException(e);
+                    }
+                    o.setDeclined(true);
+                    offerRepository.save(o);
+                }
+        );
+
         order.setCancelled(true);
         orderRepository.save(order);
 
@@ -213,5 +226,20 @@ public class OrderServiceHandler implements OrderService {
                 .stream().map(Log::toDto).toList();
         firstList.addAll(secondList);
         return new GetTeamLogsResultDTO(firstList);
+    }
+
+    private void undoOffer(Offer offer)
+            throws BadRequestException {
+        if (offer.getOrder().getType() == OrderType.SELL) {
+            Team team = offer.getOfferer();
+            team.setBalance(team.getBalance() + offer.getOrder().getProductAmount() * offer.getOrder().getUnitPrice());
+            teamRepository.save(team);
+        } else {
+            StorageProduct sp = TeamUtil.unblockProduct(
+                    getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+                    offer.getOrder().getProductAmount()
+            );
+            storageProductRepository.save(sp);
+        }
     }
 }
