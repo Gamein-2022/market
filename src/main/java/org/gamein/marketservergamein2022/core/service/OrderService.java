@@ -7,13 +7,14 @@ import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface OrderService {
     OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException;
 
-    List<OrderDTO> getAllOrders();
+    List<OrderDTO> getAllOrders(Optional<Long> productId);
 
     TeamTradesDTO getTeamTrades(Long teamId);
 

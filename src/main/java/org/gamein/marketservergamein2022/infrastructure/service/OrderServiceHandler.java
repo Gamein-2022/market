@@ -97,9 +97,12 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getAllOrders() {
-        return orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse().stream()
-                .map(Order::toDTO).collect(Collectors.toList());
+    public List<OrderDTO> getAllOrders(Optional<Long> productId) {
+
+        return (productId.isEmpty() ?
+                orderRepository.findAllByCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse() :
+                orderRepository.findAllByProduct_IdAndCancelledIsFalseAndAcceptDateIsNullAndArchivedIsFalse(productId.get()))
+                .stream().map(Order::toDTO).collect(Collectors.toList());
     }
 
     @Override

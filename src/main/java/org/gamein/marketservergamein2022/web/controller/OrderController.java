@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 
 @RestController
 @RequestMapping("order")
@@ -50,9 +52,11 @@ public class OrderController {
 
     @GetMapping(value = "",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> getOrders() {
+    public ResponseEntity<BaseResult> getOrders(
+            @RequestParam("product") Optional<Long> productId
+    ) {
         return new ResponseEntity<>(
-                ServiceResult.createResult(orderService.getAllOrders()),
+                ServiceResult.createResult(orderService.getAllOrders(productId)),
                 HttpStatus.OK
         );
     }
