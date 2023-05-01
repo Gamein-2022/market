@@ -19,7 +19,7 @@ import static java.lang.Math.pow;
 
 public class TeamUtil {
     public static int calculateStorageSpace(Team team) {
-        return (int) ((team.getBuildings().stream().filter(b -> b.getType() == BuildingType.STORAGE).count() + 1) * 50_000_000);
+        return team.getIsStorageUpgraded() ? 75_000_000 : 50_000_000;
     }
 
     public static int calculateAvailableSpace(Team team) {

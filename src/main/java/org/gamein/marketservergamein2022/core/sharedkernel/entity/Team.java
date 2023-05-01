@@ -53,4 +53,7 @@ public class Team {
     @LazyCollection(LazyCollectionOption.FALSE)
     @OneToMany
     private List<Building> buildings;
+
+    @Column(name = "is_storage_upgraded",columnDefinition = "boolean default false")
+    private Boolean isStorageUpgraded;
 }
