@@ -106,7 +106,7 @@ public class TradeServiceHandler implements TradeService {
             storageProductRepository.save(sp);
 
             shipping.setArrivalTime(
-                    shipping.getArrivalTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
+                    shipping.getDepartureTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
             );
             shipping.setSourceRegion(sourceRegion);
             shipping.setStatus(ShippingStatus.IN_ROUTE);
