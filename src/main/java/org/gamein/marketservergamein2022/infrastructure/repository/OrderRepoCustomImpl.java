@@ -24,10 +24,10 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
         Root<Order> orderRoot = cq.from(Order.class);
         cq.where(
-                cb.equal(orderRoot.get("cancelled"), false)
+                cb.isFalse(orderRoot.get("cancelled"))
         );
         cq.where(
-                cb.equal(orderRoot.get("archived"), false)
+                cb.isFalse(orderRoot.get("archived"))
         );
         cq.where(
                 cb.isNull(orderRoot.get("acceptDate"))
