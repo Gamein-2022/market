@@ -23,23 +23,25 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
         Root<Order> orderRoot = cq.from(Order.class);
-        cq.where(
-                cb.isFalse(orderRoot.get("cancelled"))
-        );
-        cq.where(
-                cb.isFalse(orderRoot.get("archived"))
-        );
-        cq.where(
+
+        Predicate totalPredicate = cb.and(
+                cb.isFalse(orderRoot.get("cancelled")),
+                cb.isFalse(orderRoot.get("archived")),
                 cb.isNull(orderRoot.get("acceptDate"))
         );
+
         if (productId != null) {
             Predicate productPredicate = cb.equal(orderRoot.get("product").get("id"), productId);
-            cq.where(productPredicate);
+            totalPredicate = cb.and(totalPredicate, productPredicate);
         }
         if (type != null) {
             Predicate typePredicate = cb.equal(orderRoot.get("type"), type);
-            cq.where(typePredicate);
+            totalPredicate = cb.and(totalPredicate, typePredicate);
+        }
 
+        cq.where(totalPredicate);
+
+        if (type != null) {
             if (type == OrderType.SELL) {
                 cq.orderBy(cb.asc(orderRoot.get("unitPrice")));
             } else {
