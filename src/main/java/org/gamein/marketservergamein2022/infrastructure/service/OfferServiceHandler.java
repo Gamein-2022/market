@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.service;
 
 import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
+import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.OfferService;
@@ -13,13 +14,13 @@ import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
+import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,12 +39,14 @@ public class OfferServiceHandler implements OfferService {
     private final TeamRepository teamRepository;
     private final RegionDistanceRepository regionDistanceRepository;
 
+    private final TimeRepository timeRepository;
+
     @Value("${live.data.url}")
     private String liveUrl;
 
     public OfferServiceHandler(TaskScheduler taskScheduler, OrderRepository orderRepository,
                                ShippingRepository shippingRepository, OfferRepository offerRepository,
-                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository, RegionDistanceRepository regionDistanceRepository) {
+                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository, RegionDistanceRepository regionDistanceRepository, TimeRepository timeRepository) {
         this.taskScheduler = taskScheduler;
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
@@ -52,6 +55,7 @@ public class OfferServiceHandler implements OfferService {
         this.logRepository = logRepository;
         this.teamRepository = teamRepository;
         this.regionDistanceRepository = regionDistanceRepository;
+        this.timeRepository = timeRepository;
     }
 
     @Override
@@ -301,12 +305,19 @@ public class OfferServiceHandler implements OfferService {
     }
 
     private void addLog(Team team, LogType logType, Product product, Long count, Long cost) {
+        Time time = timeRepository.findById(1L).get();
+        TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
         Log log = new Log();
         log.setType(logType);
         log.setTeam(team);
         log.setProduct(product);
         log.setProductCount(count);
         log.setTotalCost(cost);
+        log.setTimestamp(LocalDateTime.of(Math.toIntExact(timeResultDTO.getYear()),
+                Math.toIntExact(timeResultDTO.getMonth()),
+                Math.toIntExact(timeResultDTO.getDay()),
+                12,
+                23));;;
         logRepository.save(log);
     }
 
