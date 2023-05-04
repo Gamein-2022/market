@@ -8,6 +8,8 @@ import org.gamein.marketservergamein2022.core.dto.result.LogDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Table(name = "logs")
 @Entity()
@@ -36,6 +38,9 @@ public class Log {
 
     @ManyToOne()
     private Team team;
+
+    @Column(name = "timestamp", nullable = false, columnDefinition = "timestamp default (now() at time zone 'utc')")
+    private LocalDateTime timestamp = LocalDateTime.now(ZoneOffset.UTC);
 
     public LogDTO toDto(){
         return new LogDTO(
