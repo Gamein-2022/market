@@ -35,6 +35,9 @@ public class StorageProduct {
     @Column(name = "blocked_amount", nullable = false, columnDefinition = "integer default 0")
     private int blockedAmount = 0;
 
+    @Column(name = "sellable_amount", nullable = false,  columnDefinition = "integer default 0")
+    private int sellableAmount = 0;
+
     @ManyToOne(optional = false)
     private Team team;
 }

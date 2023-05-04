@@ -127,6 +127,24 @@ public class TeamUtil {
         return sp;
     }
 
+    public static StorageProduct removeProductFromSellable(StorageProduct sp, Integer amount)
+            throws BadRequestException {
+        if (sp.getSellableAmount() < amount) {
+            throw new BadRequestException("این مقدار " + sp.getProduct().getName() + " قابل فروش نیست!");
+        }
+
+        sp.setSellableAmount(sp.getSellableAmount() - amount);
+
+        return sp;
+    }
+
+    public static StorageProduct addProductToSellable(StorageProduct sp, Integer amount)
+            throws BadRequestException {
+        sp.setSellableAmount(sp.getSellableAmount() + amount);
+
+        return sp;
+    }
+
     public static StorageProduct getSPFromProduct(Team team, Product product,
                                            StorageProductRepository storageProductRepository)
             throws BadRequestException {

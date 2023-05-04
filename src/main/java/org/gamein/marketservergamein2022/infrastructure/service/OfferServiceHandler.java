@@ -81,6 +81,10 @@ public class OfferServiceHandler implements OfferService {
                     getSPFromProduct(team, order.getProduct(), storageProductRepository),
                     order.getProductAmount()
             );
+            TeamUtil.removeProductFromSellable(
+                    sp,
+                    order.getProductAmount()
+            );
             storageProductRepository.save(sp);
         } else {
             if (team.getBalance() < order.getUnitPrice() * order.getProductAmount())
@@ -417,6 +421,10 @@ public class OfferServiceHandler implements OfferService {
         if (offer.getOrder().getType() == OrderType.BUY) {
             StorageProduct sp = TeamUtil.unblockProduct(
                     getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+                    offer.getOrder().getProductAmount()
+            );
+            TeamUtil.addProductToSellable(
+                    sp,
                     offer.getOrder().getProductAmount()
             );
             storageProductRepository.save(sp);
