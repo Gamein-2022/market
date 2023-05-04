@@ -203,62 +203,62 @@ public class TradeServiceHandler implements TradeService {
         return order;
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
-    private void buy() {
-        try {
-            System.out.println("scheduled task");
-            Time time = timeRepository.findById(1L).get();
-            long fiveMinutesFromBeginning =
-                    (Duration.ofSeconds(
-                            Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds() - time.getStoppedTimeSeconds()
-                    ).toMinutes() / 5) * 5;
-            List<FinalProductSellOrder> orders =
-                    finalProductSellOrderRepository.findAllByClosedIsFalseAndCancelledIsFalse();
-            List<Product> products = productRepository.findAllByLevelBetween(3, 3);
-            TeamResearch first = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(11L);
-            TeamResearch second = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(12L);
-            TeamResearch third = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(13L);
-            TeamResearch fourth = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(14L);
-            Optional<Demand> demandOptional =  demandRepository.findById(fiveMinutesFromBeginning);
-            if (demandOptional.isEmpty()) {
-                System.err.printf("Demand %d not found!\n", fiveMinutesFromBeginning);
-                return;
-            }
-            Demand demand = demandOptional.get();
-
-            List<Team> teams = teamRepository.findAll();
-            List<Brand> previousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 1);
-            List<Brand> previousPreviousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 2);
-
-            HashMap<Long, Double> newBrandsMap = new GameinTradeTasks(
-                    previousBrands, previousPreviousBrands, demand.getDemand(),
-                    first != null ? first.getEndTime() : null,
-                    second != null ? second.getEndTime() : null,
-                    third != null ? third.getEndTime() : null,
-                    fourth != null ? fourth.getEndTime() : null,
-                    products,
-                    orders,
-                    teams,
-                    finalProductSellOrderRepository, storageProductRepository).run();
-            List<Brand> newBrands = new ArrayList<>();
-            for (Map.Entry<Long, Double> brand : newBrandsMap.entrySet()) {
-                Brand b = new Brand();
-                b.setTeam(teamRepository.findById(brand.getKey()).get());
-                b.setBrand(brand.getValue());
-                b.setPeriod(fiveMinutesFromBeginning);
-                newBrands.add(b);
-            }
-            brandRepository.saveAll(newBrands);
-            finalProductSellOrderRepository.saveAll(orders);
-            teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
-            Date nextTime = new Date(
-                    (new Date().getTime()) + (5 * 60 * 1000)
-            );
-            time.setNextFinalOrderTime(nextTime);
-            timeRepository.save(time);
-        } catch (Exception e) {
-            System.err.println("Error in scheduled task: trade service handler:");
-            System.err.println(e.getMessage());
-        }
-    }
+//    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+//    private void buy() {
+//        try {
+//            System.out.println("scheduled task");
+//            Time time = timeRepository.findById(1L).get();
+//            long fiveMinutesFromBeginning =
+//                    (Duration.ofSeconds(
+//                            Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds() - time.getStoppedTimeSeconds()
+//                    ).toMinutes() / 5) * 5;
+//            List<FinalProductSellOrder> orders =
+//                    finalProductSellOrderRepository.findAllByClosedIsFalseAndCancelledIsFalse();
+//            List<Product> products = productRepository.findAllByLevelBetween(3, 3);
+//            TeamResearch first = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(11L);
+//            TeamResearch second = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(12L);
+//            TeamResearch third = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(13L);
+//            TeamResearch fourth = teamResearchRepository.findFirstBySubject_IdOrderByEndTime(14L);
+//            Optional<Demand> demandOptional =  demandRepository.findById(fiveMinutesFromBeginning);
+//            if (demandOptional.isEmpty()) {
+//                System.err.printf("Demand %d not found!\n", fiveMinutesFromBeginning);
+//                return;
+//            }
+//            Demand demand = demandOptional.get();
+//
+//            List<Team> teams = teamRepository.findAll();
+//            List<Brand> previousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 1);
+//            List<Brand> previousPreviousBrands = brandRepository.findAllByPeriod(fiveMinutesFromBeginning - 2);
+//
+//            HashMap<Long, Double> newBrandsMap = new GameinTradeTasks(
+//                    previousBrands, previousPreviousBrands, demand.getDemand(),
+//                    first != null ? first.getEndTime() : null,
+//                    second != null ? second.getEndTime() : null,
+//                    third != null ? third.getEndTime() : null,
+//                    fourth != null ? fourth.getEndTime() : null,
+//                    products,
+//                    orders,
+//                    teams,
+//                    finalProductSellOrderRepository, storageProductRepository).run();
+//            List<Brand> newBrands = new ArrayList<>();
+//            for (Map.Entry<Long, Double> brand : newBrandsMap.entrySet()) {
+//                Brand b = new Brand();
+//                b.setTeam(teamRepository.findById(brand.getKey()).get());
+//                b.setBrand(brand.getValue());
+//                b.setPeriod(fiveMinutesFromBeginning);
+//                newBrands.add(b);
+//            }
+//            brandRepository.saveAll(newBrands);
+//            finalProductSellOrderRepository.saveAll(orders);
+//            teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
+//            Date nextTime = new Date(
+//                    (new Date().getTime()) + (5 * 60 * 1000)
+//            );
+//            time.setNextFinalOrderTime(nextTime);
+//            timeRepository.save(time);
+//        } catch (Exception e) {
+//            System.err.println("Error in scheduled task: trade service handler:");
+//            System.err.println(e.getMessage());
+//        }
+//    }
 }
