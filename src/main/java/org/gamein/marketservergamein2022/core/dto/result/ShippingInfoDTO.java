@@ -9,8 +9,10 @@ import lombok.Getter;
 public class ShippingInfoDTO {
     private int planeDuration;
     private int shipDuration;
-    private int planePrice;
-    private int shipPrice;
+    private int planeBasePrice;
+    private int shipBasePrice;
+    private int planeVariablePrice;
+    private int shipVariablePrice;
     private long balance;
     private int distance;
 }

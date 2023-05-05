@@ -47,8 +47,8 @@ public class ProductServiceHandler implements ProductService {
                 otherRegions.stream().map(product -> {
                     int distance = regionDistanceRepository.minDistance(product.getRegions(), team.getRegion());
                     return new RawMaterialDTO(product.getId(), product.getName(),
-                            product.getPrice(), calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
-                            calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
+                            product.getPrice(), calculateShippingDuration(ShippingMethod.PLANE, distance) / 8,
+                            calculateShippingDuration(ShippingMethod.SHIP, distance) / 8,
                             calculateShippingPrice(ShippingMethod.PLANE, distance, 0),
                             calculateShippingPrice(ShippingMethod.SHIP, distance, 0),
                             distance, product.getUnitVolume());

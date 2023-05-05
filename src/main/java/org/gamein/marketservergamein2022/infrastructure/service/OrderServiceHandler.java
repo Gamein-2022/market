@@ -229,10 +229,12 @@ public class OrderServiceHandler implements OrderService {
         ).get().getDistance();
 
         return new ShippingInfoDTO(
-                calculateShippingDuration(ShippingMethod.PLANE, distance) / 8000,
-                calculateShippingDuration(ShippingMethod.SHIP, distance) / 8000,
-                calculateShippingPrice(ShippingMethod.PLANE, distance, 0),
-                calculateShippingPrice(ShippingMethod.SHIP, distance, 0),
+                calculateShippingDuration(ShippingMethod.PLANE, distance) / 8,
+                calculateShippingDuration(ShippingMethod.SHIP, distance) / 8,
+                30000,
+                10000,
+                300,
+                100,
                 team.getBalance(),
                 distance
         );
