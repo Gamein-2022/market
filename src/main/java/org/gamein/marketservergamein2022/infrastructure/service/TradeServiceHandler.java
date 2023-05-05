@@ -3,26 +3,24 @@ package org.gamein.marketservergamein2022.infrastructure.service;
 import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
 import org.gamein.marketservergamein2022.core.dto.result.NextTradeTaskDTO;
 import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
+import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.TradeService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.util.CollectShipping;
-import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
+import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
@@ -40,6 +38,8 @@ public class TradeServiceHandler implements TradeService {
     private final TimeRepository timeRepository;
     private final DemandRepository demandRepository;
     private final BrandRepository brandRepository;
+
+    private final LogRepository logRepository;
     private final RegionDistanceRepository regionDistanceRepository;
 
     public TradeServiceHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
@@ -47,7 +47,7 @@ public class TradeServiceHandler implements TradeService {
                                StorageProductRepository storageProductRepository,
                                FinalProductSellOrderRepository finalProductSellOrderRepository,
                                TeamResearchRepository teamResearchRepository,
-                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository, RegionDistanceRepository regionDistanceRepository) {
+                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository, LogRepository logRepository, RegionDistanceRepository regionDistanceRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
@@ -58,6 +58,7 @@ public class TradeServiceHandler implements TradeService {
         this.timeRepository = timeRepository;
         this.demandRepository = demandRepository;
         this.brandRepository = brandRepository;
+        this.logRepository = logRepository;
         this.regionDistanceRepository = regionDistanceRepository;
     }
 
@@ -105,6 +106,8 @@ public class TradeServiceHandler implements TradeService {
             );
             storageProductRepository.save(sp);
 
+            saveLog(LogType.BUY,product,shippingCost,quantity,team);
+
             shipping.setArrivalTime(
                     shipping.getDepartureTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
             );
@@ -123,6 +126,23 @@ public class TradeServiceHandler implements TradeService {
         } else {
             throw new BadRequestException("اعتبار شما کافی نیست!");
         }
+    }
+
+    private void saveLog(LogType logType,Product product,int shippingCost,int quantity,Team team){
+        Time time = timeRepository.findById(1L).get();
+        TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
+        Log log = new Log();
+        log.setType(logType);
+        log.setTotalCost(((long) product.getPrice() * quantity + shippingCost));
+        log.setTeam(team);
+        log.setProductCount(Long.valueOf(quantity));
+        log.setProduct(product);
+        log.setTimestamp(LocalDateTime.of(Math.toIntExact(timeResultDTO.getYear()),
+                Math.toIntExact(timeResultDTO.getMonth()),
+                Math.toIntExact(timeResultDTO.getDay()),
+                12,
+                23));;;
+        logRepository.save(log);
     }
 
     @Override
