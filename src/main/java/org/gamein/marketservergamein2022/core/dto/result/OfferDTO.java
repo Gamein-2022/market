@@ -20,6 +20,8 @@ public class OfferDTO {
     private int region;
     private int distance;
     private Long balance;
+    private int planeDuration;
+    private int shipDuration;
 
     public void setBalance(Long balance) {
         this.balance = balance;

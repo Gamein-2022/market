@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.RegionDistanceRepository;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.hibernate.annotations.DynamicInsert;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +57,9 @@ public class Offer {
                 cancelled,
                 offerer.getRegion(),
                 distance,
-                null
+                null,
+                TeamUtil.calculateShippingDuration(ShippingMethod.PLANE, distance),
+                TeamUtil.calculateShippingDuration(ShippingMethod.SHIP, distance)
         );
     }
 }
