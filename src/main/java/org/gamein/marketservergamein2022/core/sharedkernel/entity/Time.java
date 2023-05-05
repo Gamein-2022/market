@@ -48,4 +48,22 @@ public class Time {
 
     @Column(name = "next_final_order_time")
     private Date nextFinalOrderTime;
+
+    @Column(name = "plane_base_price", nullable = false, columnDefinition = "integer default 30000")
+    private Integer planeBasePrice = 30000;
+
+    @Column(name = "ship_base_price", nullable = false, columnDefinition = "integer default 10000")
+    private Integer shipBasePrice = 10000;
+
+    @Column(name = "plane_var_price", nullable = false, columnDefinition = "integer default 300")
+    private Integer planeVarPrice = 300;
+
+    @Column(name = "ship_var_price", nullable = false, columnDefinition = "integer default 100")
+    private Integer shipVarPrice = 100;
+
+    @Column(name = "storage_base_capacity", nullable = false, columnDefinition = "integer default 50000000")
+    private Integer storageBaseCapacity = 50000000;
+
+    @Column(name = "storage_upgraded_capacity", nullable = false, columnDefinition = "integer default 75000000")
+    private Integer storageUpgradedCapacity = 75000000;
 }

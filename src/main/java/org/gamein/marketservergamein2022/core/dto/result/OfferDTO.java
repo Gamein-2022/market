@@ -22,8 +22,8 @@ public class OfferDTO {
     private Long balance;
     private int planeDuration;
     private int shipDuration;
-
-    public void setBalance(Long balance) {
-        this.balance = balance;
-    }
+    private int shipBasePrice;
+    private int planeBasePrice;
+    private int shipVarPrice;
+    private int planeVarPrice;
 }

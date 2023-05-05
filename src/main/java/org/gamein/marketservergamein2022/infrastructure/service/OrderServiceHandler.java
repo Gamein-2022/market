@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,11 +31,12 @@ public class OrderServiceHandler implements OrderService {
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
     private final RegionDistanceRepository regionDistanceRepository;
     private final OfferRepository offerRepository;
+    private final TimeRepository timeRepository;
 
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
                                LogRepository logRepository, StorageProductRepository storageProductRepository,
-                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository, OfferRepository offerRepository) {
+                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository, OfferRepository offerRepository, TimeRepository timeRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
@@ -45,6 +45,7 @@ public class OrderServiceHandler implements OrderService {
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
         this.regionDistanceRepository = regionDistanceRepository;
         this.offerRepository = offerRepository;
+        this.timeRepository = timeRepository;
     }
 
     @Override
@@ -228,13 +229,15 @@ public class OrderServiceHandler implements OrderService {
                 new RegionDistancePK(order.getSubmitter().getRegion(), team.getRegion())
         ).get().getDistance();
 
+        Time time = timeRepository.findById(1L).get();
+
         return new ShippingInfoDTO(
                 calculateShippingDuration(ShippingMethod.PLANE, distance) / 8,
                 calculateShippingDuration(ShippingMethod.SHIP, distance) / 8,
-                30000,
-                10000,
-                300,
-                100,
+                time.getPlaneBasePrice(),
+                time.getShipBasePrice(),
+                time.getPlaneVarPrice(),
+                time.getShipVarPrice(),
                 team.getBalance(),
                 distance
         );

@@ -122,40 +122,47 @@ public class OfferServiceHandler implements OfferService {
         return offer.toDTO(
                 regionDistanceRepository.findById(
                         new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
-                ).get().getDistance()
+                ).get().getDistance(),
+                timeRepository.findById(1L).get()
         );
     }
 
     @Override
     public List<OfferDTO> getReceivedOffers(Long teamId) {
+        Time time = timeRepository.findById(1L).get();
         return offerRepository.findAllByOrder_Submitter_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId).stream()
                 .map(offer -> offer.toDTO(
                         regionDistanceRepository.findById(
                                 new RegionDistancePK(offer.getOfferer().getRegion(),
                                         offer.getOrder().getSubmitter().getRegion())
-                        ).get().getDistance()
+                        ).get().getDistance(),
+                        time
                 )).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getOrderOffers(Long teamId, Long orderId) {
+        Time time = timeRepository.findById(1L).get();
         return offerRepository.findAllByOrder_Submitter_IdAndOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(teamId, orderId).stream()
                 .map(offer -> offer.toDTO(
                         regionDistanceRepository.findById(
                                 new RegionDistancePK(offer.getOfferer().getRegion(),
                                         offer.getOrder().getSubmitter().getRegion())
-                        ).get().getDistance()
+                        ).get().getDistance(),
+                        time
                 )).collect(Collectors.toList());
     }
 
     @Override
     public List<OfferDTO> getSentOffers(Long teamId) {
+        Time time = timeRepository.findById(1L).get();
         return offerRepository.findAllByOfferer_IdAndArchivedIsFalse(teamId).stream()
                 .map(offer -> offer.toDTO(
                         regionDistanceRepository.findById(
                                 new RegionDistancePK(offer.getOfferer().getRegion(),
                                         offer.getOrder().getSubmitter().getRegion())
-                        ).get().getDistance()
+                        ).get().getDistance(),
+                        time
                 )).collect(Collectors.toList());
     }
 
@@ -173,7 +180,7 @@ public class OfferServiceHandler implements OfferService {
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
                 distance,
-                order.getProductAmount() * order.getProduct().getUnitVolume()
+                order.getProductAmount() * order.getProduct().getUnitVolume(), timeRepository.findById(1L).get()
         );
 
         if (offer.getOrder().getType() == OrderType.BUY) {
@@ -207,7 +214,8 @@ public class OfferServiceHandler implements OfferService {
 
         updateTeamsBalanceAndStorage(buyer, seller, order, shippingCost);
 
-        taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
+        taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
+                        teamRepository, timeRepository),
                 java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
 
         sendNotificationToOfferer(order, offer);
@@ -218,7 +226,7 @@ public class OfferServiceHandler implements OfferService {
         addLog(seller, LogType.SELL, order.getProduct(), Long.valueOf(order.getProductAmount()),
                 order.getProductAmount() * order.getUnitPrice());
 
-        return offer.toDTO(distance);
+        return offer.toDTO(distance, timeRepository.findById(1L).get());
     }
 
     private Shipping createShipping(Order order, Offer offer, ShippingMethod shippingMethod, int distance) {
@@ -333,7 +341,8 @@ public class OfferServiceHandler implements OfferService {
         return offer.toDTO(
                 regionDistanceRepository.findById(
                         new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
-                ).get().getDistance()
+                ).get().getDistance(),
+                timeRepository.findById(1L).get()
         );
     }
 
@@ -359,7 +368,8 @@ public class OfferServiceHandler implements OfferService {
         return offer.toDTO(
                 regionDistanceRepository.findById(
                         new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
-                ).get().getDistance()
+                ).get().getDistance(),
+                timeRepository.findById(1L).get()
         );
     }
 
@@ -393,7 +403,8 @@ public class OfferServiceHandler implements OfferService {
         return offer.toDTO(
                 regionDistanceRepository.findById(
                         new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
-                ).get().getDistance()
+                ).get().getDistance(),
+                timeRepository.findById(1L).get()
         );
     }
 

@@ -88,7 +88,8 @@ public class TradeServiceHandler implements TradeService {
         int shippingCost = calculateShippingPrice(
                 method,
                 distance,
-                quantity * product.getUnitVolume()
+                quantity * product.getUnitVolume(),
+                timeRepository.findById(1L).get()
         );
 
         Shipping shipping = new Shipping();
@@ -119,7 +120,8 @@ public class TradeServiceHandler implements TradeService {
             team.getShippings().add(shipping);
             teamRepository.save(team);
 
-            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository, teamRepository),
+            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
+                            teamRepository, timeRepository),
                     java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
 
             return shipping.toDTO();

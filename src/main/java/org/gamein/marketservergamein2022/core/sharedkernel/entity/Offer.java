@@ -46,7 +46,7 @@ public class Offer {
     @Column(name = "archived", nullable = false, columnDefinition = "boolean default false")
     private Boolean archived = false;
 
-    public OfferDTO toDTO(int distance) {
+    public OfferDTO toDTO(int distance, Time time) {
         return new OfferDTO(
                 id,
                 offerer.getId(),
@@ -59,7 +59,8 @@ public class Offer {
                 distance,
                 null,
                 TeamUtil.calculateShippingDuration(ShippingMethod.PLANE, distance),
-                TeamUtil.calculateShippingDuration(ShippingMethod.SHIP, distance)
+                TeamUtil.calculateShippingDuration(ShippingMethod.SHIP, distance),
+                time.getShipBasePrice(), time.getPlaneBasePrice(), time.getShipVarPrice(), time.getPlaneVarPrice()
         );
     }
 }

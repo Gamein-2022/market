@@ -1,10 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.util;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Product;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
@@ -18,12 +15,12 @@ import static java.lang.Math.pow;
 
 
 public class TeamUtil {
-    public static int calculateStorageSpace(Team team) {
-        return team.getIsStorageUpgraded() ? 75_000_000 : 50_000_000;
+    public static int calculateStorageSpace(Team team, Time time) {
+        return team.getIsStorageUpgraded() ? time.getStorageUpgradedCapacity() : time.getStorageBaseCapacity();
     }
 
-    public static int calculateAvailableSpace(Team team) {
-        int result = calculateStorageSpace(team);
+    public static int calculateAvailableSpace(Team team, Time time) {
+        int result = calculateStorageSpace(team, time);
         for (StorageProduct storageProduct : team.getStorageProducts()) {
             long unitVolume = storageProduct.getProduct().getUnitVolume();
             result -= storageProduct.getInStorageAmount() * unitVolume;
@@ -176,10 +173,11 @@ public class TeamUtil {
         }
     }
 
-    public static int calculateShippingPrice(ShippingMethod method, int distance, int volume) {
-        int price = 10000 + 100 * (int) pow(distance * volume, 0.5);
-        return method == ShippingMethod.SAME_REGION ? 10000 : method == ShippingMethod.SHIP ?
-                price : 3 * price;
+    public static int calculateShippingPrice(ShippingMethod method, int distance, int volume, Time time) {
+        int basePrice = method == ShippingMethod.SHIP ? time.getShipBasePrice() : time.getPlaneBasePrice();
+        int varPrice = method == ShippingMethod.SHIP ? time.getShipVarPrice() : time.getPlaneVarPrice();
+        int price = basePrice + varPrice * (int) pow(distance * volume, 0.5);
+        return method == ShippingMethod.SAME_REGION ? time.getShipBasePrice() : price;
     }
 
     public static int calculateShippingDuration(ShippingMethod method, int distance) {
