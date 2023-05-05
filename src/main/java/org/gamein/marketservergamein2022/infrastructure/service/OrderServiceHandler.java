@@ -84,6 +84,10 @@ public class OrderServiceHandler implements OrderService {
                     getSPFromProduct(team, product, storageProductRepository),
                     quantity
             );
+            TeamUtil.removeProductFromSellable(
+                    sp,
+                    quantity
+            );
             storageProductRepository.save(sp);
         }
 
@@ -145,10 +149,15 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
             teamRepository.save(team);
         } else {
-            TeamUtil.unblockProduct(
+            StorageProduct sp = TeamUtil.unblockProduct(
                     getSPFromProduct(team, order.getProduct(), storageProductRepository),
                     order.getProductAmount()
             );
+            TeamUtil.addProductToSellable(
+                    sp,
+                    order.getProductAmount()
+            );
+            storageProductRepository.save(sp);
         }
 
         offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
@@ -248,6 +257,10 @@ public class OrderServiceHandler implements OrderService {
         } else {
             StorageProduct sp = TeamUtil.unblockProduct(
                     getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+                    offer.getOrder().getProductAmount()
+            );
+            TeamUtil.addProductToSellable(
+                    sp,
                     offer.getOrder().getProductAmount()
             );
             storageProductRepository.save(sp);
