@@ -12,8 +12,10 @@ public class RawMaterialDTO {
     private final double price;
     private int planeDuration;
     private int shipDuration;
-    private int planePrice;
-    private int shipPrice;
     private int distance;
     private int unitVolume;
+    private final int planePrice;
+    private final int shipPrice;
+    private final int planeVariablePrice;
+    private final int shipVariablePrice;
 }
