@@ -1,6 +1,8 @@
 package org.gamein.marketservergamein2022.core.sharedkernel.enums;
 
 public enum ProductGroup {
+    RECYCLE,
+
     MODULES,
     PHONE_BODY,
     TABLET_BODY,
