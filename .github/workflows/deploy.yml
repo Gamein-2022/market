@@ -26,16 +26,41 @@ jobs:
              
   build-market:
     needs: check-code
-    runs-on: [self-hosted, linux]
+    runs-on: [app]
     steps:
       - uses: actions/checkout@master
       - run: |
-              ls -lah
-              docker build -t market:dev .
+              docker login   -u daria -p 7HlUyiSD  https://registry.dariasystem.com
+              docker build -t registry.dariasystem.com/gamein/market:dev .
+              docker push registry.dariasystem.com/gamein/market:dev
+              
+              
+              
+  deploy-market:
+    needs: build-market
+    runs-on: [app]
+    steps:
+      - uses: actions/checkout@master
+      - run: |
+              docker login   -u daria -p 7HlUyiSD  https://registry.dariasystem.com
+              docker pull registry.dariasystem.com/gamein/market:dev
               docker rm -f market      
               docker-compose up  -d market
-              sleep 20
-              docker rm -f market-1
-              docker-compose up  -d market-1
+              sleep 10
               docker-compose ps
+              
+              
+              
+  deploy-market-1:
+    needs: build-market
+    runs-on: [app-1]
+    steps:
+      - uses: actions/checkout@master
+      - run: |
+              docker login   -u daria -p 7HlUyiSD  https://registry.dariasystem.com
+              docker pull registry.dariasystem.com/gamein/market:dev
+              docker rm -f market-1
+              docker compose up  -d market-1
+              docker compose ps
+
 
