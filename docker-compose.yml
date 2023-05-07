@@ -13,10 +13,11 @@ services:
     networks:
       - gamein
     environment:
-      - spring.datasource.url=jdbc:postgresql://pgsql/gamein
+      - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein
       - spring.datasource.username=gamein
       - spring.datasource.password=gamein123
-      - auth.url=http://192.168.0.222:8082/dashboard/auth/info
+      - auth.url=https://api-gamein.dariahamrah.ir/dashboard/auth/info
+      - live.data.url=http://192.168.0.222:8083/websocket/api/notify
       
   market-1:
     image: registry.dariasystem.com/gamein/market:dev
@@ -30,6 +31,6 @@ services:
       - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein
       - spring.datasource.username=gamein
       - spring.datasource.password=gamein123
-      - auth.url=http://192.168.0.222:8082/dashboard/auth/info
+      - auth.url=https://api-gamein.dariahamrah.ir/dashboard/auth/info
       - live.data.url=http://192.168.0.222:8083/websocket/api/notify
  
