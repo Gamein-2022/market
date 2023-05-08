@@ -39,13 +39,21 @@ public class ProductServiceHandler implements ProductService {
     public RegionRawMaterialDTO getRawMaterials(Team team) {
         List<Product> myRegion = productRepository.findAllByLevelAndRegionsContaining(0, team.getRegion());
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionsNotContaining(0, team.getRegion());
+        Time time = timeRepository.findById(1L).get();
         return new RegionRawMaterialDTO(
                 myRegion.stream().map(product -> new RawMaterialDTO(product.getId(), product.getName(),
-                        product.getPrice(), 0, 0, 0, product.getUnitVolume(), 30000, 1000, 300, 100))
+                        product.getPrice(),
+                                0,
+                                0,
+                                0, product.getUnitVolume(),
+                                time.getPlaneBasePrice(),
+                                time.getShipBasePrice(),
+                                time.getPlaneVarPrice(),
+                                time.getShipVarPrice()))
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
                     int distance = regionDistanceRepository.minDistance(product.getRegions(), team.getRegion());
-                    Time time = timeRepository.findById(1L).get();
+
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(),
                             calculateShippingDuration(ShippingMethod.PLANE, distance),

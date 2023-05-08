@@ -100,10 +100,6 @@ public class TradeServiceHandler implements TradeService {
 
         long balance = team.getBalance();
         if (balance >= product.getPrice() * quantity + shippingCost) {
-            System.out.println(sourceRegion);
-            System.out.println(shippingCost);
-            System.out.println(distance);
-            System.out.println(product.getPrice() * quantity + shippingCost);
             balance -= product.getPrice() * quantity + shippingCost;
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(
