@@ -93,6 +93,7 @@ public class TradeServiceHandler implements TradeService {
                 timeRepository.findById(1L).get()
         );
 
+
         Shipping shipping = new Shipping();
         shipping.setMethod(method);
         shipping.setTeam(team);
@@ -100,6 +101,10 @@ public class TradeServiceHandler implements TradeService {
 
         long balance = team.getBalance();
         if (balance >= product.getPrice() * quantity + shippingCost) {
+            System.out.println(sourceRegion);
+            System.out.println(shippingCost);
+            System.out.println(distance);
+            System.out.println(product.getPrice() * quantity + shippingCost);
             balance -= product.getPrice() * quantity + shippingCost;
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(
