@@ -51,26 +51,8 @@ public class OrderServiceHandler implements OrderService {
     @Override
     public OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException {
-        if (productId == null) {
-            throw new BadRequestException("\"productId\" is a required field!");
-        }
-        if (quantity == null) {
-            throw new BadRequestException("\"quantity\" is a required field!");
-        }
-        if (price == null) {
-            throw new BadRequestException("\"price\" is a required field!");
-        }
-        Optional<Product> productOptional = productRepository.findById(productId);
-        if (productOptional.isEmpty()) {
-            throw new BadRequestException("محصول مورد نظر وجود ندارد!");
-        }
-        Product product = productOptional.get();
-        if (product.getLevel() >= 3 || product.getLevel() <= 0) {
-            throw new BadRequestException("شما نمی‌توانید این محصول را معامله کنید!");
-        }
-        if (price < product.getMinPrice() || price > product.getMaxPrice()) {
-            throw new BadRequestException("قیمت نامعتبر برای این محصول!");
-        }
+
+        Product product = validatingCreateOrder(productId,quantity,price);
 
         if (orderType == OrderType.BUY) {
             long balance = team.getBalance();
@@ -102,6 +84,32 @@ public class OrderServiceHandler implements OrderService {
         orderRepository.save(order);
 
         return order.toDTO(0, 0);
+    }
+
+    private Product validatingCreateOrder(Long productId,Integer quantity,Long price) throws BadRequestException {
+        if (productId == null) {
+            throw new BadRequestException("محصول مورد نظر وجود ندارد!");
+        }
+        if (quantity == null) {
+            throw new BadRequestException("تعداد وارد نشده است.");
+        }
+        if (quantity <= 0)
+            throw new BadRequestException("تعداد باید بیشتر از صفر باشد.");
+        if (price == null) {
+            throw new BadRequestException("قیمت وارد نشده است");
+        }
+        Optional<Product> productOptional = productRepository.findById(productId);
+        if (productOptional.isEmpty()) {
+            throw new BadRequestException("محصول مورد نظر وجود ندارد!");
+        }
+        Product product = productOptional.get();
+        if (product.getLevel() >= 3 || product.getLevel() <= 0) {
+            throw new BadRequestException("شما نمی‌توانید این محصول را معامله کنید!");
+        }
+        if (price < product.getMinPrice() || price > product.getMaxPrice()) {
+            throw new BadRequestException("قیمت نامعتبر برای این محصول!");
+        }
+        return product;
     }
 
     @Override

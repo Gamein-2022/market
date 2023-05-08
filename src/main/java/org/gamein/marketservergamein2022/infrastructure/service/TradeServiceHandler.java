@@ -78,7 +78,8 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
         }
 
-        int sourceRegion = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions()).get(0);
+        List<Integer> sourceRegions = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions());
+        Integer sourceRegion = sourceRegions.get(sourceRegions.size() - 1);
         int distance = regionDistanceRepository.findById(
                 new RegionDistancePK(sourceRegion, team.getRegion())
         ).get().getDistance();
@@ -107,7 +108,7 @@ public class TradeServiceHandler implements TradeService {
             );
             storageProductRepository.save(sp);
 
-            saveLog(LogType.BUY,product,shippingCost,quantity,team);
+            saveLog(LogType.BUY, product, shippingCost, quantity, team);
 
             shipping.setArrivalTime(
                     shipping.getDepartureTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
@@ -130,7 +131,7 @@ public class TradeServiceHandler implements TradeService {
         }
     }
 
-    private void saveLog(LogType logType,Product product,int shippingCost,int quantity,Team team){
+    private void saveLog(LogType logType, Product product, int shippingCost, int quantity, Team team) {
         Time time = timeRepository.findById(1L).get();
         TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
         Log log = new Log();
@@ -143,7 +144,7 @@ public class TradeServiceHandler implements TradeService {
                 Math.toIntExact(timeResultDTO.getMonth()),
                 Math.toIntExact(timeResultDTO.getDay()),
                 12,
-                23));;;
+                23));
         logRepository.save(log);
     }
 

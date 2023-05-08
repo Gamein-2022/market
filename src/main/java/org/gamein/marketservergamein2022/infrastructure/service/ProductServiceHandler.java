@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingDuration;
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateShippingPrice;
 
 
 @Service
