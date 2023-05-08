@@ -49,8 +49,8 @@ public class ProductServiceHandler implements ProductService {
                     Time time = timeRepository.findById(1L).get();
                     return new RawMaterialDTO(product.getId(), product.getName(),
                             product.getPrice(),
-                            calculateShippingDuration(ShippingMethod.PLANE, distance) / 8,
-                            calculateShippingDuration(ShippingMethod.SHIP, distance) / 8,
+                            calculateShippingDuration(ShippingMethod.PLANE, distance),
+                            calculateShippingDuration(ShippingMethod.SHIP, distance),
                             distance, product.getUnitVolume(),
                             time.getPlaneBasePrice(),
                             time.getShipBasePrice(),
