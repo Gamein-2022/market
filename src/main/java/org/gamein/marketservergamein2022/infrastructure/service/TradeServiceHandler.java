@@ -151,6 +151,8 @@ public class TradeServiceHandler implements TradeService {
     @Override
     public FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
             throws NotFoundException, BadRequestException {
+        if (quantity <= 0)
+            throw new BadRequestException("تعداد واردشده معتبر نمی باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
             throw new NotFoundException("محصول مورد نظر یافت نشد!");
