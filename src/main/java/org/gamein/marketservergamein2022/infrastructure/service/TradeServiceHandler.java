@@ -204,7 +204,9 @@ public class TradeServiceHandler implements TradeService {
 
     @Override
     public NextTradeTaskDTO nextTime() {
-        return new NextTradeTaskDTO(timeRepository.findById(1L).get().getNextFinalOrderTime());
+        return new NextTradeTaskDTO(
+                timeRepository.findById(1L).get().getNextFinalOrderTime(),LocalDateTime.now(ZoneOffset.UTC)
+        );
     }
 
     private FinalProductSellOrder validateAndReturnOrder(Long teamId, Long orderId) throws NotFoundException,
