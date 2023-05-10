@@ -389,25 +389,25 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO archiveOffer(Team team, Long offerId) throws BadRequestException, NotFoundException {
         Optional<Offer> offerOptional = offerRepository.findById(offerId); // TODO refactor this
         if (offerOptional.isEmpty()) {
-            throw new NotFoundException("Offer not found!");
+            throw new NotFoundException("این پیشنهاد یافت نشد.");
         }
         Offer offer = offerOptional.get();
 
         if (!team.getId().equals(offer.getOfferer().getId())) {
-            throw new NotFoundException("Offer not found!");
+            throw new NotFoundException("این پیشنهاد یافت نشد.");
         }
 
         if (offer.getCancelled()) {
-            throw new BadRequestException("Offer can't be archived, it is cancelled!");
+            throw new BadRequestException("این پیشنهاد قبلا لغو شده است .");
         }
-        if (offer.getDeclined()) {
+        /*if (offer.getDeclined()) {
             throw new BadRequestException("Offer can't be archived, it is declined!");
-        }
+        }*/
         if (offer.getArchived()) {
-            throw new BadRequestException("Offer already archived!");
+            throw new BadRequestException("این پیشنهاد قبلا بایگانی شده است.");
         }
         if (offer.getAcceptDate() == null) {
-            throw new BadRequestException("You can't archive an open offer!");
+            throw new BadRequestException("این پیشنهاد همچنان باز است.");
         }
 
         offer.setArchived(true);
