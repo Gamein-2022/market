@@ -47,7 +47,7 @@ public class Time {
     private Long scale = 1000000L;
 
     @Column(name = "next_final_order_time")
-    private Date nextFinalOrderTime;
+    private LocalDateTime nextFinalOrderTime;
 
     @Column(name = "plane_base_price", nullable = false, columnDefinition = "integer default 30000")
     private Integer planeBasePrice = 30000;

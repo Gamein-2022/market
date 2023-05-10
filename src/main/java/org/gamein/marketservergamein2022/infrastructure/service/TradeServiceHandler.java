@@ -18,6 +18,7 @@ import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -208,7 +209,8 @@ public class TradeServiceHandler implements TradeService {
     @Override
     public NextTradeTaskDTO nextTime() {
         return new NextTradeTaskDTO(
-                timeRepository.findById(1L).get().getNextFinalOrderTime(),LocalDateTime.now(ZoneOffset.UTC)
+                Timestamp.valueOf(timeRepository.findById(1L).get().getNextFinalOrderTime()),
+                Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC))
         );
     }
 
