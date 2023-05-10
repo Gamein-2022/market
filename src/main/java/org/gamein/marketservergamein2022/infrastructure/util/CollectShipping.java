@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.ShippingRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
@@ -21,8 +22,9 @@ public class CollectShipping implements Runnable {
 
     @Override
     public void run() {
-        if (TeamUtil.calculateAvailableSpace(shipping.getTeam(), timeRepo.findById(1L).get()) >=
-                shipping.getProduct().getUnitVolume() * shipping.getAmount()) {
+        Long a = (long) shipping.getProduct().getUnitVolume() * shipping.getAmount();
+        if (TeamUtil.calculateAvailableSpace(shipping.getTeam(), timeRepo.findById(1L).get()) >= a) {
+
 
             StorageProduct sp = TeamUtil.getOrCreateSPFromProduct(shipping.getTeam(), shipping.getProduct(), spRepo,
                     teamRepo);
