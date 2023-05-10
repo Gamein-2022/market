@@ -106,10 +106,14 @@ public class OfferServiceHandler implements OfferService {
         offer.setOfferer(team);
 
         if (order.getType() == OrderType.SELL) {
-            // TODO validate shipping method (should be optional because of buy offers)
-            // TODO validate shipping method even further (should be optional in same region buy offers too)
-            // TODO & even further! (should be either PLANE or SHIP, players are not allowed to select SAME_REGION as
-            //  a shipping method)
+            int distance = regionDistanceRepository.findById(
+                    new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
+            ).get().getDistance();
+            if (distance == 0)
+                shippingMethod = ShippingMethod.SAME_REGION;
+            else
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
             offer.setShippingMethod(shippingMethod);
         }
 
@@ -176,7 +180,11 @@ public class OfferServiceHandler implements OfferService {
         int distance = regionDistanceRepository.findById(
                 new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
         ).get().getDistance();
-
+        if (distance == 0)
+            shippingMethod = ShippingMethod.SAME_REGION;
+        else
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
                 distance,

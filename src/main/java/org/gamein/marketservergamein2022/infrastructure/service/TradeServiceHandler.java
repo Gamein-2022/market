@@ -82,9 +82,12 @@ public class TradeServiceHandler implements TradeService {
         int distance = regionDistanceRepository.findById(
                 new RegionDistancePK(sourceRegion, team.getRegion())
         ).get().getDistance();
-        if (distance == 0) {
+        if (distance == 0)
             method = ShippingMethod.SAME_REGION;
-        }
+        else
+            if (method.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل نقل معتبر نمی باشد.");
+
         int shippingCost = calculateShippingPrice(
                 method,
                 distance,
