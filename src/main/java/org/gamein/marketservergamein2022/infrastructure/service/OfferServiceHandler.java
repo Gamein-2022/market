@@ -406,7 +406,7 @@ public class OfferServiceHandler implements OfferService {
         if (offer.getArchived()) {
             throw new BadRequestException("این پیشنهاد قبلا بایگانی شده است.");
         }
-        if (offer.getAcceptDate() == null) {
+        if (offer.getAcceptDate() == null && !offer.getDeclined()) {
             throw new BadRequestException("این پیشنهاد همچنان باز است.");
         }
 
