@@ -126,7 +126,7 @@ public class OrderServiceHandler implements OrderService {
     @Override
     public TeamTradesDTO getTeamTrades(Team team) {
         return new TeamTradesDTO(
-                orderRepository.findAllBySubmitter_IdAndArchivedIsFalse(team.getId()).stream()
+                orderRepository.findAllBySubmitterIdAndArchivedIsFalseAndCancelledIsFalse(team.getId()).stream()
                         .map(order -> order.toDTO(
                                 offerRepository.countAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalseAndArchivedIsFalse(order.getId()),
                                 regionDistanceRepository.findById(

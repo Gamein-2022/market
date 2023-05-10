@@ -160,7 +160,7 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public List<OfferDTO> getSentOffers(Long teamId) {
         Time time = timeRepository.findById(1L).get();
-        return offerRepository.findAllByOfferer_IdAndArchivedIsFalse(teamId).stream()
+        return offerRepository.findAllByOffererIdAndArchivedIsFalseAndCancelledIsFalse(teamId).stream()
                 .map(offer -> offer.toDTO(
                         regionDistanceRepository.findById(
                                 new RegionDistancePK(offer.getOfferer().getRegion(),

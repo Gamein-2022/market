@@ -1,5 +1,6 @@
 package org.gamein.marketservergamein2022.infrastructure.repository;
 
+import org.aspectj.weaver.ast.Or;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Order;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
@@ -13,4 +14,5 @@ public interface OrderRepository extends JpaRepository<Order, Long>, OrderRepoCu
     List<Order> allOrders(OrderType type, Long productId);
     List<Order> findAllBySubmitter_IdAndArchivedIsFalse(Long submitterId);
     List<Order> findAllBySubmitter_IdOrAccepter_IdAndAcceptDateIsNotNull(Long submitterId, Long accepterId);
+    List<Order> findAllBySubmitterIdAndArchivedIsFalseAndCancelledIsFalse(Long submitterId);
 }
