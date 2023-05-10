@@ -66,8 +66,9 @@ public class TradeServiceHandler implements TradeService {
     @Override
     public ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException {
-        if (method.equals(ShippingMethod.SAME_REGION))
-            throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+        if (method != null)
+            if (method.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);
         if (productOptional.isEmpty()) {
             throw new BadRequestException("کالای مورد نظر یافت نشد!");

@@ -62,8 +62,9 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
 
-        if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-            throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+        if (shippingMethod != null)
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
 
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
@@ -175,8 +176,9 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
 
-        if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-            throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+        if (shippingMethod != null)
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
 
         Offer offer = checkOfferAccess(team.getId(), offerId);
         Order order = offer.getOrder();
