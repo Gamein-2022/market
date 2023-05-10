@@ -240,8 +240,8 @@ public class OrderServiceHandler implements OrderService {
         Time time = timeRepository.findById(1L).get();
 
         return new ShippingInfoDTO(
-                calculateShippingDuration(ShippingMethod.PLANE, distance) / 8,
-                calculateShippingDuration(ShippingMethod.SHIP, distance) / 8,
+                calculateShippingDuration(ShippingMethod.PLANE, distance),
+                calculateShippingDuration(ShippingMethod.SHIP, distance),
                 time.getPlaneBasePrice(),
                 time.getShipBasePrice(),
                 time.getPlaneVarPrice(),
