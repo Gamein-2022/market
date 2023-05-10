@@ -61,6 +61,10 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
+
+        if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+            throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new NotFoundException("سفارش یافت نشد!");
@@ -111,9 +115,6 @@ public class OfferServiceHandler implements OfferService {
             ).get().getDistance();
             if (distance == 0)
                 shippingMethod = ShippingMethod.SAME_REGION;
-            else
-            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
             offer.setShippingMethod(shippingMethod);
         }
 
@@ -174,6 +175,9 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
 
+        if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+            throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         Offer offer = checkOfferAccess(team.getId(), offerId);
         Order order = offer.getOrder();
 
@@ -182,9 +186,7 @@ public class OfferServiceHandler implements OfferService {
         ).get().getDistance();
         if (distance == 0)
             shippingMethod = ShippingMethod.SAME_REGION;
-        else
-            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
                 distance,
