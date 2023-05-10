@@ -9,6 +9,7 @@ import lombok.Getter;
 public class RawMaterialDTO {
     private final long id;
     private final String name;
+    private final String prettyName;
     private final double price;
     private int planeDuration;
     private int shipDuration;
