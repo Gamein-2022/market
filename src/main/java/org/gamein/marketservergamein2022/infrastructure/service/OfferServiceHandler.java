@@ -61,6 +61,11 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
+
+        if (shippingMethod != null)
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new NotFoundException("سفارش یافت نشد!");
@@ -111,9 +116,6 @@ public class OfferServiceHandler implements OfferService {
             ).get().getDistance();
             if (distance == 0)
                 shippingMethod = ShippingMethod.SAME_REGION;
-            else
-            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
             offer.setShippingMethod(shippingMethod);
         }
 
@@ -160,7 +162,7 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public List<OfferDTO> getSentOffers(Long teamId) {
         Time time = timeRepository.findById(1L).get();
-        return offerRepository.findAllByOfferer_IdAndArchivedIsFalse(teamId).stream()
+        return offerRepository.findAllByOffererIdAndArchivedIsFalseAndCancelledIsFalse(teamId).stream()
                 .map(offer -> offer.toDTO(
                         regionDistanceRepository.findById(
                                 new RegionDistancePK(offer.getOfferer().getRegion(),
@@ -174,6 +176,10 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
 
+        if (shippingMethod != null)
+            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
+                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         Offer offer = checkOfferAccess(team.getId(), offerId);
         Order order = offer.getOrder();
 
@@ -182,9 +188,7 @@ public class OfferServiceHandler implements OfferService {
         ).get().getDistance();
         if (distance == 0)
             shippingMethod = ShippingMethod.SAME_REGION;
-        else
-            if (shippingMethod.equals(ShippingMethod.SAME_REGION))
-                throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
+
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
                 distance,
@@ -385,25 +389,25 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO archiveOffer(Team team, Long offerId) throws BadRequestException, NotFoundException {
         Optional<Offer> offerOptional = offerRepository.findById(offerId); // TODO refactor this
         if (offerOptional.isEmpty()) {
-            throw new NotFoundException("Offer not found!");
+            throw new NotFoundException("این پیشنهاد یافت نشد.");
         }
         Offer offer = offerOptional.get();
 
         if (!team.getId().equals(offer.getOfferer().getId())) {
-            throw new NotFoundException("Offer not found!");
+            throw new NotFoundException("این پیشنهاد یافت نشد.");
         }
 
         if (offer.getCancelled()) {
-            throw new BadRequestException("Offer can't be archived, it is cancelled!");
+            throw new BadRequestException("این پیشنهاد قبلا لغو شده است .");
         }
-        if (offer.getDeclined()) {
+        /*if (offer.getDeclined()) {
             throw new BadRequestException("Offer can't be archived, it is declined!");
-        }
+        }*/
         if (offer.getArchived()) {
-            throw new BadRequestException("Offer already archived!");
+            throw new BadRequestException("این پیشنهاد قبلا بایگانی شده است.");
         }
-        if (offer.getAcceptDate() == null) {
-            throw new BadRequestException("You can't archive an open offer!");
+        if (offer.getAcceptDate() == null && !offer.getDeclined()) {
+            throw new BadRequestException("این پیشنهاد همچنان باز است.");
         }
 
         offer.setArchived(true);
