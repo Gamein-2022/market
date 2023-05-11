@@ -41,13 +41,14 @@ public class OrderRepoCustomImpl implements OrderRepoCustom {
 
         cq.where(totalPredicate);
 
-        if (type != null) {
-            if (type == OrderType.SELL) {
-                cq.orderBy(cb.asc(orderRoot.get("unitPrice")));
-            } else {
-                cq.orderBy(cb.desc(orderRoot.get("unitPrice")));
-            }
-        }
+//        if (type != null) {
+//            if (type == OrderType.SELL) {
+//                cq.orderBy(cb.asc(orderRoot.get("unitPrice")));
+//            } else {
+//                cq.orderBy(cb.desc(orderRoot.get("unitPrice")));
+//            }
+//        }
+        cq.orderBy(cb.desc(orderRoot.get("submitDate")));
 
         TypedQuery<Order> query = em.createQuery(cq);
         return query.getResultList();
