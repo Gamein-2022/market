@@ -191,6 +191,11 @@ public class TradeServiceHandler implements TradeService {
     @Override
     public FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
         FinalProductSellOrder order = validateAndReturnOrder(team.getId(), orderId);
+
+        if (order.getClosed()) {
+            throw new BadRequestException("سفارش شما تکمیل شده است!");
+        }
+
         order.setCancelled(true);
         TeamUtil.unblockProduct(
                 TeamUtil.getSPFromProduct(team, order.getProduct(), storageProductRepository),
@@ -229,10 +234,6 @@ public class TradeServiceHandler implements TradeService {
 
         if (!teamId.equals(order.getSubmitter().getId())) {
             throw new NotFoundException("سفارش فروش شما یافت نشد!");
-        }
-
-        if (order.getClosed()) {
-            throw new BadRequestException("سفارش شما تکمیل شده است!");
         }
 
         if (order.getCancelled()) {
