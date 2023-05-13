@@ -35,11 +35,7 @@ public class TradeServiceHandler implements TradeService {
     private final ShippingRepository shippingRepository;
     private final StorageProductRepository storageProductRepository;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
-    private final TeamResearchRepository teamResearchRepository;
     private final TimeRepository timeRepository;
-    private final DemandRepository demandRepository;
-    private final BrandRepository brandRepository;
-
     private final LogRepository logRepository;
     private final RegionDistanceRepository regionDistanceRepository;
 
@@ -47,18 +43,14 @@ public class TradeServiceHandler implements TradeService {
                                TeamRepository teamRepository, ShippingRepository shippingRepository,
                                StorageProductRepository storageProductRepository,
                                FinalProductSellOrderRepository finalProductSellOrderRepository,
-                               TeamResearchRepository teamResearchRepository,
-                               TimeRepository timeRepository, DemandRepository demandRepository, BrandRepository brandRepository, LogRepository logRepository, RegionDistanceRepository regionDistanceRepository) {
+                               TimeRepository timeRepository, LogRepository logRepository, RegionDistanceRepository regionDistanceRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.shippingRepository = shippingRepository;
         this.storageProductRepository = storageProductRepository;
         this.finalProductSellOrderRepository = finalProductSellOrderRepository;
-        this.teamResearchRepository = teamResearchRepository;
         this.timeRepository = timeRepository;
-        this.demandRepository = demandRepository;
-        this.brandRepository = brandRepository;
         this.logRepository = logRepository;
         this.regionDistanceRepository = regionDistanceRepository;
     }
