@@ -19,6 +19,6 @@ public class RawMaterialDTO extends BaseProductDTO {
     private final int shipPrice;
     private final int planeVariablePrice;
     private final int shipVariablePrice;
-
+    private final int level;
 
 }

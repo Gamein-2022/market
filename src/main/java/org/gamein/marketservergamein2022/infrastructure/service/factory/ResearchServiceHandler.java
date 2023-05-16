@@ -60,11 +60,11 @@ public class ResearchServiceHandler implements ResearchService {
         if (teamResearchOptional.isPresent()) {
             throw new BadRequestException("شما این فرآیند را قبلا انجام داده‌اید!");
         }
-        if (getEligibleTeams(subject, subject.getParent() == null ? teamRepository.findAll().stream() :
-                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getId(),
-                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)).noneMatch(t -> t.getId().equals(team.getId()))) {
-            throw new BadRequestException("شما امکان سرمایه‌گذاری در این تحقیق و توسعه را ندارید!");
-        }
+//        if (getEligibleTeams(subject, subject.getParent() == null ? teamRepository.findAll().stream() :
+//                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getId(),
+//                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)).noneMatch(t -> t.getId().equals(team.getId()))) {
+//            throw new BadRequestException("شما امکان سرمایه‌گذاری در این تحقیق و توسعه را ندارید!");
+//        }
 
         Time time = timeRepository.findById(1L).get();
         LocalDateTime beginDate = time.getBeginTime();

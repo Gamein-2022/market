@@ -8,8 +8,6 @@ import lombok.Setter;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
 
 @Getter
-@Setter
-@AllArgsConstructor
 public class InitFactoryLineProductRequestDTO {
     private Long lineId;
     private ProductGroup group;

@@ -9,7 +9,9 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 
@@ -54,7 +56,10 @@ public class Shipping {
 
     public ShippingDTO toDTO() {
         return new ShippingDTO(
-                id, sourceRegion, team.getId(), method, status, departureTime, arrivalTime, LocalDateTime.now(ZoneOffset.UTC),
+                id, sourceRegion, team.getId(), method, status,
+                Timestamp.valueOf(departureTime),
+                Timestamp.valueOf(arrivalTime),
+                Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
                 product.toDTO(), amount,
                 status == ShippingStatus.IN_QUEUE && calculateAvailableSpace(team) >= product.getUnitVolume() * amount
         );

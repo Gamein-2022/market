@@ -117,7 +117,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(initialDelay = 5, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 7, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -201,7 +201,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+//    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void payRegionPrice() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsRegionPayed()) return;
@@ -247,7 +247,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(initialDelay = 2, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void calculateResearchCosts() {
         Time time = timeRepository.findById(1L).get();
 
@@ -265,18 +265,18 @@ public class ScheduleService {
     }
 
     public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
-        if (subject.getProductGroup() != null) {
-            return teams.filter(team -> {
-                for (Building building : team.getBuildings()) {
-                    for (FactoryLine line : building.getLines()) {
-                        if (line.getGroup() == subject.getProductGroup()) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            });
-        } else {
+//        if (subject.getProductGroup() != null) {
+//            return teams.filter(team -> {
+//                for (Building building : team.getBuildings()) {
+//                    for (FactoryLine line : building.getLines()) {
+//                        if (line.getGroup() == subject.getProductGroup()) {
+//                            return true;
+//                        }
+//                    }
+//                }
+//                return false;
+//            });
+//        } else {
             return teams.filter(team -> {
                 for (Building building : team.getBuildings()) {
                     if (building.getType() == subject.getBuildingType()) {
@@ -285,7 +285,7 @@ public class ScheduleService {
                 }
                 return false;
             });
-        }
+//        }
     }
 
     private int calculatePrice(ResearchSubject subject, Time time) {

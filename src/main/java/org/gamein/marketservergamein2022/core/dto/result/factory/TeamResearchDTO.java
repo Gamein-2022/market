@@ -3,6 +3,7 @@ package org.gamein.marketservergamein2022.core.dto.result.factory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 
 
@@ -11,9 +12,9 @@ import java.time.ZonedDateTime;
 public class TeamResearchDTO {
     private ResearchSubjectDTO subject;
     private int paidAmount;
-    private ZonedDateTime beginTime;
-    private ZonedDateTime currentTime;
-    private ZonedDateTime endTime;
+    private Timestamp beginTime;
+    private Timestamp currentTime;
+    private Timestamp endTime;
     private String status;
     private long balance;
     private long price;

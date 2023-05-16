@@ -101,6 +101,7 @@ public class BuildingServiceHandler implements BuildingService {
         }
         List<FactoryLine> factoryLines = new ArrayList<>();
 
+        buildingRepository.save(building);
         for (int i = 0; i < info.getBaseLineCount(); i++) {
             factoryLines.add(createLine(team.getId(), building, lineType));
         }
@@ -172,8 +173,8 @@ public class BuildingServiceHandler implements BuildingService {
                 (int) (0.9 * info.getBuildPrice()) +
                 (building.isUpgraded() ? (int) (0.9 * info.getUpgradePrice()) : 0)
         );
-        factoryLineRepository.deleteAll(lines);
         buildingRepository.delete(building);
+        factoryLineRepository.deleteAll(lines);
         teamRepository.save(team);
 
         RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);

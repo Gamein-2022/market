@@ -46,32 +46,12 @@ public class ProductServiceHandler implements ProductService {
         List<Product> otherRegions = productRepository.findAllByLevelAndRegionsNotContaining(0, team.getRegion());
         Time time = timeRepository.findById(1L).get();
         return new RegionRawMaterialDTO(
-                myRegion.stream().map(product -> new RawMaterialDTO(
-                                product.getId(),
-                                product.getName(),
-                                product.getPrettyName(),
-                                product.getPrice(),
-                                0,
-                                0,
-                                0, product.getUnitVolume(),
-                                ShippingInfo.planeBasePrice,
-                                ShippingInfo.shipBasePrice,
-                                ShippingInfo.planeVarPrice,
-                                ShippingInfo.shipVarPrice))
+                myRegion.stream().map(product -> product.rawMaterialDTO(0))
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
                     int distance = regionDistanceRepository.minDistance(product.getRegions(), team.getRegion());
 
-                    return new RawMaterialDTO(product.getId(), product.getName(),
-                            product.getPrettyName(),
-                            product.getPrice(),
-                            calculateShippingDuration(ShippingMethod.PLANE, distance),
-                            calculateShippingDuration(ShippingMethod.SHIP, distance),
-                            distance, product.getUnitVolume(),
-                            ShippingInfo.planeBasePrice,
-                            ShippingInfo.shipBasePrice,
-                            ShippingInfo.planeVarPrice,
-                            ShippingInfo.shipVarPrice);
+                    return product.rawMaterialDTO(distance);
                 }).collect(Collectors.toList()),
                 team.getBalance()
         );

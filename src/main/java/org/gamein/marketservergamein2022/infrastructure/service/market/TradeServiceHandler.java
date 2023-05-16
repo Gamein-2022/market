@@ -20,6 +20,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -119,7 +120,7 @@ public class TradeServiceHandler implements TradeService {
 
             taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
                             teamRepository, timeRepository),
-                    java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
+                    shipping.getArrivalTime().toInstant(ZoneOffset.UTC));
 
             return shipping.toDTO();
         } else {

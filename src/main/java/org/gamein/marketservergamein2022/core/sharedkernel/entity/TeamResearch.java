@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.factory.TeamResearchDTO;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -46,9 +47,9 @@ public class TeamResearch {
 
 
     public TeamResearchDTO toDTO(long balance, int price, int duration) {
-        return new TeamResearchDTO(subject.toDTO(), paidAmount, beginTime == null ? null : beginTime.atZone(ZoneId.of(
-                "UTC")), LocalDateTime.now(ZoneOffset.UTC).atZone(ZoneId.of("UTC")),
-                endTime == null ? null : endTime.atZone(ZoneId.of("UTC")),
+        return new TeamResearchDTO(subject.toDTO(), paidAmount, beginTime == null ? null :
+                Timestamp.valueOf(beginTime), Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
+                endTime == null ? null : Timestamp.valueOf(endTime),
                 endTime == null ?
                         "not-started" :
                         endTime.isBefore(LocalDateTime.now(ZoneOffset.UTC)) ?
