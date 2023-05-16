@@ -27,4 +27,6 @@ public interface FinalProductSellOrderRepository extends JpaRepository<FinalProd
     @Query(value = "SELECT SUM(sold_quantity) FROM final_product_sell_order WHERE submitter_id = :teamId AND product_id = :productId",
             nativeQuery = true)
     Long totalProductSoldAmount(Long teamId, Long productId);
+
+    Boolean existsByProduct_IdAAndCancelledIsFalseAndClosedIsFalse(Long productId);
 }
