@@ -247,8 +247,9 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
     public void calculateResearchCosts() {
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  " => started calculating R&D");
         Time time = timeRepository.findById(1L).get();
 
         List<ResearchSubject> subjects = researchSubjectRepository.findAll();
@@ -262,6 +263,7 @@ public class ScheduleService {
             subject.setDuration(duration);
         }
         researchSubjectRepository.saveAll(subjects);
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  "done calculating R&D");
     }
 
     public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
