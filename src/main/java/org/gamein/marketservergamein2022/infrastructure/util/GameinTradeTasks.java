@@ -2,7 +2,7 @@ package org.gamein.marketservergamein2022.infrastructure.util;
 
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
-import org.gamein.marketservergamein2022.infrastructure.repository.FinalProductSellOrderRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.market.FinalProductSellOrderRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 
 import java.util.ArrayList;

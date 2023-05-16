@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class RawMaterialDTO {
+public class RawMaterialDTO extends BaseProductDTO {
     private final long id;
     private final String name;
     private final String prettyName;
@@ -19,4 +19,6 @@ public class RawMaterialDTO {
     private final int shipPrice;
     private final int planeVariablePrice;
     private final int shipVariablePrice;
+
+
 }

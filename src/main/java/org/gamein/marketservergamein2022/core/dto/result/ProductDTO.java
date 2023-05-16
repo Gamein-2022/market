@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ProductDTO {
+public class ProductDTO extends BaseProductDTO {
     private final Long id;
     private final String name;
     private final Integer price;

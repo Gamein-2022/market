@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.gamein.marketservergamein2022.core.dto.result.factory.StorageProductDTO;
 
 import javax.persistence.*;
 
@@ -40,4 +41,17 @@ public class StorageProduct {
 
     @ManyToOne(optional = false)
     private Team team;
+
+
+
+    public StorageProductDTO toDTO() {
+        return new StorageProductDTO(
+                product.toDTO(),
+                inStorageAmount,
+                inRouteAmount,
+                manufacturingAmount,
+                blockedAmount,
+                sellableAmount
+        );
+    }
 }
