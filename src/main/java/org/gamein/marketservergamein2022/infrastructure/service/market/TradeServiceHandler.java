@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 
-import static java.lang.Math.abs;
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
@@ -200,8 +199,8 @@ public class TradeServiceHandler implements TradeService {
         }
 
         order.setCancelled(true);
-        TeamUtil.unblockProduct(
-                TeamUtil.getSPFromProduct(team, order.getProduct(), storageProductRepository),
+        TeamUtil.removeProductFromBlock(
+                TeamUtil.getSPFromProduct(team, order.getProduct()).get(),
                 order.getQuantity()
         );
         finalProductSellOrderRepository.save(order);
