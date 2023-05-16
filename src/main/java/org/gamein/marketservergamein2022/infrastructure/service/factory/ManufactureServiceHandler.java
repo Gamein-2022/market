@@ -194,22 +194,25 @@ public class ManufactureServiceHandler {
     private FactoryLineDTO startRecycleProcess(Team team, FactoryLine line, Product product, int count, List<Requirement> requirements)
             throws BadRequestException {
         Requirement requirement = requirements.get(0);
-        Product recycle_product = requirement.getRequirement();
-        if (getSPFromProduct(team, recycle_product, storageProductRepository).getInStorageAmount() < count / requirement.getCount()) {
-            throw new BadRequestException("شما به میزان کافی " + recycle_product.getName() + " ندارید!");
+        Optional<StorageProduct> optionalRecycleProduct = getSPFromProduct(team, requirement.getRequirement());
+        if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
+            throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
         }
         if (count % requirement.getCount() != 0) {
             throw new BadRequestException("تعداد مواد بازیافتی باید مضربی از " + requirement.getCount() + " باشد!");
         }
-        if (calculateAvailableSpace(team, timeRepository.findById(1L).get()) < count * product.getUnitVolume()) {
+        if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
             throw new BadRequestException("انبار شما فضای کافی ندارد!");
         }
 
-        removeProductFromStorage(team, recycle_product, count / requirement.getCount(), storageProductRepository);
+        StorageProduct recycleProduct = optionalRecycleProduct.get();
 
-        StorageProduct sp = getOrCreateSPFromProduct(team, product, storageProductRepository, teamRepository);
+        removeProductFromStorage(recycleProduct, count / requirement.getCount());
+
+        StorageProduct sp = getOrCreateSPFromProduct(team, product);
         sp.setManufacturingAmount(count);
         storageProductRepository.save(sp);
+        storageProductRepository.save(recycleProduct);
 
 
         team.setBalance(team.getBalance() - ((long) (count / requirement.getCount()) * product.getVariableCost() + product.getFixedCost()));
