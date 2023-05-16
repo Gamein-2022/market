@@ -25,7 +25,7 @@ jobs:
              
   build-market:
 #    needs: check-code
-    runs-on: [app-2]
+    runs-on: [app-3]
     steps:
       - uses: actions/checkout@master
       - run: |
