@@ -67,8 +67,18 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(balance);
             teamRepository.save(team);
         } else {
-            StorageProduct sp = TeamUtil.addProductToBlock(
-                    getSPFromProduct(team, product, storageProductRepository),
+            Optional<StorageProduct> spOptional = getSPFromProduct(team, product);
+            if (spOptional.isEmpty() ||
+                    spOptional.get().getInStorageAmount() - spOptional.get().getBlockedAmount() < quantity) {
+                throw new BadRequestException("شما به مقدار کافی " + product.getName() + " ندارید!");
+            }
+            StorageProduct sp = spOptional.get();
+            if (sp.getSellableAmount() < quantity) {
+                throw new BadRequestException("شما به مقدار کافی " + product.getName() + " برای فروش ندارید!");
+            }
+
+            TeamUtil.addProductToBlock(
+                    sp,
                     quantity
             );
             TeamUtil.removeProductFromSellable(
@@ -162,8 +172,10 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
             teamRepository.save(team);
         } else {
-            StorageProduct sp = TeamUtil.removeProductFromBlock(
-                    getSPFromProduct(team, order.getProduct(), storageProductRepository),
+            StorageProduct sp = getSPFromProduct(team, order.getProduct()).get();
+
+            TeamUtil.removeProductFromBlock(
+                    sp,
                     order.getProductAmount()
             );
             TeamUtil.addProductToSellable(
@@ -272,8 +284,9 @@ public class OrderServiceHandler implements OrderService {
             team.setBalance(team.getBalance() + offer.getOrder().getProductAmount() * offer.getOrder().getUnitPrice());
             teamRepository.save(team);
         } else {
-            StorageProduct sp = TeamUtil.removeProductFromBlock(
-                    getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+            StorageProduct sp = getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct()).get();
+            TeamUtil.removeProductFromBlock(
+                    sp,
                     offer.getOrder().getProductAmount()
             );
             TeamUtil.addProductToSellable(
