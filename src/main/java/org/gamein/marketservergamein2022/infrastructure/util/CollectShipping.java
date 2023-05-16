@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.ShippingRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
@@ -30,7 +29,7 @@ public class CollectShipping implements Runnable {
                     teamRepo);
 
             try {
-                TeamUtil.removeProductFromInRoute(sp, shipping.getAmount());
+                TeamUtil.removeProductFromRoute(sp, shipping.getAmount());
                 TeamUtil.addProductToStorage(
                         sp,
                         shipping.getAmount()

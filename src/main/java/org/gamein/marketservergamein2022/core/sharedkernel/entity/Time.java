@@ -66,4 +66,22 @@ public class Time {
 
     @Column(name = "storage_upgraded_capacity", nullable = false, columnDefinition = "integer default 75000000")
     private Integer storageUpgradedCapacity = 75000000;
+
+
+    @Column(name = "upgrade_region_price", nullable = false, columnDefinition = "integer default 180000000")
+    private Integer upgradeRegionPrice;
+
+    @Column(name = "storage_cost_scale")
+    private Integer storageCostScale;
+
+    @Column(name = "storage_upgrade_cost")
+    private Long upgradeStorageCost;
+
+    @Column(name = "r_and_d_time_coeff", nullable = false, columnDefinition = "double precision default 0.4")
+    private Double rAndDTimeCoeff;
+
+    @Column(name = "r_and_d_rush", nullable = false, columnDefinition = "integer default 30")
+    private Integer rAndDRush;
+
+
 }

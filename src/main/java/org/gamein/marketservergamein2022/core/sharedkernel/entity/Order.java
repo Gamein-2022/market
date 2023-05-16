@@ -4,15 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.gamein.marketservergamein2022.core.dto.result.OrderDTO;
-import org.gamein.marketservergamein2022.core.dto.result.TradeLogsDTO;
+import org.gamein.marketservergamein2022.core.dto.result.market.OrderDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import static java.lang.Math.abs;
 
