@@ -117,7 +117,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 5, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -227,13 +227,15 @@ public class ScheduleService {
             }
 
             Map<Long, Long> regionsPrice = new HashMap<>();
+            List<Region> regions = new ArrayList<>();
             for (int i = 1; i < 9; i++) {
                 Region region = regionRepository.findFirstByRegionId(i);
                 Long price = calculateRegionPrice(regionsPopulation.get(i));
                 regionsPrice.put((long) i, price);
                 region.setRegionPayed(price);
-                regionRepository.save(region);
+                regions.add(region);
             }
+            regionRepository.saveAll(regions);
             for (Team team : teams) {
                 team.setBalance(team.getBalance() - regionsPrice.get((long) team.getRegion()));
             }
@@ -245,7 +247,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void calculateResearchCosts() {
         Time time = timeRepository.findById(1L).get();
 
@@ -262,7 +264,7 @@ public class ScheduleService {
         researchSubjectRepository.saveAll(subjects);
     }
 
-    private Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
+    public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
         if (subject.getProductGroup() != null) {
             return teams.filter(team -> {
                 for (Building building : team.getBuildings()) {

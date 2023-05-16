@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gamein.marketservergamein2022.infrastructure.service.schedule.ScheduleService.getEligibleTeams;
+
 
 @Service
 public class ResearchServiceHandler implements ResearchService {
@@ -161,30 +163,6 @@ public class ResearchServiceHandler implements ResearchService {
         int price = calculatePrice(subject);
 
         return teamResearch.toDTO(team.getBalance(), price, duration * 1000);
-    }
-
-    private Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
-        if (subject.getProductGroup() != null) {
-            return teams.filter(team -> {
-                for (Building building : team.getBuildings()) {
-                    for (FactoryLine line : building.getLines()) {
-                        if (line.getGroup() == subject.getProductGroup()) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            });
-        } else {
-            return teams.filter(team -> {
-                for (Building building : team.getBuildings()) {
-                    if (building.getType() == subject.getBuildingType()) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-        }
     }
 
     private int calculatePrice(ResearchSubject subject) {

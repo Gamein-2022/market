@@ -34,7 +34,7 @@ public class Team {
     @OneToOne(optional = false)
     private User owner;
 
-    @Column(name = "balance", nullable = false)
+    @Column(name = "balance", nullable = false, columnDefinition = "bigint default 412000000")
     private long balance;
 
     @Column(name = "name", nullable = false, unique = true)
