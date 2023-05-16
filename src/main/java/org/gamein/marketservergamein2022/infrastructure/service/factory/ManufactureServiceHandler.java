@@ -275,7 +275,6 @@ public class ManufactureServiceHandler {
 
     public FactoryLineDTO collectLine(Team team, Long lineId) throws UnauthorizedException, NotFoundException, RemainignTimeException, BadRequestException {
         FactoryLine factoryLine = validateTeamAndLine(team, lineId);
-//        long lineProductId = factoryLine.getProduct().getId();
 
         if (factoryLine.getStatus().equals(LineStatus.OFF))
             throw new BadRequestException("خط تولید خالی می باشد.");
@@ -284,23 +283,24 @@ public class ManufactureServiceHandler {
         if (LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).isBefore(factoryLine.getEndTime()))
             throw new RemainignTimeException("اکنون زمان تحویل نمی باشد.");
 
+        Optional<StorageProduct> optional = TeamUtil.getSPFromProduct(team,factoryLine.getProduct());
+        if (optional.isEmpty())
+            throw new BadRequestException("خط تولید خالی می باشد.");
 
-        TeamUtil.removeProductFromManufacturing(storageProductRepository, team, factoryLine.getProduct(), factoryLine.getCount());
-        StorageProduct teamStorageProduct = TeamUtil.addProductToStorage(team, factoryLine.getProduct(),
-                factoryLine.getCount(), storageProductRepository, teamRepository);
-//        StorageProduct teamStorageProduct = getTeamStorageProduct(lineProductId, team);
-//        teamStorageProduct.setInStorageAmount(teamStorageProduct.getInStorageAmount() + factoryLine.getCount());
-//        teamStorageProduct.setManufacturingAmount(teamStorageProduct.getManufacturingAmount() - factoryLine.getCount());
-        if (teamStorageProduct.getProduct().getLevel() > 0)
-            teamStorageProduct.setSellableAmount(teamStorageProduct.getSellableAmount() + factoryLine.getCount());
-        storageProductRepository.save(teamStorageProduct);
-//        team.getStorageProducts().add(teamStorageProduct);
-//        teamRepository.save(team);
+        StorageProduct sp = optional.get();
+        TeamUtil.removeProductFromManufacturing(sp,factoryLine.getCount());
+
+
+        if (sp.getProduct().getLevel() > 0)
+            TeamUtil.addProductToStorage(sp, factoryLine.getCount());
+
+        storageProductRepository.save(sp);
+
         //log
 
         Time time = timeRepository.findById(1L).get();
         TimeResultDTO resultDTO = TimeUtil.getTime(time);
-        saveLog(team, factoryLine, teamStorageProduct.getProduct(), resultDTO);
+        saveLog(team, factoryLine, sp.getProduct(), resultDTO);
 
         factoryLine.setStatus(LineStatus.OFF);
         factoryLine.setCount(0);

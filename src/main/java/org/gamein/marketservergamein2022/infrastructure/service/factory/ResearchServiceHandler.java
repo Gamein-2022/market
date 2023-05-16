@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getTeamWealth;
+
 
 
 @Service
