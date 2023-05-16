@@ -87,8 +87,7 @@ public class TradeServiceHandler implements TradeService {
         int shippingCost = calculateShippingPrice(
                 method,
                 distance,
-                quantity * product.getUnitVolume(),
-                time
+                quantity * product.getUnitVolume()
         );
 
 
@@ -102,7 +101,7 @@ public class TradeServiceHandler implements TradeService {
             balance -= product.getPrice() * quantity + shippingCost;
             team.setBalance(balance);
             StorageProduct sp = TeamUtil.addProductToRoute(
-                    getOrCreateSPFromProduct(team, product, storageProductRepository, teamRepository),
+                    getOrCreateSPFromProduct(team, product),
                     quantity
             );
             storageProductRepository.save(sp);
@@ -168,8 +167,15 @@ public class TradeServiceHandler implements TradeService {
             throw new BadRequestException("قیمت نامعتبر برای این محصول!");
         }
 
-        StorageProduct sp = TeamUtil.addProductToBlock(
-                getSPFromProduct(team, product, storageProductRepository),
+        Optional<StorageProduct> spOptional = getSPFromProduct(team, product);
+        if (spOptional.isEmpty() ||
+                spOptional.get().getInStorageAmount() - spOptional.get().getBlockedAmount() < quantity) {
+            throw new BadRequestException("شما به مقدار کافی " + product.getName() + " ندارید!");
+        }
+        StorageProduct sp = spOptional.get();
+
+        TeamUtil.addProductToBlock(
+                sp,
                 quantity
         );
         storageProductRepository.save(sp);

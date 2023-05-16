@@ -1,7 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.service.market;
 
-import org.gamein.marketservergamein2022.core.dto.result.market.OfferDTO;
 import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
+import org.gamein.marketservergamein2022.core.dto.result.market.OfferDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.market.OfferService;
@@ -89,8 +89,14 @@ public class OfferServiceHandler implements OfferService {
         }
 
         if (order.getType() == OrderType.BUY) {
-            StorageProduct sp = TeamUtil.addProductToBlock(
-                    getSPFromProduct(team, order.getProduct(), storageProductRepository),
+            Optional<StorageProduct> spOptional = getSPFromProduct(team, order.getProduct());
+            if (spOptional.isEmpty() ||
+                    spOptional.get().getSellableAmount() < order.getProductAmount()) {
+                throw new BadRequestException("شما به مقدار کافی " + order.getProduct().getName() + " ندارید!");
+            }
+            StorageProduct sp = spOptional.get();
+            TeamUtil.addProductToBlock(
+                    sp,
                     order.getProductAmount()
             );
             TeamUtil.removeProductFromSellable(
@@ -195,7 +201,7 @@ public class OfferServiceHandler implements OfferService {
         int shippingCost = calculateShippingPrice(
                 offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
                 distance,
-                order.getProductAmount() * order.getProduct().getUnitVolume(), timeRepository.findById(1L).get()
+                order.getProductAmount() * order.getProduct().getUnitVolume()
         );
 
         if (offer.getOrder().getType() == OrderType.BUY) {
@@ -293,17 +299,20 @@ public class OfferServiceHandler implements OfferService {
         StorageProduct sp = TeamUtil.addProductToRoute(
                 getOrCreateSPFromProduct(
                         buyer,
-                        order.getProduct(),
-                        storageProductRepository,
-                        teamRepository
+                        order.getProduct()
                 ),
                 order.getProductAmount()
         );
         buyer.setBalance(buyer.getBalance() - shippingCost);
         storageProductRepository.save(sp);
         teamRepository.save(buyer);
-        sp = TeamUtil.removeProductFromBlockedAndStorage(
-                getSPFromProduct(seller, order.getProduct(), storageProductRepository),
+        sp = getSPFromProduct(seller, order.getProduct()).get();
+        TeamUtil.removeProductFromStorage(
+                sp,
+                order.getProductAmount()
+        );
+        TeamUtil.removeProductFromBlock(
+                sp,
                 order.getProductAmount()
         );
         seller.setBalance(seller.getBalance() + order.getProductAmount() * order.getUnitPrice());
@@ -340,7 +349,9 @@ public class OfferServiceHandler implements OfferService {
                 Math.toIntExact(timeResultDTO.getMonth()),
                 Math.toIntExact(timeResultDTO.getDay()),
                 12,
-                23));;;
+                23));
+        ;
+        ;
         logRepository.save(log);
     }
 
@@ -456,8 +467,9 @@ public class OfferServiceHandler implements OfferService {
     private void undoOffer(Offer offer)
             throws BadRequestException {
         if (offer.getOrder().getType() == OrderType.BUY) {
-            StorageProduct sp = TeamUtil.removeProductFromBlock(
-                    getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct(), storageProductRepository),
+            StorageProduct sp = getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct()).get();
+            TeamUtil.removeProductFromBlock(
+                    sp,
                     offer.getOrder().getProductAmount()
             );
             TeamUtil.addProductToSellable(
