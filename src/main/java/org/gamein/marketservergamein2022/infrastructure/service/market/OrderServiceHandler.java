@@ -13,6 +13,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.repository.market.*;
+import org.gamein.marketservergamein2022.infrastructure.util.ShippingInfo;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
 
@@ -258,10 +259,10 @@ public class OrderServiceHandler implements OrderService {
         return new ShippingInfoDTO(
                 calculateShippingDuration(ShippingMethod.PLANE, distance),
                 calculateShippingDuration(ShippingMethod.SHIP, distance),
-                time.getPlaneBasePrice(),
-                time.getShipBasePrice(),
-                time.getPlaneVarPrice(),
-                time.getShipVarPrice(),
+                ShippingInfo.planeBasePrice,
+                ShippingInfo.shipBasePrice,
+                ShippingInfo.planeVarPrice,
+                ShippingInfo.shipVarPrice,
                 team.getBalance(),
                 distance
         );

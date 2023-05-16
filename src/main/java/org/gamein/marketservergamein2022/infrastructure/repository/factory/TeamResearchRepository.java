@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TeamResearchRepository extends JpaRepository<TeamResearch, Long> {
+    TeamResearch findFirstBySubject_IdAndEndTimeIsBeforeOrderByEndTime(Long id, LocalDateTime now);
     TeamResearch findFirstBySubject_IdOrderByEndTime(Long id);
     List<TeamResearch> findAllByTeam_Id(Long teamId);
     TeamResearch findFirstByEndTimeAfter(LocalDateTime date);

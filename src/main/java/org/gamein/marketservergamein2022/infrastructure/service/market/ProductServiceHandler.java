@@ -15,6 +15,7 @@ import org.gamein.marketservergamein2022.infrastructure.repository.market.Produc
 import org.gamein.marketservergamein2022.infrastructure.repository.market.RegionDistanceRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
+import org.gamein.marketservergamein2022.infrastructure.util.ShippingInfo;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.stereotype.Service;
 
@@ -53,10 +54,10 @@ public class ProductServiceHandler implements ProductService {
                                 0,
                                 0,
                                 0, product.getUnitVolume(),
-                                time.getPlaneBasePrice(),
-                                time.getShipBasePrice(),
-                                time.getPlaneVarPrice(),
-                                time.getShipVarPrice()))
+                                ShippingInfo.planeBasePrice,
+                                ShippingInfo.shipBasePrice,
+                                ShippingInfo.planeVarPrice,
+                                ShippingInfo.shipVarPrice))
                         .collect(Collectors.toList()),
                 otherRegions.stream().map(product -> {
                     int distance = regionDistanceRepository.minDistance(product.getRegions(), team.getRegion());
@@ -67,10 +68,10 @@ public class ProductServiceHandler implements ProductService {
                             calculateShippingDuration(ShippingMethod.PLANE, distance),
                             calculateShippingDuration(ShippingMethod.SHIP, distance),
                             distance, product.getUnitVolume(),
-                            time.getPlaneBasePrice(),
-                            time.getShipBasePrice(),
-                            time.getPlaneVarPrice(),
-                            time.getShipVarPrice());
+                            ShippingInfo.planeBasePrice,
+                            ShippingInfo.shipBasePrice,
+                            ShippingInfo.planeVarPrice,
+                            ShippingInfo.shipVarPrice);
                 }).collect(Collectors.toList()),
                 team.getBalance()
         );
