@@ -4,13 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.gamein.marketservergamein2022.core.dto.result.ShippingDTO;
+import org.gamein.marketservergamein2022.core.dto.result.market.ShippingDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
+
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.calculateAvailableSpace;
 
 
 @Entity
@@ -51,7 +56,13 @@ public class Shipping {
 
     public ShippingDTO toDTO() {
         return new ShippingDTO(
-                sourceRegion, team.getId(), method, departureTime, arrivalTime, product.toDTO(), amount
+                id, sourceRegion, team.getId(), method, status,
+                Timestamp.valueOf(departureTime),
+                Timestamp.valueOf(arrivalTime),
+                Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
+                product.toDTO(), amount,
+                status == ShippingStatus.IN_QUEUE && calculateAvailableSpace(team) >= product.getUnitVolume() * amount
         );
     }
+
 }

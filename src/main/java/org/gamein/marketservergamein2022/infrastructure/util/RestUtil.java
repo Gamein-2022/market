@@ -68,4 +68,11 @@ public class RestUtil {
 
         return response.getBody();
     }
+
+    public static void sendNotificationToAll(String text,String type,String liveUrl){
+        Map<String, String> params = new HashMap<>();
+        params.put("type", type);
+        params.put("message", text);
+        RestUtil.sendRawRequest(liveUrl, params, HttpMethod.POST, MediaType.APPLICATION_JSON);
+    }
 }

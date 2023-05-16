@@ -4,16 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.gamein.marketservergamein2022.core.dto.result.OfferDTO;
+import org.gamein.marketservergamein2022.core.dto.result.market.OfferDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
-import org.gamein.marketservergamein2022.infrastructure.repository.RegionDistanceRepository;
+import org.gamein.marketservergamein2022.infrastructure.util.ShippingInfo;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.hibernate.annotations.DynamicInsert;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 
 @DynamicInsert
@@ -60,7 +58,10 @@ public class Offer {
                 null,
                 TeamUtil.calculateShippingDuration(ShippingMethod.PLANE, distance),
                 TeamUtil.calculateShippingDuration(ShippingMethod.SHIP, distance),
-                time.getShipBasePrice(), time.getPlaneBasePrice(), time.getShipVarPrice(), time.getPlaneVarPrice()
+                ShippingInfo.shipBasePrice,
+                ShippingInfo.planeBasePrice,
+                ShippingInfo.shipVarPrice,
+                ShippingInfo.planeVarPrice
         );
     }
 }

@@ -1,10 +1,8 @@
 package org.gamein.marketservergamein2022.infrastructure.util;
 
 import lombok.AllArgsConstructor;
-import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.Shipping;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.StorageProduct;
-import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
 import org.gamein.marketservergamein2022.infrastructure.repository.ShippingRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
@@ -23,22 +21,18 @@ public class CollectShipping implements Runnable {
     @Override
     public void run() {
         Long a = (long) shipping.getProduct().getUnitVolume() * shipping.getAmount();
-        if (TeamUtil.calculateAvailableSpace(shipping.getTeam(), timeRepo.findById(1L).get()) >= a) {
+        if (TeamUtil.calculateAvailableSpace(shipping.getTeam()) >= a) {
 
 
-            StorageProduct sp = TeamUtil.getOrCreateSPFromProduct(shipping.getTeam(), shipping.getProduct(), spRepo,
-                    teamRepo);
+            StorageProduct sp = TeamUtil.getSPFromProduct(shipping.getTeam(), shipping.getProduct()).get();
 
-            try {
-                TeamUtil.removeProductFromInRoute(sp, shipping.getAmount());
-                TeamUtil.addProductToStorage(
-                        sp,
-                        shipping.getAmount()
-                );
-                spRepo.save(sp);
-            } catch (BadRequestException e) {
-                throw new RuntimeException(e);
-            }
+            TeamUtil.removeProductFromRoute(sp, shipping.getAmount());
+            TeamUtil.addProductToStorage(
+                    sp,
+                    shipping.getAmount()
+            );
+            spRepo.save(sp);
+
 
             shipping.setStatus(ShippingStatus.DONE);
         } else {

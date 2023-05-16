@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.gamein.marketservergamein2022.core.dto.result.FinalProductSellOrderDTO;
+import org.gamein.marketservergamein2022.core.dto.result.market.FinalProductSellOrderDTO;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;

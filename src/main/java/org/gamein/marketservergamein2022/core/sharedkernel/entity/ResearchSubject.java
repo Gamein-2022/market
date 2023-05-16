@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.gamein.marketservergamein2022.core.dto.result.factory.ResearchSubjectDTO;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
 
 import javax.persistence.*;
 
@@ -32,6 +35,29 @@ public class ResearchSubject {
     @Column(name = "base_duration", nullable = false)
     private int baseDuration;
 
+    @Column(name = "price", nullable = false)
+    private int price;
+
+    @Column(name = "duration", nullable = false)
+    private int duration;
+
     @ManyToOne
     private ResearchSubject parent;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "related_product_group")
+    private ProductGroup productGroup;
+
+    @Column(name = "building_group")
+    private BuildingType buildingType;
+
+    @ManyToOne
+    private ResearchSubject durationBound;
+
+
+
+    public ResearchSubjectDTO toDTO() {
+        return new ResearchSubjectDTO(name, availableDay);
+    }
 }

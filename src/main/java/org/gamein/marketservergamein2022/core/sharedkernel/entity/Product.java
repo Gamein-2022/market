@@ -5,7 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.gamein.marketservergamein2022.core.dto.result.ProductDTO;
+import org.gamein.marketservergamein2022.core.dto.result.RawMaterialDTO;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
+import org.gamein.marketservergamein2022.infrastructure.util.ShippingInfo;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 
 import javax.persistence.*;
 import java.util.List;
@@ -43,7 +47,7 @@ public class Product {
     private Integer price;
 
     @Column(name = "available_day")
-    private Integer availableDay;
+    private Long availableDay;
 
     @ManyToOne
     private ResearchSubject RAndD;
@@ -79,5 +83,23 @@ public class Product {
     public ProductDTO toDTO() {
         return new ProductDTO(id, name, price, level, unitVolume, productionRate, prettyName, prettyGroup, minPrice,
                 maxPrice);
+    }
+
+    public RawMaterialDTO rawMaterialDTO(int distance){
+        return new RawMaterialDTO(
+                id,
+                name,
+                prettyName,
+                price,
+                TeamUtil.calculateShippingDuration(ShippingMethod.PLANE, distance),
+                TeamUtil.calculateShippingDuration(ShippingMethod.SHIP, distance),
+                distance,
+                unitVolume,
+                ShippingInfo.planeBasePrice,
+                ShippingInfo.shipBasePrice,
+                ShippingInfo.planeVarPrice,
+                ShippingInfo.shipVarPrice,
+                level
+        );
     }
 }

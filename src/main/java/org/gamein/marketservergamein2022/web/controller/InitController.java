@@ -3,10 +3,18 @@ package org.gamein.marketservergamein2022.web.controller;
 import org.gamein.marketservergamein2022.core.dto.result.ErrorResult;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.InvalidTokenException;
-import org.gamein.marketservergamein2022.core.service.AuthService;
+import org.gamein.marketservergamein2022.core.service.dashboard.AuthService;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.core.iao.AuthInfo;
 import org.gamein.marketservergamein2022.core.iao.AuthInfoResponse;
+import org.gamein.marketservergamein2022.web.controller.factory.BuildingController;
+import org.gamein.marketservergamein2022.web.controller.factory.ManufactureController;
+import org.gamein.marketservergamein2022.web.controller.factory.ResearchController;
+import org.gamein.marketservergamein2022.web.controller.factory.StorageController;
+import org.gamein.marketservergamein2022.web.controller.market.OfferController;
+import org.gamein.marketservergamein2022.web.controller.market.OrderController;
+import org.gamein.marketservergamein2022.web.controller.market.ProductController;
+import org.gamein.marketservergamein2022.web.controller.market.TradeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +25,9 @@ import org.springframework.web.client.RestClientException;
 
 import javax.servlet.http.HttpServletRequest;
 
-@ControllerAdvice(assignableTypes = {OfferController.class,OrderController.class,
-        ProductController.class,TradeController.class})
+@ControllerAdvice(assignableTypes = {OfferController.class, OrderController.class,
+        ProductController.class, TradeController.class, BuildingController.class, ManufactureController.class,
+        ResearchController.class, StorageController.class})
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class InitController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());

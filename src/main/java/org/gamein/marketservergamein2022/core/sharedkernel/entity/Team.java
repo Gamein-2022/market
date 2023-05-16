@@ -34,10 +34,10 @@ public class Team {
     @OneToOne(optional = false)
     private User owner;
 
-    @Column(name = "balance", nullable = false)
+    @Column(name = "balance", nullable = false, columnDefinition = "bigint default 412000000")
     private long balance;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "region")
@@ -56,4 +56,7 @@ public class Team {
 
     @Column(name = "is_storage_upgraded",columnDefinition = "boolean default false")
     private Boolean isStorageUpgraded;
+
+    @Column(name = "is_region_upgraded", columnDefinition = "boolean default false")
+    private Boolean isRegionUpgraded = false;
 }
