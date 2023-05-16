@@ -73,7 +73,6 @@ public class TradeServiceHandler implements TradeService {
         if (product.getLevel() > 0) {
             throw new BadRequestException("شما تنها می‌توانید مواد اولیه از فروشگاه گیمین بخرید!");
         }
-        Time time = timeRepository.findById(1L).get();
 
         Integer sourceRegion = regionDistanceRepository.minDistanceRegion(team.getRegion(), product.getRegions()).get(0);
         int distance = regionDistanceRepository.findById(
@@ -122,7 +121,7 @@ public class TradeServiceHandler implements TradeService {
                             teamRepository, timeRepository),
                     java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
 
-            return shipping.toDTO(time);
+            return shipping.toDTO();
         } else {
             throw new BadRequestException("اعتبار شما کافی نیست!");
         }
@@ -159,7 +158,7 @@ public class TradeServiceHandler implements TradeService {
         if (product.getLevel() < 2) {
             throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
-        if (finalProductSellOrderRepository.existsByProduct_IdAAndCancelledIsFalseAndClosedIsFalse(productId)) {
+        if (finalProductSellOrderRepository.existsByProduct_IdAndCancelledIsFalseAndClosedIsFalse(productId)) {
             throw new BadRequestException("شما یک سفارش باز برای این محصول دارید!");
         }
         if (price < product.getMinPrice() || price > product.getMaxPrice()) {

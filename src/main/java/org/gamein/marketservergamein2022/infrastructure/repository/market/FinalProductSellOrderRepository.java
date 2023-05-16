@@ -28,5 +28,5 @@ public interface FinalProductSellOrderRepository extends JpaRepository<FinalProd
             nativeQuery = true)
     Long totalProductSoldAmount(Long teamId, Long productId);
 
-    Boolean existsByProduct_IdAAndCancelledIsFalseAndClosedIsFalse(Long productId);
+    Boolean existsByProduct_IdAndCancelledIsFalseAndClosedIsFalse(Long productId);
 }

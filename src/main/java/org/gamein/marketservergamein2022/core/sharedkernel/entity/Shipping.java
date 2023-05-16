@@ -52,11 +52,11 @@ public class Shipping {
     @Column(name = "amount", nullable = false)
     private int amount;
 
-    public ShippingDTO toDTO(Time time) {
+    public ShippingDTO toDTO() {
         return new ShippingDTO(
                 id, sourceRegion, team.getId(), method, status, departureTime, arrivalTime, LocalDateTime.now(ZoneOffset.UTC),
                 product.toDTO(), amount,
-                status == ShippingStatus.IN_QUEUE && calculateAvailableSpace(team,time) >= product.getUnitVolume() * amount
+                status == ShippingStatus.IN_QUEUE && calculateAvailableSpace(team) >= product.getUnitVolume() * amount
         );
     }
 

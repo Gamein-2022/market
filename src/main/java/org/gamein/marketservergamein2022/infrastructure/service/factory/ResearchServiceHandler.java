@@ -6,12 +6,8 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.factory.ResearchService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
-import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.factory.BuildingInfoRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.factory.BuildingRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.ResearchSubjectRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.TeamResearchRepository;
 import org.springframework.stereotype.Service;
@@ -19,14 +15,10 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-
-import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getTeamWealth;
 
 
 @Service
@@ -35,20 +27,14 @@ public class ResearchServiceHandler implements ResearchService {
     private final ResearchSubjectRepository researchSubjectRepository;
     private final TeamRepository teamRepository;
     private final TimeRepository timeRepository;
-    private final StorageProductRepository storageProductRepository;
-    private final BuildingRepository buildingRepository;
-    private final BuildingInfoRepository buildingInfoRepository;
 
     public ResearchServiceHandler(TeamResearchRepository teamResearchRepository,
                                   ResearchSubjectRepository researchSubjectRepository,
-                                  TeamRepository teamRepository, TimeRepository timeRepository, StorageProductRepository storageProductRepository, BuildingRepository buildingRepository, BuildingInfoRepository buildingInfoRepository) {
+                                  TeamRepository teamRepository, TimeRepository timeRepository) {
         this.teamResearchRepository = teamResearchRepository;
         this.researchSubjectRepository = researchSubjectRepository;
         this.teamRepository = teamRepository;
         this.timeRepository = timeRepository;
-        this.storageProductRepository = storageProductRepository;
-        this.buildingRepository = buildingRepository;
-        this.buildingInfoRepository = buildingInfoRepository;
     }
 
     @Override
@@ -67,15 +53,15 @@ public class ResearchServiceHandler implements ResearchService {
         if (subject == null) {
             throw new NotFoundException("تحقیق مورد نظر یافت نشد!");
         }
-        if (getEligibleTeams(subject, subject.getParent() == null ? teamRepository.findAll().stream() :
-                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getId(),
-                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)).noneMatch(t -> t.getId().equals(team.getId()))) {
-            throw new BadRequestException("شما امکان سرمایه‌گذاری در این تحقیق و توسعه را ندارید!");
-        }
         Optional<TeamResearch> teamResearchOptional =
                 teamResearchRepository.findByTeam_IdAndSubject_Name(team.getId(), name);
         if (teamResearchOptional.isPresent()) {
             throw new BadRequestException("شما این فرآیند را قبلا انجام داده‌اید!");
+        }
+        if (getEligibleTeams(subject, subject.getParent() == null ? teamRepository.findAll().stream() :
+                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getId(),
+                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)).noneMatch(t -> t.getId().equals(team.getId()))) {
+            throw new BadRequestException("شما امکان سرمایه‌گذاری در این تحقیق و توسعه را ندارید!");
         }
 
         Time time = timeRepository.findById(1L).get();
@@ -91,10 +77,7 @@ public class ResearchServiceHandler implements ResearchService {
             throw new BadRequestException("هنوز زمان تحقیق مورد نظر نرسیده است!");
         }
 
-        double N_tOnN =
-                (double) teamResearchRepository.getResearchCount(subject.getId(), LocalDateTime.now(ZoneOffset.UTC)) / teamRepository.getTeamsCount();
-
-        int duration = calculateDuration(subject, N_tOnN);
+        int duration = calculateDuration(subject);
 
         int price = calculatePrice(subject);
 
@@ -140,21 +123,8 @@ public class ResearchServiceHandler implements ResearchService {
         if (subject == null) {
             throw new NotFoundException("تحقیق و توسعه درخواست شده وجود ندارد!");
         }
-        if (getEligibleTeams(subject, subject.getParent() == null ?
-                teamRepository.findAll().stream().filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())) :
-                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getParent().getId(),
-                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)
-                        .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())))
-                .noneMatch(t -> t.getId().equals(team.getId()))) {
-            TeamResearch teamResearch = new TeamResearch();
-            teamResearch.setSubject(subject);
-            return teamResearch.toDTO(team.getBalance(), -1, -1);
-        }
 
-        double N_tOnN =
-                (double) teamResearchRepository.getResearchCount(subject.getId(), LocalDateTime.now(ZoneOffset.UTC)) / teamRepository.getTeamsCount();
-
-        int duration = calculateDuration(subject, N_tOnN);
+        int duration = calculateDuration(subject);
 
         int price = calculatePrice(subject);
 
@@ -186,10 +156,7 @@ public class ResearchServiceHandler implements ResearchService {
         ResearchSubject subject = research.getSubject();
         teamResearch.setSubject(subject);
 
-        double N_tOnN =
-                (double) teamResearchRepository.getResearchCount(subject.getId(), LocalDateTime.now(ZoneOffset.UTC)) / teamRepository.getTeamsCount();
-
-        int duration = calculateDuration(subject, N_tOnN);
+        int duration = calculateDuration(subject);
 
         int price = calculatePrice(subject);
 
@@ -221,69 +188,10 @@ public class ResearchServiceHandler implements ResearchService {
     }
 
     private int calculatePrice(ResearchSubject subject) {
-        double medianTeamBalance;
-        Stream<Team> teamsStream;
-        if (subject.getParent() == null) {
-            List<Team> teams = teamRepository.findAll();
-            teamsStream = getEligibleTeams(subject, teams.stream()
-                    .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
-        } else {
-            teamsStream =
-                    getEligibleTeams(subject, teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getParent().getId(),
-                            LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)
-                            .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
-        }
-        List<Double> teamsBalances =
-                teamsStream.map(
-                        team -> (double) getTeamWealth(team, storageProductRepository, buildingRepository,
-                                buildingInfoRepository)
-                                - calculateBuildingsCost(team.getBuildings())
-                ).sorted().toList();
-        if (teamsBalances.size() == 0) {
-            return -1;
-        }
-        medianTeamBalance = teamsBalances.size() % 2 == 0 ?
-                (teamsBalances.get(teamsBalances.size() / 2 - 1) + teamsBalances.get(teamsBalances.size() / 2)) / 2 :
-                teamsBalances.get(teamsBalances.size() / 2);
-        double alpha = timeRepository.findById(1L).get().getRAndDPriceMultiplier();
-
-        return (int) (alpha * medianTeamBalance);
+        return subject.getPrice();
     }
 
-    private int calculateDuration(ResearchSubject subject, double N_tOnN) {
-        Time time = timeRepository.findById(1L).get();
-        if (subject.getDurationBound() != null) {
-            return (int) (time.getRAndDTimeCoeff() * (calculateDuration(subject.getDurationBound(), N_tOnN)));
-        }
-        double baseTime = subject.getBaseDuration();
-        baseTime -= 60 * Math.sqrt(N_tOnN);
-        TeamResearch firstFinishedResearch;
-        try {
-            firstFinishedResearch = teamResearchRepository.findFirstResearch(subject.getId(), LocalDateTime.now(ZoneOffset.UTC)).get(0);
-        } catch (IndexOutOfBoundsException e) {
-            firstFinishedResearch = null;
-        }
-        if (firstFinishedResearch != null) {
-            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-            LocalDateTime half = firstFinishedResearch.getBeginTime().plus(
-                    Duration.between(firstFinishedResearch.getBeginTime(),
-                            firstFinishedResearch.getEndTime()).toMillis() / 2, ChronoUnit.MILLIS
-            );
-            double diff = Math.abs(Duration.between(now, half).toMinutes());
-            baseTime -= 2 * Math.sqrt(
-                    diff / time.getRAndDRush()
-            );
-        }
-        baseTime = Math.max(baseTime, 10);
-        return ((int) (baseTime * 60));
-    }
-
-    private int calculateBuildingsCost(List<Building> buildings) {
-        int result = 0;
-        for (BuildingType type : BuildingType.values()) {
-            result += buildings.stream().filter(building -> building.getType() == type).count() *
-                    buildingInfoRepository.findById(type).orElseGet(BuildingInfo::new).getBuildPrice();
-        }
-        return result;
+    private int calculateDuration(ResearchSubject subject) {
+        return subject.getDuration();
     }
 }

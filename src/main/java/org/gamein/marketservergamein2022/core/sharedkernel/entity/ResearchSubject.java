@@ -35,6 +35,12 @@ public class ResearchSubject {
     @Column(name = "base_duration", nullable = false)
     private int baseDuration;
 
+    @Column(name = "price", nullable = false)
+    private int price;
+
+    @Column(name = "duration", nullable = false)
+    private int duration;
+
     @ManyToOne
     private ResearchSubject parent;
 
