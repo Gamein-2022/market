@@ -52,7 +52,7 @@ jobs:
               
   deploy-market-1:
     needs: build-market
-    runs-on: [app-1]
+    runs-on: [app-X]
     steps:
       - uses: actions/checkout@master
       - run: |
