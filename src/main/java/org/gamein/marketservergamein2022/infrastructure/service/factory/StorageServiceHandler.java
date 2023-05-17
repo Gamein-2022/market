@@ -133,7 +133,6 @@ public class StorageServiceHandler implements StorageService {
 
     @Override
     public List<ShippingDTO> getInRouteShippings(Team team) {
-        Time time = timeRepository.findById(1L).get();
         return shippingRepository.findAllByTeam_IdAndStatus(team.getId(), ShippingStatus.IN_ROUTE).stream()
                 .map(Shipping::toDTO).collect(Collectors.toList());
     }
@@ -149,6 +148,8 @@ public class StorageServiceHandler implements StorageService {
         }
         Product product = productOptional.get();
         StorageProduct sp = TeamUtil.getSPFromProduct(team, product).get();
+        if (sp.getInStorageAmount() - sp.getBlockedAmount() < quantity)
+            throw new BadRequestException("تعداد معتبر نمی باشد.");
         TeamUtil.removeProductFromStorage(sp, quantity);
         team.setBalance(team.getBalance() + (int) (0.5 * product.getMinPrice() * quantity));
         storageProductRepository.save(sp);

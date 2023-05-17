@@ -124,7 +124,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(initialDelay = 7, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;

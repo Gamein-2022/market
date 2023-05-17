@@ -14,6 +14,7 @@ import java.util.List;
 public class CreatingRequirementsDTO extends BaseResult {
     private List<RequirementDTO> requirements;
     private int basePrice;
+    private int varPrice;
     private long balance;
     private ProductDTO product;
     private boolean hasRAndDRequirement;

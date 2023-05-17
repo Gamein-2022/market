@@ -234,6 +234,7 @@ public class ManufactureServiceHandler {
         line.setEndTime(line.getStartTime().plusSeconds(duration));
         line.setCount(count);
         line.setProduct(product);
+
         return factoryLineRepository.save(line).toDTO();
     }
 
@@ -395,7 +396,7 @@ public class ManufactureServiceHandler {
             requirementDTOS.add(r);
         }
         return new CreatingRequirementsDTO(
-                requirementDTOS, product.getFixedCost(), team.getBalance(), product.toDTO(),
+                requirementDTOS, product.getFixedCost(),product.getVariableCost(), team.getBalance(), product.toDTO(),
                 product.getRAndD() == null ||
                         teamResearchRepository.findByTeam_IdAndSubject_IdAndEndTimeBefore(team.getId(),
                                 product.getRAndD().getId(), LocalDateTime.now(ZoneOffset.UTC)) != null
