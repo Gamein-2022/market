@@ -175,15 +175,17 @@ public class ManufactureServiceHandler {
 
         if ((long) product.getUnitVolume() * count - allUsedVolume > calculateAvailableSpace(team))
             throw new BadRequestException("فضای انبار برای این تولید کافی نیست.");
-
+        List<StorageProduct> sps = new ArrayList<>();
         for (Requirement requirement : requirements) {
             StorageProduct sp = getSPFromProduct(team, requirement.getRequirement()).get();
             removeProductFromStorage(sp, requirement.getCount() * count);
             if (sp.getSellableAmount() > sp.getInStorageAmount())
                 sp.setSellableAmount(sp.getInStorageAmount());
+            sps.add(sp);
         }
         StorageProduct sp = TeamUtil.getOrCreateSPFromProduct(team, product);
         TeamUtil.addProductToManufacturing(sp, count);
+        sps.add(sp);
         team.setBalance(team.getBalance() - ((long) count * product.getVariableCost() + product.getFixedCost()));
 
         factoryLine.setStatus(LineStatus.IN_PROGRESS);
@@ -192,6 +194,7 @@ public class ManufactureServiceHandler {
         factoryLine.setEndTime(factoryLine.getStartTime().plusSeconds(duration));
         factoryLine.setCount(count);
         factoryLine.setProduct(product);
+        storageProductRepository.saveAll(sps);
         factoryLine = factoryLineRepository.save(factoryLine);
         teamRepository.save(team);
         return factoryLine.toDTO();
@@ -255,14 +258,16 @@ public class ManufactureServiceHandler {
 
         if (calculateAvailableSpace(team) < neededVolume)
             throw new BadRequestException("شما فضای کافی برای بازگشت مواد اولیه به انبار را ندارید.");
-
+        List<StorageProduct> sps = new ArrayList<>();
         for (Requirement requirement : requirements) {
             StorageProduct sp = getSPFromProduct(team, requirement.getRequirement()).get();
             addProductToStorage(sp,
                     factoryLine.getType() == LineType.RECYCLE ? count / requirement.getCount() : requirement.getCount() * count);
+            sps.add(sp);
         }
         StorageProduct sp = TeamUtil.getSPFromProduct(team, factoryLine.getProduct()).get();
         removeProductFromManufacturing(sp, count);
+        sps.add(sp);
         team.setBalance(team.getBalance() + (long) factoryLine.getProduct().getVariableCost() * (
                 factoryLine.getType() == LineType.RECYCLE ? count / requirements.get(0).getCount() : count));
         teamRepository.save(team);
@@ -272,6 +277,7 @@ public class ManufactureServiceHandler {
         factoryLine.setStartTime(null);
         factoryLine.setEndTime(null);
 
+        storageProductRepository.saveAll(sps);
         return factoryLineRepository.save(factoryLine).toDTO();
     }
 

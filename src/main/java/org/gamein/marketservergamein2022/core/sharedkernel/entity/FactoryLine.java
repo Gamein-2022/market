@@ -12,6 +12,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -69,9 +70,9 @@ public class FactoryLine {
                 product,
                 count,
                 status,
-                startTime,
-                endTime,
-                LocalDateTime.now(ZoneOffset.UTC),
+                Timestamp.valueOf(startTime),
+                Timestamp.valueOf(endTime),
+                Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
                 group
         );
     }
