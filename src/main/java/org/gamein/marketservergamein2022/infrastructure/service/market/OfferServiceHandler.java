@@ -129,8 +129,7 @@ public class OfferServiceHandler implements OfferService {
             if (team.getBalance() < cost) {
                 throw new BadRequestException("شما پول کافی برای خرید این سفارش ندارید.");
             }
-            long balance = team.getBalance();
-            balance -= cost;
+            long balance = team.getBalance() - order.getUnitPrice() * order.getProductAmount();
             team.setBalance(balance);
             teamRepository.save(team);
         }

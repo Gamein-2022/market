@@ -158,17 +158,20 @@ public class OrderServiceHandler implements OrderService {
             throws BadRequestException, NotFoundException {
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
-            throw new NotFoundException("Order not found!");
+            throw new NotFoundException("سفارش یافت نشد.");
         }
         Order order = orderOptional.get();
 
         if (!team.getId().equals(order.getSubmitter().getId())) {
-            throw new NotFoundException("Order not found!");
+            throw new NotFoundException("سفارش یافت نشد.");
         }
 
         if (order.getCancelled()) {
-            throw new BadRequestException("Order already canceled!");
+            throw new BadRequestException("این سفارش قبلا لغو شده است .");
         }
+
+        if (order.getAcceptDate() != null)
+            throw new BadRequestException("این سفارش قبلا پایان رسیده است.");
 
         if (order.getType() == OrderType.BUY) {
             team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
