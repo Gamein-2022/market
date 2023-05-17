@@ -88,6 +88,22 @@ public class OfferServiceHandler implements OfferService {
             throw new BadRequestException("شما نمی‌توانید به یک سفارش بیش از یک بار پیشنهاد بدهید!");
         }
 
+        Offer offer = new Offer();
+        offer.setOrder(order);
+        offer.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
+        offer.setOfferer(team);
+
+        int distance = 0;
+        if (order.getType() == OrderType.SELL) {
+            distance = regionDistanceRepository.findById(
+                    new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
+            ).get().getDistance();
+            if (distance == 0)
+                shippingMethod = ShippingMethod.SAME_REGION;
+            offer.setShippingMethod(shippingMethod);
+        }
+
+
         if (order.getType() == OrderType.BUY) {
             Optional<StorageProduct> spOptional = getSPFromProduct(team, order.getProduct());
             if (spOptional.isEmpty() ||
@@ -104,36 +120,35 @@ public class OfferServiceHandler implements OfferService {
                     order.getProductAmount()
             );
             storageProductRepository.save(sp);
+
         } else {
-            if (team.getBalance() < order.getUnitPrice() * order.getProductAmount())
+            int shippingCost = TeamUtil.calculateShippingPrice(shippingMethod,
+                    distance, order.getProduct().getUnitVolume() * order.getProductAmount());
+
+            Long cost = order.getUnitPrice() * order.getProductAmount() + shippingCost;
+            if (team.getBalance() < cost) {
                 throw new BadRequestException("شما پول کافی برای خرید این سفارش ندارید.");
+            }
             long balance = team.getBalance();
-            balance -= order.getUnitPrice() * order.getProductAmount();
+            balance -= cost;
             team.setBalance(balance);
             teamRepository.save(team);
         }
 
+        offerRepository.save(offer);
 
-        Offer offer = new Offer();
-        offer.setOrder(order);
-        offer.setCreationDate(LocalDateTime.now(ZoneOffset.UTC));
-        offer.setOfferer(team);
-
-        if (order.getType() == OrderType.SELL) {
-            int distance = regionDistanceRepository.findById(
-                    new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
-            ).get().getDistance();
-            if (distance == 0)
-                shippingMethod = ShippingMethod.SAME_REGION;
-            offer.setShippingMethod(shippingMethod);
+        if (order.getType().equals(OrderType.SELL)) {
+            acceptOffer(team, offer.getId(), shippingMethod);
         }
 
-        offerRepository.save(offer);
         String oType = "خرید ";
-        if (order.getType().equals(OrderType.SELL))
+        if (order.getType().equals(OrderType.SELL)) {
             oType = "فروش ";
+        }
         String text = "یک پیشنهاد جدید برای معامله ی " + oType + order.getProduct().getName() + " آمده است.";
         RestUtil.sendNotificationToATeam(text, "SUCCESS", String.valueOf(order.getSubmitter().getId()), liveUrl);
+
+
         return offer.toDTO(
                 regionDistanceRepository.findById(
                         new RegionDistancePK(offer.getOfferer().getRegion(), offer.getOrder().getSubmitter().getRegion())
@@ -191,20 +206,22 @@ public class OfferServiceHandler implements OfferService {
 
         Offer offer = checkOfferAccess(team.getId(), offerId);
         Order order = offer.getOrder();
+        int distance = 0;
+        int shippingCost = 0;
 
-        int distance = regionDistanceRepository.findById(
-                new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
-        ).get().getDistance();
-        if (distance == 0)
-            shippingMethod = ShippingMethod.SAME_REGION;
-
-        int shippingCost = calculateShippingPrice(
-                offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
-                distance,
-                order.getProductAmount() * order.getProduct().getUnitVolume()
-        );
 
         if (offer.getOrder().getType() == OrderType.BUY) {
+            distance = regionDistanceRepository.findById(
+                    new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
+            ).get().getDistance();
+            if (distance == 0)
+                shippingMethod = ShippingMethod.SAME_REGION;
+
+            shippingCost = calculateShippingPrice(
+                    offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
+                    distance,
+                    order.getProductAmount() * order.getProduct().getUnitVolume()
+            );
             if (shippingCost > team.getBalance()) {
                 throw new BadRequestException("شما پول کافی برای پرداخت هزینه‌ی حمل را ندارید!");
             }

@@ -93,6 +93,7 @@ public class ScheduleService {
         if (time.getIsGamePaused()) return;
 
         if (time.getIsRegionPayed()) {
+            System.out.println("--> Start calculating storage cost");
             List<Team> allTeams = teamRepository.findAll();
             TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
             for (Team team : allTeams) {
@@ -121,6 +122,8 @@ public class ScheduleService {
             }
             String text = "هزینه انبارداری این ماه از حساب شما برداشت شد.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
+
+            System.out.println("--> End calculating storage cost");
         }
     }
 
