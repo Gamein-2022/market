@@ -9,7 +9,7 @@ services:
     container_name: market
     restart: always
     ports:
-      - 8080:8080
+      - 8080:8081
     networks:
       - gamein
     environment:
