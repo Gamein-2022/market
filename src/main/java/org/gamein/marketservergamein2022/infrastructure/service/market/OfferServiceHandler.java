@@ -138,7 +138,7 @@ public class OfferServiceHandler implements OfferService {
         offerRepository.save(offer);
 
         if (order.getType().equals(OrderType.SELL)) {
-            acceptOffer(team, offer.getId(), shippingMethod);
+            acceptOffer(order.getSubmitter(), offer.getId(), shippingMethod);
         }
 
         String oType = "خرید ";
