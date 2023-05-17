@@ -13,7 +13,7 @@ services:
     networks:
       - gamein
     environment:
-      - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein2022
+      - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein-2022-new
       - spring.datasource.username=gamein
       - spring.datasource.password=gamein123
       - auth.url=https://api-gamein.dariahamrah.ir/dashboard/auth/info
@@ -28,7 +28,7 @@ services:
     networks:
       - gamein
     environment:
-      - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein2022
+      - spring.datasource.url=jdbc:postgresql://192.168.0.223/gamein-2022-new
       - spring.datasource.username=gamein
       - spring.datasource.password=gamein123
       - auth.url=https://api-gamein.dariahamrah.ir/dashboard/auth/info
