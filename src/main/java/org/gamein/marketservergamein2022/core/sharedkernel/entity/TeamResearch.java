@@ -20,7 +20,9 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "team_researches")
+@Table(name = "team_researches", uniqueConstraints={
+        @UniqueConstraint(columnNames = {"team_id", "subject_id"})
+})
 public class TeamResearch {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
