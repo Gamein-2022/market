@@ -254,7 +254,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 13, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void cancelPendingOrders() {
         List<Order> orders =
                 orderRepository.findAllBySubmitDateBeforeAndCancelledIsFalseAndAcceptDateIsNull(
