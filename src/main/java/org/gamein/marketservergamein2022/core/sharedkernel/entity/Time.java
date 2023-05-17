@@ -40,8 +40,13 @@ public class Time {
     @Column(name = "is_region_payed", columnDefinition = "boolean default false")
     private Boolean isRegionPayed;
 
-    @Column(name = "r_and_d_price_multiplier", nullable = false, columnDefinition = "double precision default 0.25")
-    private Double rAndDPriceMultiplier = 0.25;
+    @Column(name = "r_and_d_price_multiplier_production", nullable = false, columnDefinition = "double precision " +
+            "default 1.2")
+    private Double rAndDPriceMultiplierProduction = 1.2;
+
+    @Column(name = "r_and_d_price_multiplier_assembly", nullable = false, columnDefinition = "double precision " +
+            "default 1.5")
+    private Double rAndDPriceMultiplierAssembly = 1.5;
 
     @Column(name = "scale", nullable = false, columnDefinition = "bigint default 0.25")
     private Long scale = 1000000L;

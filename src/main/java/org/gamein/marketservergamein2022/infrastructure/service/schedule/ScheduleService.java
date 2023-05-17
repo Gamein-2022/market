@@ -247,7 +247,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedRate = 10, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void calculateResearchCosts() {
         System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  " => started calculating R&D");
         Time time = timeRepository.findById(1L).get();
@@ -321,7 +321,8 @@ public class ScheduleService {
                 teamResearchRepository.avgTeamBalanceWithParent(subject.getParent().getId(), subject.getId(), subject.getBuildingType()) :
                 teamResearchRepository.avgTeamBalance(subject.getId(), subject.getBuildingType());
 
-        double alpha = time.getRAndDPriceMultiplier();
+        double alpha = subject.getBuildingType() == BuildingType.PRODUCTION_FACTORY ?
+                time.getRAndDPriceMultiplierProduction() : time.getRAndDPriceMultiplierAssembly();
 
         return (int) (alpha * avgTeamBalance);
     }
