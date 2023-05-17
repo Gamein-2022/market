@@ -159,7 +159,7 @@ public class TradeServiceHandler implements TradeService {
         if (product.getLevel() < 2) {
             throw new BadRequestException("شما فقط محصولات نهایی را می‌توانید به گیمین بفروشید!");
         }
-        if (finalProductSellOrderRepository.existsByProduct_IdAndCancelledIsFalseAndClosedIsFalse(productId)) {
+        if (finalProductSellOrderRepository.existsBySubmitter_IdAndProduct_IdAndCancelledIsFalseAndClosedIsFalse(team.getId(), productId)) {
             throw new BadRequestException("شما یک سفارش باز برای این محصول دارید!");
         }
         if (price < product.getMinPrice() || price > product.getMaxPrice()) {
