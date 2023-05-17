@@ -7,8 +7,6 @@ import lombok.Setter;
 
 
 @Getter
-@Setter
-@AllArgsConstructor
 public class StartNewProcessRequestDTO {
     private int count;
     private long lineId;

@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gamein.marketservergamein2022.infrastructure.service.schedule.ScheduleService.getEligibleTeams;
+//import static org.gamein.marketservergamein2022.infrastructure.service.schedule.ScheduleService.getEligibleTeams;
 
 
 @Service
@@ -58,13 +58,17 @@ public class ResearchServiceHandler implements ResearchService {
         Optional<TeamResearch> teamResearchOptional =
                 teamResearchRepository.findByTeam_IdAndSubject_Name(team.getId(), name);
         if (teamResearchOptional.isPresent()) {
-            throw new BadRequestException("شما این فرآیند را قبلا انجام داده‌اید!");
+            throw new BadRequestException("شما این نوسعه را قبلا انجام داده‌اید!");
         }
 //        if (getEligibleTeams(subject, subject.getParent() == null ? teamRepository.findAll().stream() :
 //                teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getId(),
 //                        LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)).noneMatch(t -> t.getId().equals(team.getId()))) {
 //            throw new BadRequestException("شما امکان سرمایه‌گذاری در این تحقیق و توسعه را ندارید!");
 //        }
+        if (!(subject.getParent() == null ? teamRepository.isTeamEligible(team.getId(), subject.getBuildingType()) :
+                teamRepository.isTeamEligible(team.getId(), subject.getBuildingType(), subject.getParent().getId()))) {
+            throw new BadRequestException("شما امکان انجام این تحقیق و توسعه را ندارید!");
+        }
 
         Time time = timeRepository.findById(1L).get();
         LocalDateTime beginDate = time.getBeginTime();

@@ -263,10 +263,10 @@ public class ScheduleService {
             subject.setDuration(duration);
         }
         researchSubjectRepository.saveAll(subjects);
-        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  "done calculating R&D");
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  " => done calculating R&D");
     }
 
-    public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
+//    public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
 //        if (subject.getProductGroup() != null) {
 //            return teams.filter(team -> {
 //                for (Building building : team.getBuildings()) {
@@ -279,45 +279,51 @@ public class ScheduleService {
 //                return false;
 //            });
 //        } else {
-            return teams.filter(team -> {
-                for (Building building : team.getBuildings()) {
-                    if (building.getType() == subject.getBuildingType()) {
-                        return true;
-                    }
-                }
-                return false;
-            });
+//            return teams.filter(team -> {
+//                for (Building building : team.getBuildings()) {
+//                    if (building.getType() == subject.getBuildingType()) {
+//                        return true;
+//                    }
+//                }
+//                return false;
+//            });
 //        }
-    }
+//    }
 
     private int calculatePrice(ResearchSubject subject, Time time) {
-        double medianTeamBalance;
-        Stream<Team> teamsStream;
-        if (subject.getParent() == null) {
-            List<Team> teams = teamRepository.findAll();
-            teamsStream = getEligibleTeams(subject, teams.stream()
-                    .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
-        } else {
-            teamsStream =
-                    getEligibleTeams(subject, teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getParent().getId(),
-                                    LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)
-                            .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
-        }
-        List<Double> teamsBalances =
-                teamsStream.map(
-                        team -> (double) getTeamWealth(team, storageProductRepository, buildingRepository,
-                                buildingInfoRepository)
-                                - calculateBuildingsCost(team.getBuildings())
-                ).sorted().toList();
-        if (teamsBalances.size() == 0) {
-            return -1;
-        }
-        medianTeamBalance = teamsBalances.size() % 2 == 0 ?
-                (teamsBalances.get(teamsBalances.size() / 2 - 1) + teamsBalances.get(teamsBalances.size() / 2)) / 2 :
-                teamsBalances.get(teamsBalances.size() / 2);
+//        double medianTeamBalance;
+//        Stream<Team> teamsStream;
+//        if (subject.getParent() == null) {
+//            List<Team> teams = teamRepository.findAll();
+//            teamsStream = getEligibleTeams(subject, teams.stream()
+//                    .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
+//        } else {
+//            teamsStream =
+//                    getEligibleTeams(subject, teamResearchRepository.findAllBySubject_IdAndEndTimeBefore(subject.getParent().getId(),
+//                                    LocalDateTime.now(ZoneOffset.UTC)).stream().map(TeamResearch::getTeam)
+//                            .filter(t -> !teamResearchRepository.existsByTeam_IdAndSubject_Id(t.getId(), subject.getId())));
+//        }
+//        List<Double> teamsBalances =
+//                teamsStream.map(
+//                        team -> (double) getTeamWealth(team, storageProductRepository, buildingRepository,
+//                                buildingInfoRepository)
+//                                - calculateBuildingsCost(team.getBuildings())
+//                ).sorted().toList();
+//        if (teamsBalances.size() == 0) {
+//            return -1;
+//        }
+//        medianTeamBalance = teamsBalances.size() % 2 == 0 ?
+//                (teamsBalances.get(teamsBalances.size() / 2 - 1) + teamsBalances.get(teamsBalances.size() / 2)) / 2 :
+//                teamsBalances.get(teamsBalances.size() / 2);
+
+        // new code
+        double avgTeamBalance = subject.getParent() != null ?
+                teamResearchRepository.avgTeamBalanceWithParent(subject.getParent().getId(), subject.getId(), subject.getBuildingType()) :
+                teamResearchRepository.avgTeamBalance(subject.getId(), subject.getBuildingType());
+
         double alpha = time.getRAndDPriceMultiplier();
 
-        return (int) (alpha * medianTeamBalance);
+        return (int) (alpha * avgTeamBalance);
     }
 
     private int calculateDuration(ResearchSubject subject, double N_tOnN, Time time) {
