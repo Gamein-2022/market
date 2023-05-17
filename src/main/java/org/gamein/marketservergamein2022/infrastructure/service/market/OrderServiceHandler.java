@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -186,18 +187,19 @@ public class OrderServiceHandler implements OrderService {
             storageProductRepository.save(sp);
         }
 
+        List<Offer> offers = new ArrayList<>();
         offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
                 o -> {
                     try {
                         undoOffer(o);
                     } catch (BadRequestException e) {
-                        // TODO so something about this exception
                         throw new RuntimeException(e);
                     }
                     o.setDeclined(true);
-                    offerRepository.save(o);
+                    offers.add(o);
                 }
         );
+        offerRepository.saveAll(offers);
 
         order.setCancelled(true);
         orderRepository.save(order);

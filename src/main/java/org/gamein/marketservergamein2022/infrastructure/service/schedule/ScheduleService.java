@@ -2,8 +2,11 @@ package org.gamein.marketservergamein2022.infrastructure.service.schedule;
 
 import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
 import org.gamein.marketservergamein2022.core.dto.result.schedule.RegionDTO;
+import org.gamein.marketservergamein2022.core.exception.BadRequestException;
+import org.gamein.marketservergamein2022.core.service.market.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
 import org.gamein.marketservergamein2022.infrastructure.repository.LogRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
@@ -18,8 +21,10 @@ import org.gamein.marketservergamein2022.infrastructure.repository.schedule.Regi
 import org.gamein.marketservergamein2022.infrastructure.repository.schedule.WealthLogRepository;
 import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
+import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -35,6 +40,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
 
 @Service
 @EnableScheduling
@@ -80,7 +87,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    @Scheduled(fixedDelay = 240, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 4, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -201,7 +208,7 @@ public class ScheduleService {
         }
     }
 
-//    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
     public void payRegionPrice() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsRegionPayed()) return;
@@ -244,6 +251,17 @@ public class ScheduleService {
             timeRepository.save(time);
             String text = "هزینه زمین از حساب شما برداشت شد.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
+        }
+    }
+
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    public void cancelPendingOrders() {
+        List<Order> orders =
+                orderRepository.findAllBySubmitDateBeforeAndCancelledIsFalseAndAcceptDateIsNull(
+                        LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10)
+                );
+        for (Order o : orders) {
+            cancelOrder(o);
         }
     }
 
@@ -383,5 +401,63 @@ public class ScheduleService {
         Long scale = time.getScale();
         Long teamsCount = teamRepository.getTeamsCount();
         return (long) ((1 + (2.25 / (0.8 + 9 * Math.exp(-0.8 * (16 * currentPopulation / (teamsCount - 0.26)))))) * scale);
+    }
+
+    private void cancelOrder(Order order) {
+        Team team = order.getSubmitter();
+        if (order.getType() == OrderType.BUY) {
+            team.setBalance(team.getBalance() + (order.getUnitPrice() * order.getProductAmount()));
+            teamRepository.save(team);
+        } else {
+            StorageProduct sp = getSPFromProduct(team, order.getProduct()).get();
+
+            TeamUtil.removeProductFromBlock(
+                    sp,
+                    order.getProductAmount()
+            );
+            TeamUtil.addProductToSellable(
+                    sp,
+                    order.getProductAmount()
+            );
+            storageProductRepository.save(sp);
+        }
+
+        List<Offer> offers = new ArrayList<>();
+
+        offerRepository.findAllByOrder_IdAndCancelledIsFalseAndDeclinedIsFalse(order.getId()).forEach(
+                o -> {
+                    try {
+                        undoOffer(o);
+                    } catch (BadRequestException e) {
+                        throw new RuntimeException(e);
+                    }
+                    o.setDeclined(true);
+                    offers.add(o);
+                }
+        );
+        offerRepository.saveAll(offers);
+
+        order.setCancelled(true);
+        orderRepository.save(order);
+    }
+
+    private void undoOffer(Offer offer)
+            throws BadRequestException {
+        if (offer.getOrder().getType() == OrderType.SELL) {
+            Team team = offer.getOfferer();
+            team.setBalance(team.getBalance() + offer.getOrder().getProductAmount() * offer.getOrder().getUnitPrice());
+            teamRepository.save(team);
+        } else {
+            StorageProduct sp = getSPFromProduct(offer.getOfferer(), offer.getOrder().getProduct()).get();
+            TeamUtil.removeProductFromBlock(
+                    sp,
+                    offer.getOrder().getProductAmount()
+            );
+            TeamUtil.addProductToSellable(
+                    sp,
+                    offer.getOrder().getProductAmount()
+            );
+            storageProductRepository.save(sp);
+        }
     }
 }

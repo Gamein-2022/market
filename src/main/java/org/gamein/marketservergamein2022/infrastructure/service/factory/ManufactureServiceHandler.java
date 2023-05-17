@@ -302,8 +302,7 @@ public class ManufactureServiceHandler {
 
         StorageProduct sp = optional.get();
         TeamUtil.removeProductFromManufacturing(sp, factoryLine.getCount());
-
-
+        TeamUtil.addProductToSellable(sp, factoryLine.getCount());
         TeamUtil.addProductToStorage(sp, factoryLine.getCount());
 
         storageProductRepository.save(sp);
