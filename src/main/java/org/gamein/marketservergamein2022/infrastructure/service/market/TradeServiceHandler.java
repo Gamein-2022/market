@@ -177,6 +177,10 @@ public class TradeServiceHandler implements TradeService {
                 sp,
                 quantity
         );
+        TeamUtil.removeProductFromSellable(
+                sp,
+                quantity
+        );
         storageProductRepository.save(sp);
 
         FinalProductSellOrder order = new FinalProductSellOrder();
@@ -199,10 +203,16 @@ public class TradeServiceHandler implements TradeService {
         }
 
         order.setCancelled(true);
+        StorageProduct sp = TeamUtil.getSPFromProduct(team, order.getProduct()).get();
         TeamUtil.removeProductFromBlock(
-                TeamUtil.getSPFromProduct(team, order.getProduct()).get(),
+                sp,
                 order.getQuantity()
         );
+        TeamUtil.addProductToSellable(
+                sp,
+                order.getQuantity()
+        );
+        storageProductRepository.save(sp);
         finalProductSellOrderRepository.save(order);
         return order.toDTO();
     }

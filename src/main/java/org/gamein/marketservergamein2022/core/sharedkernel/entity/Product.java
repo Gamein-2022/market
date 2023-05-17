@@ -47,7 +47,7 @@ public class Product {
     private Integer price;
 
     @Column(name = "available_day")
-    private Long availableDay;
+    private Integer availableDay;
 
     @ManyToOne
     private ResearchSubject RAndD;

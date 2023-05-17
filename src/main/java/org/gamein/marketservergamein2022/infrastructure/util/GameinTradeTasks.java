@@ -111,6 +111,8 @@ public class GameinTradeTasks {
             }
         }
         TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
+        List<StorageProduct> sps = new ArrayList<>();
+        List<Log> logs = new ArrayList<>();
         orders.forEach(order -> {
             order.setClosed(true);
             Log log = new Log();
@@ -124,15 +126,21 @@ public class GameinTradeTasks {
                     Math.toIntExact(timeResultDTO.getDay()),
                     12,
                     34));
-            logRepository.save(log);
+//            logRepository.save(log);
+            logs.add(log);
             StorageProduct sp = TeamUtil.getSPFromProduct(order.getSubmitter(), order.getProduct()).get();
-            sp.setInStorageAmount(sp.getInStorageAmount() - order.getSoldQuantity());
-            sp.setBlockedAmount(sp.getBlockedAmount() - order.getQuantity());
-            sp.setSellableAmount(sp.getSellableAmount() - order.getSoldQuantity());
-            spRepo.save(sp);
-
+//            sp.setInStorageAmount(sp.getInStorageAmount() - order.getSoldQuantity());
+//            sp.setBlockedAmount(sp.getBlockedAmount() - order.getQuantity());
+//            sp.setSellableAmount(sp.getSellableAmount() - order.getSoldQuantity());
+            TeamUtil.removeProductFromStorage(sp, order.getSoldQuantity());
+            TeamUtil.removeProductFromBlock(sp, order.getQuantity());
+            TeamUtil.addProductToSellable(sp, order.getQuantity() - order.getSoldQuantity());
+//            spRepo.save(sp);
+            sps.add(sp);
         });
 
+        logRepository.saveAll(logs);
+        spRepo.saveAll(sps);
         finalProductSellOrderRepository.saveAll(orders);
     }
 
