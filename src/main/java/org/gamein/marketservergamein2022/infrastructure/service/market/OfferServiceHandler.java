@@ -136,9 +136,7 @@ public class OfferServiceHandler implements OfferService {
 
         offerRepository.save(offer);
 
-        if (order.getType().equals(OrderType.SELL)) {
-            acceptOffer(order.getSubmitter(), offer.getId(), shippingMethod);
-        }
+
 
         String oType = "خرید ";
         if (order.getType().equals(OrderType.SELL)) {
@@ -147,6 +145,10 @@ public class OfferServiceHandler implements OfferService {
         String text = "یک پیشنهاد جدید برای معامله ی " + oType + order.getProduct().getName() + " آمده است.";
         RestUtil.sendNotificationToATeam(text, "SUCCESS", String.valueOf(order.getSubmitter().getId()), liveUrl);
 
+
+        if (order.getType().equals(OrderType.SELL)) {
+            acceptOffer(order.getSubmitter(), offer.getId(), shippingMethod);
+        }
 
         return offer.toDTO(
                 regionDistanceRepository.findById(
@@ -205,22 +207,22 @@ public class OfferServiceHandler implements OfferService {
 
         Offer offer = checkOfferAccess(team.getId(), offerId);
         Order order = offer.getOrder();
-        int distance = 0;
-        int shippingCost = 0;
+
+
+        int distance = regionDistanceRepository.findById(
+                new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
+        ).get().getDistance();
+        if (distance == 0)
+            shippingMethod = ShippingMethod.SAME_REGION;
+
+        int shippingCost = calculateShippingPrice(
+                offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
+                distance,
+                order.getProductAmount() * order.getProduct().getUnitVolume()
+        );
 
 
         if (offer.getOrder().getType() == OrderType.BUY) {
-            distance = regionDistanceRepository.findById(
-                    new RegionDistancePK(offer.getOfferer().getRegion(), order.getSubmitter().getRegion())
-            ).get().getDistance();
-            if (distance == 0)
-                shippingMethod = ShippingMethod.SAME_REGION;
-
-            shippingCost = calculateShippingPrice(
-                    offer.getOrder().getType() == OrderType.BUY ? shippingMethod : offer.getShippingMethod(),
-                    distance,
-                    order.getProductAmount() * order.getProduct().getUnitVolume()
-            );
             if (shippingCost > team.getBalance()) {
                 throw new BadRequestException("شما پول کافی برای پرداخت هزینه‌ی حمل را ندارید!");
             }

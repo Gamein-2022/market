@@ -4,6 +4,8 @@ import org.gamein.marketservergamein2022.core.dto.result.ErrorResult;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.InvalidTokenException;
 import org.gamein.marketservergamein2022.core.service.dashboard.AuthService;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Time;
+import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.core.iao.AuthInfo;
 import org.gamein.marketservergamein2022.core.iao.AuthInfoResponse;
@@ -24,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @ControllerAdvice(assignableTypes = {OfferController.class, OrderController.class,
         ProductController.class, TradeController.class, BuildingController.class, ManufactureController.class,
@@ -31,13 +36,15 @@ import javax.servlet.http.HttpServletRequest;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class InitController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final TimeRepository timeRepository;
 
     private final AuthService authService;
 
     @Value("${auth.url}")
     private String authUrl;
 
-    public InitController(AuthService authService) {
+    public InitController(TimeRepository timeRepository, AuthService authService) {
+        this.timeRepository = timeRepository;
         this.authService = authService;
     }
 
@@ -49,10 +56,17 @@ public class InitController {
         }
 
         try {
+            Time time = timeRepository.findById(1L).get();
+            boolean isChooseRegionFinished =
+                    Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC))
+                            .getSeconds() - time.getStoppedTimeSeconds() > time.getChooseRegionDuration();
+            if (!isChooseRegionFinished)
+                throw new BadRequestException("برو سر انتخاب زمینت بچه :)");
             AuthInfoResponse result = RestUtil.getAuthInfo(token, authUrl);
             if (result.getTeamId() == null) {
                 throw new InvalidTokenException("User does not have a team!");
             }
+
             logger.info("userId: " + result.getUserId().toString() +
                     " --- teamId: " + result.getTeamId());
 
