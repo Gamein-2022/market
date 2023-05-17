@@ -70,8 +70,8 @@ public class FactoryLine {
                 product,
                 count,
                 status,
-                Timestamp.valueOf(startTime),
-                Timestamp.valueOf(endTime),
+                startTime != null ? Timestamp.valueOf(startTime) : null,
+                endTime != null ? Timestamp.valueOf(endTime) : null,
                 Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC)),
                 group
         );
