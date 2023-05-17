@@ -183,17 +183,17 @@ public class GameinTradeTasks {
             }
             fifthEraDemand = totalDemand - fourthEraDemand - thirdEraDemand - secondEraDemand - firstEraDemand;
         }
-        HashMap<Integer, Integer> eraDemand = new HashMap<>();
+        HashMap<Long, Integer> eraDemand = new HashMap<>();
         System.out.println("first era demand: " + firstEraDemand);
         System.out.println("second era demand: " + secondEraDemand);
         System.out.println("third era demand: " + thirdEraDemand);
         System.out.println("fourth era demand: " + fourthEraDemand);
         System.out.println("fifth era demand: " + fifthEraDemand);
-        eraDemand.put(0, firstEraDemand);
-        eraDemand.put(1163, secondEraDemand);
-        eraDemand.put(2738, thirdEraDemand);
-        eraDemand.put(4688, fourthEraDemand);
-        eraDemand.put(7425, fifthEraDemand);
+        eraDemand.put(0L, firstEraDemand);
+        eraDemand.put(1163L, secondEraDemand);
+        eraDemand.put(2738L, thirdEraDemand);
+        eraDemand.put(4688L, fourthEraDemand);
+        eraDemand.put(7425L, fifthEraDemand);
 
         StringBuilder productDemands = new StringBuilder();
         for (Product p : products) {
