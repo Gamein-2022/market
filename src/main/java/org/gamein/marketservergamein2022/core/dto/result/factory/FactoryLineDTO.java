@@ -9,6 +9,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineStatus;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 
@@ -21,8 +22,8 @@ public class FactoryLineDTO {
     private Product product;
     private Integer count;
     private LineStatus status;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private LocalDateTime currentTime;
+    private Timestamp startTime;
+    private Timestamp endTime;
+    private Timestamp currentTime;
     private ProductGroup group;
 }
