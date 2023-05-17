@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.repository.factory;
 
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.TeamResearch;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -32,4 +33,17 @@ public interface TeamResearchRepository extends JpaRepository<TeamResearch, Long
     Boolean existsByTeam_IdAndSubject_Id(Long teamId, Long subjectId);
 
     List<TeamResearch> findAllByTeamIdAndAndEndTimeAfter(Long teamId, LocalDateTime endTime);
+
+    @Query(value = "SELECT COALESCE( AVG (tr.team.balance), 200000000) FROM TeamResearch AS tr WHERE tr.subject.id = " +
+            ":parentId AND tr" +
+            ".team" +
+            ".id NOT IN (SELECT tr2.team.id " +
+            "FROM TeamResearch AS tr2 WHERE tr2.subject.id = :subjectId) AND tr.team.id IN (SELECT b.team.id FROM" +
+            " Building AS b WHERE b.type = :buildingType)")
+    Double avgTeamBalanceWithParent(Long parentId, Long subjectId, BuildingType buildingType);
+
+    @Query(value = "SELECT COALESCE( AVG (t.balance), 200000000) FROM Team AS t WHERE t.id NOT IN (SELECT tr.team.id " +
+            "FROM TeamResearch AS tr WHERE tr.subject.id = :subjectId) AND t.id IN (SELECT b.team.id FROM" +
+            " Building AS b WHERE b.type = :buildingType)")
+    Double avgTeamBalance(Long subjectId, BuildingType buildingType);
 }

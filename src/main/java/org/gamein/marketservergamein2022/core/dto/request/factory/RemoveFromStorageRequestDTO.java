@@ -5,7 +5,6 @@ import lombok.Getter;
 
 
 @Getter
-@AllArgsConstructor
 public class RemoveFromStorageRequestDTO {
     private long productId;
     private int quantity;
