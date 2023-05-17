@@ -109,7 +109,7 @@ public class BuildingServiceHandler implements BuildingService {
         buildingRepository.save(building);
         teamRepository.save(team);
 
-//        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
+        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
 
         return building.toDTO();
     }
@@ -149,7 +149,7 @@ public class BuildingServiceHandler implements BuildingService {
         buildingRepository.save(building);
         teamRepository.save(team);
 
-//        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
+        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
 
         return building.toDTO();
     }
@@ -177,7 +177,7 @@ public class BuildingServiceHandler implements BuildingService {
         factoryLineRepository.deleteAll(lines);
         teamRepository.save(team);
 
-//        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
+        RestUtil.sendNotificationToATeam("", "UPDATE_MAP", String.valueOf(team.getId()), liveUrl);
 
         return getTeamBuildings(team);
     }
