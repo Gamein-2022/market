@@ -260,7 +260,7 @@ public class OfferServiceHandler implements OfferService {
         if (!offer.getOfferer().getId().equals(0L)) sendNotificationToOfferer(order, offer);
 
         addLog(buyer, LogType.BUY, order.getProduct(), Long.valueOf(order.getProductAmount()),
-                order.getProductAmount() * order.getUnitPrice());
+                order.getProductAmount() * order.getUnitPrice() + shippingCost);
 
         addLog(seller, LogType.SELL, order.getProduct(), Long.valueOf(order.getProductAmount()),
                 order.getProductAmount() * order.getUnitPrice());
