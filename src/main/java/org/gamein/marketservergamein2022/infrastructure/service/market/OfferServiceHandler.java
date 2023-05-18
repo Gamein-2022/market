@@ -147,6 +147,8 @@ public class OfferServiceHandler implements OfferService {
 
 
         if (order.getType().equals(OrderType.SELL)) {
+            if (distance == 0)
+                shippingMethod = null;
             acceptOffer(order.getSubmitter(), offer.getId(), shippingMethod);
         }
 
