@@ -87,19 +87,19 @@ public class ScheduleService {
     }
 
     @Transactional
-    @Scheduled(fixedDelay = 4, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedDelay = 8, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
 
-        if (time.getIsRegionPayed()) {
+        if (time.getIsRegionPayed() && !time.getIsGamePaused()) {
             System.out.println("--> Start calculating storage cost");
             List<Team> allTeams = teamRepository.findAll();
             TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
             for (Team team : allTeams) {
                 if (team.getId().equals(0L)) continue;
                 long cost = 0L;
-                List<StorageProduct> teamProducts = storageProductRepository.findAllByTeamId(team.getId());
+                List<StorageProduct> teamProducts = team.getStorageProducts();
                 for (StorageProduct storageProduct : teamProducts) {
                     long totalVolume = storageProduct.getInStorageAmount();
                     cost += totalVolume * storageProduct.getProduct().getMinPrice();
@@ -118,8 +118,10 @@ public class ScheduleService {
                             23));
                     logRepository.save(log);
 
-                }
+                } else
+                    team.setBalance(0);
             }
+            teamRepository.saveAll(allTeams);
             String text = "هزینه انبارداری این ماه از حساب شما برداشت شد.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
 
@@ -222,9 +224,9 @@ public class ScheduleService {
         if (!time.getIsRegionPayed() && isChooseRegionFinished) {
             /*List<Region> regions = regionRepository.findAll();*/
             Map<Integer, Long> regionsPopulation = RegionDTO.getRegionsPopulation(teamRepository.getRegionsPopulation());
-            for (int i = 1; i < 9 ; i ++){
+            for (int i = 1; i < 9; i++) {
                 if (!regionsPopulation.containsKey(i))
-                    regionsPopulation.put(i,0L);
+                    regionsPopulation.put(i, 0L);
             }
 
             List<Team> teams = teamRepository.findAll();
@@ -270,7 +272,7 @@ public class ScheduleService {
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void calculateResearchCosts() {
-        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  " => started calculating R&D");
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC) + " => started calculating R&D");
         Time time = timeRepository.findById(1L).get();
 
         List<ResearchSubject> subjects = researchSubjectRepository.findAll();
@@ -284,7 +286,7 @@ public class ScheduleService {
             subject.setDuration(duration);
         }
         researchSubjectRepository.saveAll(subjects);
-        System.out.println(LocalDateTime.now(ZoneOffset.UTC) +  " => done calculating R&D");
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC) + " => done calculating R&D");
     }
 
 //    public static Stream<Team> getEligibleTeams(ResearchSubject subject, Stream<Team> teams) {
