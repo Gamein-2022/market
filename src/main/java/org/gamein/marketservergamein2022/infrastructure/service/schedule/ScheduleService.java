@@ -86,7 +86,7 @@ public class ScheduleService {
         this.researchSubjectRepository = researchSubjectRepository;
     }
 
-    @Transactional
+    /*@Transactional
     @Scheduled(fixedDelay = 8, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
@@ -127,7 +127,7 @@ public class ScheduleService {
 
             System.out.println("--> End calculating storage cost");
         }
-    }
+    }*/
 
     @Scheduled(initialDelay = 2, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
