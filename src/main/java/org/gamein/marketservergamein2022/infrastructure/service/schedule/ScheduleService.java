@@ -211,7 +211,7 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
     public void payRegionPrice() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsRegionPayed()) return;
