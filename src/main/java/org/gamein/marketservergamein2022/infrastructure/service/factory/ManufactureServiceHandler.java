@@ -78,7 +78,7 @@ public class ManufactureServiceHandler {
         }
         Time time = timeRepository.findById(1L).get();
         groups = groups.filter(g -> productRepository.existsByGroupAndAvailableDayLessThanEqual(g,
-                TimeUtil.getTime(time).getDay()));
+                TimeUtil.getTime(time).getDurationMillis() / 8000));
         return groups.map(
                 productGroup -> new ProductGroupDTO(
                         productRepository.findAllByGroup(productGroup).stream().map(Product::toDTO).collect(Collectors.toList()),
