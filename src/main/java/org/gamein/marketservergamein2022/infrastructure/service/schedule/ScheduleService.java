@@ -83,19 +83,19 @@ public class ScheduleService {
         this.teamDateRepository = teamDateRepository;
     }
 
-    @Transactional
-    @Scheduled(initialDelay = 3,fixedDelay = 4, timeUnit = TimeUnit.MINUTES)
+    /*@Transactional
+    @Scheduled(initialDelay = 0,fixedDelay = 4, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
-        if (time.getIsGamePaused()) return;
 
-        if (time.getIsRegionPayed() && !time.getIsGamePaused()) {
+
+        if (time.getIsRegionPayed()) {
             System.out.println("--> Start calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             String text = "کارشناسان گیمین در حال محاسبه هزینه انبارداری شما می باشند. شکیبا باشید.\uD83C\uDF3C";
             RestUtil.sendNotificationToAll(text,"WARNING",liveUrl);
             teamDateRepository.updateAllTeamDateAll(LocalDateTime.now(ZoneOffset.UTC));
             teamRepository.updateStorageCost(time.getScale());
-            /*List<Team> allTeams = teamRepository.findAll();
+            *//*List<Team> allTeams = teamRepository.findAll();
             System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
             System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
@@ -124,14 +124,14 @@ public class ScheduleService {
                 } else
                     team.setBalance(0);
             }
-            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));*/
+            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));*//*
 
             text = "هزینه انبارداری این ماه از حساب شما برداشت شد. موفق باشید.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
 
             System.out.println("--> End calculating storage cost :" + LocalDateTime.now(ZoneOffset.UTC));
         }
-    }
+    }*/
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {

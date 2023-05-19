@@ -29,7 +29,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     @Modifying
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    @Query(value = "UPDATE teams AS t set balance = GREATEST (balance - (sc.sum / :scale)::bigint, 0::bigint) FROM " +
+    @Query(value = "UPDATE teams AS t set balance = GREATEST (balance - (sc.sum / :scale),0) FROM " +
             "(SELECT sp.team_id, SUM (sp.in_storage_amount * p.min_price) FROM products AS p JOIN storage_products AS" +
             " sp ON sp.product_id = p.id GROUP BY sp.team_id) AS sc WHERE sc.team_id = t.id;", nativeQuery = true)
     void updateStorageCost(Long scale);
