@@ -121,14 +121,18 @@ public class TradeServiceHandler implements TradeService {
             shipping.setStatus(ShippingStatus.IN_ROUTE);
             shipping.setProduct(product);
             shipping.setAmount(quantity);
-            shipping = shippingRepository.save(shipping);
+
             team.getShippings().add(shipping);
+
+            if (distance != 0 ){
+                taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
+                                teamRepository, timeRepository,teamDateRepository),
+                        shipping.getArrivalTime().toInstant(ZoneOffset.UTC));
+            }else {
+                shipping.setStatus(ShippingStatus.IN_QUEUE);
+            }
+            shipping = shippingRepository.save(shipping);
             teamRepository.save(team);
-
-            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
-                            teamRepository, timeRepository,teamDateRepository),
-                    shipping.getArrivalTime().toInstant(ZoneOffset.UTC));
-
             return shipping.toDTO();
         } else {
             throw new BadRequestException("اعتبار شما کافی نیست!");

@@ -255,8 +255,7 @@ public class OfferServiceHandler implements OfferService {
         Shipping shipping = createShipping(order, offer, shippingMethod, distance);
 
         order.setShipping(shipping);
-        orderRepository.save(order);
-        offerRepository.save(offer);
+
 
         Team buyer;
         Team seller;
@@ -270,11 +269,20 @@ public class OfferServiceHandler implements OfferService {
 
         updateTeamsBalanceAndStorage(buyer, seller, order, shippingCost);
 
-        taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
-                        teamRepository, timeRepository,teamDateRepository),
-                java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
+        if (distance != 0){
+            taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
+                            teamRepository, timeRepository,teamDateRepository),
+                    java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
+        }else {
+            shipping.setStatus(ShippingStatus.IN_QUEUE);
+        }
+
+        shippingRepository.save(shipping);
+        orderRepository.save(order);
+        offerRepository.save(offer);
 
         if (!offer.getOfferer().getId().equals(0L)) sendNotificationToOfferer(order, offer);
+
 
         addLog(buyer, LogType.BUY, order.getProduct(), Long.valueOf(order.getProductAmount()),
                 order.getProductAmount() * order.getUnitPrice() + shippingCost);
@@ -316,7 +324,7 @@ public class OfferServiceHandler implements OfferService {
         shipping.setArrivalTime(
                 shipping.getDepartureTime().plusSeconds(calculateShippingDuration(shipping.getMethod(), distance))
         );
-        return shippingRepository.save(shipping);
+        return shipping;
     }
 
     private void sendNotificationToOfferer(Order order, Offer offer) {
