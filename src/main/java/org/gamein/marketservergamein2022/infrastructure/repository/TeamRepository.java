@@ -19,8 +19,8 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
     List<RegionDTO> getRegionsPopulation();
 
     @Query("SELECT COUNT (*) > 0 FROM Team AS t WHERE t.id = :teamId AND t.id IN (SELECT b.team.id FROM Building AS b" +
-            " WHERE b.type = :buildingType) AND t.id IN (SELECT tr.team.id FROM TeamResearch AS tr WHERE tr.id = " +
-            ":parentId)")
+            " WHERE b.type = :buildingType) AND t.id IN (SELECT tr.team.id FROM TeamResearch AS tr WHERE tr.subject" +
+            ".id = :parentId)")
     Boolean isTeamEligible(Long teamId, BuildingType buildingType, Long parentId);
 
     @Query("SELECT COUNT (*) > 0 FROM Team AS t WHERE t.id = :teamId AND t.id IN (SELECT b.team.id FROM Building AS b" +
