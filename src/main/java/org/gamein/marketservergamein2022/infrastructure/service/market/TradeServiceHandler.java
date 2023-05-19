@@ -18,9 +18,10 @@ import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -29,6 +30,7 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class TradeServiceHandler implements TradeService {
     private final TaskScheduler taskScheduler;
     private final ProductRepository productRepository;
@@ -40,11 +42,13 @@ public class TradeServiceHandler implements TradeService {
     private final LogRepository logRepository;
     private final RegionDistanceRepository regionDistanceRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
     public TradeServiceHandler(TaskScheduler taskScheduler, ProductRepository productRepository,
                                TeamRepository teamRepository, ShippingRepository shippingRepository,
                                StorageProductRepository storageProductRepository,
                                FinalProductSellOrderRepository finalProductSellOrderRepository,
-                               TimeRepository timeRepository, LogRepository logRepository, RegionDistanceRepository regionDistanceRepository) {
+                               TimeRepository timeRepository, LogRepository logRepository, RegionDistanceRepository regionDistanceRepository, TeamDateRepository teamDateRepository) {
         this.taskScheduler = taskScheduler;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
@@ -54,11 +58,13 @@ public class TradeServiceHandler implements TradeService {
         this.timeRepository = timeRepository;
         this.logRepository = logRepository;
         this.regionDistanceRepository = regionDistanceRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
     @Override
     public ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (method != null)
             if (method.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
@@ -119,7 +125,7 @@ public class TradeServiceHandler implements TradeService {
             teamRepository.save(team);
 
             taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
-                            teamRepository, timeRepository),
+                            teamRepository, timeRepository,teamDateRepository),
                     shipping.getArrivalTime().toInstant(ZoneOffset.UTC));
 
             return shipping.toDTO();
@@ -148,6 +154,7 @@ public class TradeServiceHandler implements TradeService {
     @Override
     public FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
             throws NotFoundException, BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (quantity <= 0)
             throw new BadRequestException("تعداد واردشده معتبر نمی باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);
@@ -196,6 +203,7 @@ public class TradeServiceHandler implements TradeService {
 
     @Override
     public FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         FinalProductSellOrder order = validateAndReturnOrder(team.getId(), orderId);
 
         if (order.getClosed()) {

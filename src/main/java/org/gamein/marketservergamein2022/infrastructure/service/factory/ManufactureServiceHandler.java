@@ -10,10 +10,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineStatus;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
-import org.gamein.marketservergamein2022.infrastructure.repository.LogRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.FactoryLineRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.RequirementRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.TeamResearchRepository;
@@ -22,6 +19,8 @@ import org.gamein.marketservergamein2022.infrastructure.repository.market.Region
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -37,6 +36,7 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class ManufactureServiceHandler {
     private final ProductRepository productRepository;
     private final FactoryLineRepository factoryLineRepository;
@@ -47,12 +47,14 @@ public class ManufactureServiceHandler {
     private final LogRepository logRepository;
     private final TimeRepository timeRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
     private final RegionDistanceRepository regionDistanceRepository;
 
     public ManufactureServiceHandler(ProductRepository productRepository, FactoryLineRepository factoryLineRepository,
                                      RequirementRepository requirementRepository, TeamRepository teamRepository,
                                      StorageProductRepository storageProductRepository,
-                                     TeamResearchRepository teamResearchRepository, LogRepository logRepository, TimeRepository timeRepository, RegionDistanceRepository regionDistanceRepository) {
+                                     TeamResearchRepository teamResearchRepository, LogRepository logRepository, TimeRepository timeRepository, TeamDateRepository teamDateRepository, RegionDistanceRepository regionDistanceRepository) {
         this.productRepository = productRepository;
         this.factoryLineRepository = factoryLineRepository;
         this.requirementRepository = requirementRepository;
@@ -61,6 +63,7 @@ public class ManufactureServiceHandler {
         this.teamResearchRepository = teamResearchRepository;
         this.logRepository = logRepository;
         this.timeRepository = timeRepository;
+        this.teamDateRepository = teamDateRepository;
         this.regionDistanceRepository = regionDistanceRepository;
     }
 
@@ -149,6 +152,8 @@ public class ManufactureServiceHandler {
 
     public FactoryLineDTO startNewProcess(Team team, Long lineId, Long productId, int count)
             throws NotFoundException, UnauthorizedException, NotEnoughMaterial, LineInProgressException, BadRequestException, NotEnoughMoneyException {
+
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Time time = timeRepository.findById(1L).get();
         ValidateNewProcessResult result = validateStartNewProcess(count, team, lineId, productId, time);
         FactoryLine factoryLine = result.getFactoryLine();
@@ -240,7 +245,7 @@ public class ManufactureServiceHandler {
 
     public FactoryLineDTO cancelProcess(Team team, Long lineId)
             throws UnauthorizedException, NotFoundException, BadRequestException {
-        Time time = timeRepository.findById(1L).get();
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         FactoryLine factoryLine = validateTeamAndLine(team, lineId);
         if (factoryLine.getStatus() != LineStatus.IN_PROGRESS) {
             throw new BadRequestException("این خط در حال کار نیست!");
@@ -288,6 +293,7 @@ public class ManufactureServiceHandler {
     }
 
     public FactoryLineDTO collectLine(Team team, Long lineId) throws UnauthorizedException, NotFoundException, RemainignTimeException, BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         FactoryLine factoryLine = validateTeamAndLine(team, lineId);
 
         if (factoryLine.getStatus().equals(LineStatus.OFF))

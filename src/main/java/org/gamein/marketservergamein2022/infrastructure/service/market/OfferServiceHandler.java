@@ -21,6 +21,8 @@ import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -32,6 +34,7 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class OfferServiceHandler implements OfferService {
     private final TaskScheduler taskScheduler;
     private final OrderRepository orderRepository;
@@ -44,12 +47,16 @@ public class OfferServiceHandler implements OfferService {
 
     private final TimeRepository timeRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
+
+
     @Value("${live.data.url}")
     private String liveUrl;
 
     public OfferServiceHandler(TaskScheduler taskScheduler, OrderRepository orderRepository,
                                ShippingRepository shippingRepository, OfferRepository offerRepository,
-                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository, RegionDistanceRepository regionDistanceRepository, TimeRepository timeRepository) {
+                               StorageProductRepository storageProductRepository, LogRepository logRepository, TeamRepository teamRepository, RegionDistanceRepository regionDistanceRepository, TimeRepository timeRepository, TeamDateRepository teamDateRepository) {
         this.taskScheduler = taskScheduler;
         this.orderRepository = orderRepository;
         this.shippingRepository = shippingRepository;
@@ -59,12 +66,13 @@ public class OfferServiceHandler implements OfferService {
         this.teamRepository = teamRepository;
         this.regionDistanceRepository = regionDistanceRepository;
         this.timeRepository = timeRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
     @Override
     public OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
-
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (shippingMethod != null)
             if (shippingMethod.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
@@ -202,12 +210,17 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
-
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (shippingMethod != null)
             if (shippingMethod.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
 
         Offer offer = checkOfferAccess(team.getId(), offerId);
+
+        if (offer.getOrder().getType().equals(OrderType.BUY)){
+            teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),offer.getOfferer().getId());
+        }
+
         Order order = offer.getOrder();
 
 
@@ -256,7 +269,7 @@ public class OfferServiceHandler implements OfferService {
         updateTeamsBalanceAndStorage(buyer, seller, order, shippingCost);
 
         taskScheduler.schedule(new CollectShipping(shipping, shippingRepository, storageProductRepository,
-                        teamRepository, timeRepository),
+                        teamRepository, timeRepository,teamDateRepository),
                 java.sql.Timestamp.valueOf(shipping.getArrivalTime()));
 
         if (!offer.getOfferer().getId().equals(0L)) sendNotificationToOfferer(order, offer);
@@ -379,6 +392,7 @@ public class OfferServiceHandler implements OfferService {
     public OfferDTO declineOffer(Team team, Long offerId)
             throws BadRequestException, NotFoundException {
         Offer offer = checkOfferAccess(team.getId(), offerId);
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),offer.getOfferer().getId());
         offer.setDeclined(true);
         offerRepository.save(offer);
 
@@ -395,6 +409,7 @@ public class OfferServiceHandler implements OfferService {
     @Override
     public OfferDTO cancelOffer(Team team, Long offerId)
             throws BadRequestException, NotFoundException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Optional<Offer> offerOptional = offerRepository.findById(offerId);
         if (offerOptional.isEmpty()) {
             throw new NotFoundException("پیشنهاد یافت نشد!");

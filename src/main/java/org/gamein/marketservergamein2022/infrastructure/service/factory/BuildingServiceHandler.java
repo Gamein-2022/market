@@ -13,6 +13,7 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineStatus;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.LineType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ProductGroup;
+import org.gamein.marketservergamein2022.infrastructure.repository.TeamDateRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.BuildingInfoRepository;
@@ -21,6 +22,8 @@ import org.gamein.marketservergamein2022.infrastructure.repository.factory.Facto
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -30,6 +33,7 @@ import java.util.Optional;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class BuildingServiceHandler implements BuildingService {
     private final BuildingRepository buildingRepository;
     private final TeamRepository teamRepository;
@@ -37,12 +41,15 @@ public class BuildingServiceHandler implements BuildingService {
     private final TimeRepository timeRepository;
     private final BuildingInfoRepository buildingInfoRepository;
 
-    public BuildingServiceHandler(BuildingRepository buildingRepository, TeamRepository teamRepository, FactoryLineRepository factoryLineRepository, TimeRepository timeRepository, BuildingInfoRepository buildingInfoRepository) {
+    private final TeamDateRepository teamDateRepository;
+
+    public BuildingServiceHandler(BuildingRepository buildingRepository, TeamRepository teamRepository, FactoryLineRepository factoryLineRepository, TimeRepository timeRepository, BuildingInfoRepository buildingInfoRepository, TeamDateRepository teamDateRepository) {
         this.buildingRepository = buildingRepository;
         this.teamRepository = teamRepository;
         this.factoryLineRepository = factoryLineRepository;
         this.timeRepository = timeRepository;
         this.buildingInfoRepository = buildingInfoRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
     @Value("${live.data.url}")
@@ -70,6 +77,7 @@ public class BuildingServiceHandler implements BuildingService {
     @Override
     public BuildingDTO createBuilding(Team team, BuildingType type, Byte ground)
             throws BadRequestException, NotEnoughMoneyException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         BuildingInfo info = buildingInfoRepository.findById(type).orElseGet(BuildingInfo::new);
         validateCreatingBuilding(team, type, ground, info);
 
@@ -116,7 +124,7 @@ public class BuildingServiceHandler implements BuildingService {
 
     @Override
     public BuildingDTO upgradeBuilding(Team team, long buildingId) throws BadRequestException, NotFoundException {
-
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Optional<Building> buildingOptional = team.getBuildings().stream().filter(b -> b.getId() == buildingId).findFirst();
         if (buildingOptional.isEmpty()) throw new NotFoundException("ساختمان یافت نشد!");
 
@@ -157,6 +165,7 @@ public class BuildingServiceHandler implements BuildingService {
     @Override
     public TeamBuildingsResult destroyBuilding(Team team, Byte ground) throws NotFoundException,
             BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Optional<Building> buildingOptional = buildingRepository.findByGroundAndTeam_Id(ground, team.getId());
         if (buildingOptional.isEmpty()) throw new NotFoundException("ساختمان مورد نظر یافت نشد!");
 

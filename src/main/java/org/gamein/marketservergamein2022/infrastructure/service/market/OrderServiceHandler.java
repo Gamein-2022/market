@@ -16,6 +16,8 @@ import org.gamein.marketservergamein2022.infrastructure.repository.market.*;
 import org.gamein.marketservergamein2022.infrastructure.util.ShippingInfo;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -28,6 +30,7 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.*;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class OrderServiceHandler implements OrderService {
     private final ProductRepository productRepository;
     private final TeamRepository teamRepository;
@@ -39,10 +42,12 @@ public class OrderServiceHandler implements OrderService {
     private final OfferRepository offerRepository;
     private final TimeRepository timeRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
     public OrderServiceHandler(ProductRepository productRepository, TeamRepository teamRepository,
                                OrderRepository orderRepository,
                                LogRepository logRepository, StorageProductRepository storageProductRepository,
-                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository, OfferRepository offerRepository, TimeRepository timeRepository) {
+                               FinalProductSellOrderRepository finalProductSellOrderRepository, RegionDistanceRepository regionDistanceRepository, OfferRepository offerRepository, TimeRepository timeRepository, TeamDateRepository teamDateRepository) {
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.orderRepository = orderRepository;
@@ -52,13 +57,14 @@ public class OrderServiceHandler implements OrderService {
         this.regionDistanceRepository = regionDistanceRepository;
         this.offerRepository = offerRepository;
         this.timeRepository = timeRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
     @Override
     public OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException {
-
-        Product product = validatingCreateOrder(productId,quantity,price);
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC), team.getId());
+        Product product = validatingCreateOrder(productId, quantity, price);
 
         if (orderType == OrderType.BUY) {
             long balance = team.getBalance();
@@ -102,7 +108,7 @@ public class OrderServiceHandler implements OrderService {
         return order.toDTO(0, 0);
     }
 
-    private Product validatingCreateOrder(Long productId,Integer quantity,Long price) throws BadRequestException {
+    private Product validatingCreateOrder(Long productId, Integer quantity, Long price) throws BadRequestException {
         if (productId == null) {
             throw new BadRequestException("محصول مورد نظر وجود ندارد!");
         }
@@ -156,6 +162,8 @@ public class OrderServiceHandler implements OrderService {
     @Override
     public OrderDTO cancelOrder(Team team, Long orderId)
             throws BadRequestException, NotFoundException {
+        teamDateRepository.updateOfferer(LocalDateTime.now(ZoneOffset.UTC), orderId);
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC), team.getId());
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new NotFoundException("سفارش یافت نشد.");

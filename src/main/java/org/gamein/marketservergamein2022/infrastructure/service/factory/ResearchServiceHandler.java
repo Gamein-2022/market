@@ -6,11 +6,14 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.factory.ResearchService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
+import org.gamein.marketservergamein2022.infrastructure.repository.TeamDateRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.ResearchSubjectRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.TeamResearchRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -18,25 +21,29 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 //import static org.gamein.marketservergamein2022.infrastructure.service.schedule.ScheduleService.getEligibleTeams;
 
 
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
+
 public class ResearchServiceHandler implements ResearchService {
     private final TeamResearchRepository teamResearchRepository;
     private final ResearchSubjectRepository researchSubjectRepository;
     private final TeamRepository teamRepository;
     private final TimeRepository timeRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
     public ResearchServiceHandler(TeamResearchRepository teamResearchRepository,
                                   ResearchSubjectRepository researchSubjectRepository,
-                                  TeamRepository teamRepository, TimeRepository timeRepository) {
+                                  TeamRepository teamRepository, TimeRepository timeRepository, TeamDateRepository teamDateRepository) {
         this.teamResearchRepository = teamResearchRepository;
         this.researchSubjectRepository = researchSubjectRepository;
         this.teamRepository = teamRepository;
         this.timeRepository = timeRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
     @Override
@@ -48,6 +55,7 @@ public class ResearchServiceHandler implements ResearchService {
     @Override
     public TeamResearchDTO startResearchProcess(Team team, String name)
             throws BadRequestException, NotFoundException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (teamResearchRepository.findFirstByEndTimeAfterAndTeamId(LocalDateTime.now(ZoneOffset.UTC), team.getId()) != null) {
             throw new BadRequestException("شما یک فرآیند تحقیق و توسعه در دست انجام دارید!");
         }
@@ -142,6 +150,7 @@ public class ResearchServiceHandler implements ResearchService {
     @Override
     public TeamResearchDTO stopResearch(Team team, String name)
             throws BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Optional<TeamResearch> researchOptional = teamResearchRepository.findByTeam_IdAndSubject_Name(
                 team.getId(),
                 name

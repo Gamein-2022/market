@@ -3,14 +3,11 @@ package org.gamein.marketservergamein2022.infrastructure.service.schedule;
 import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
 import org.gamein.marketservergamein2022.core.dto.result.schedule.RegionDTO;
 import org.gamein.marketservergamein2022.core.exception.BadRequestException;
-import org.gamein.marketservergamein2022.core.service.market.OrderService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
+import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.OrderType;
-import org.gamein.marketservergamein2022.infrastructure.repository.LogRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.BuildingInfoRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.BuildingRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.ResearchSubjectRepository;
@@ -23,15 +20,13 @@ import org.gamein.marketservergamein2022.infrastructure.util.GameinTradeTasks;
 import org.gamein.marketservergamein2022.infrastructure.util.RestUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
 import org.gamein.marketservergamein2022.infrastructure.util.TimeUtil;
-import org.gamein.marketservergamein2022.core.sharedkernel.enums.LogType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -39,7 +34,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.getSPFromProduct;
 
@@ -64,10 +58,12 @@ public class ScheduleService {
     private final WealthLogRepository wealthLogRepository;
     private final ResearchSubjectRepository researchSubjectRepository;
 
+    private final TeamDateRepository teamDateRepository;
+
     @Value("${live.data.url}")
     private String liveUrl;
 
-    public ScheduleService(TimeRepository timeRepository, TeamRepository teamRepository, TeamResearchRepository teamResearchRepository, FinalProductSellOrderRepository finalProductSellOrderRepository, ProductRepository productRepository, DemandRepository demandRepository, RegionRepository regionRepository, LogRepository logRepository, StorageProductRepository storageProductRepository, OrderRepository orderRepository, OfferRepository offerRepository, DemandLogRepository demandLogRepository, BuildingRepository buildingRepository, BuildingInfoRepository buildingInfoRepository, WealthLogRepository wealthLogRepository, ResearchSubjectRepository researchSubjectRepository) {
+    public ScheduleService(TimeRepository timeRepository, TeamRepository teamRepository, TeamResearchRepository teamResearchRepository, FinalProductSellOrderRepository finalProductSellOrderRepository, ProductRepository productRepository, DemandRepository demandRepository, RegionRepository regionRepository, LogRepository logRepository, StorageProductRepository storageProductRepository, OrderRepository orderRepository, OfferRepository offerRepository, DemandLogRepository demandLogRepository, BuildingRepository buildingRepository, BuildingInfoRepository buildingInfoRepository, WealthLogRepository wealthLogRepository, ResearchSubjectRepository researchSubjectRepository, TeamDateRepository teamDateRepository) {
         this.timeRepository = timeRepository;
         this.teamRepository = teamRepository;
         this.teamResearchRepository = teamResearchRepository;
@@ -84,18 +80,21 @@ public class ScheduleService {
         this.buildingInfoRepository = buildingInfoRepository;
         this.wealthLogRepository = wealthLogRepository;
         this.researchSubjectRepository = researchSubjectRepository;
+        this.teamDateRepository = teamDateRepository;
     }
 
-    /*@Transactional
-    @Scheduled(fixedDelay = 8, timeUnit = TimeUnit.MINUTES)
+    @Transactional
+    @Scheduled(initialDelay = 3,fixedDelay = 8, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
 
         if (time.getIsRegionPayed() && !time.getIsGamePaused()) {
-            System.out.println("--> Start calculating storage cost");
+            System.out.println("--> Start calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             List<Team> allTeams = teamRepository.findAll();
+            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
+            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             for (Team team : allTeams) {
                 if (team.getId().equals(0L)) continue;
                 long cost = 0L;
@@ -121,21 +120,25 @@ public class ScheduleService {
                 } else
                     team.setBalance(0);
             }
+            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             teamRepository.saveAll(allTeams);
             String text = "هزینه انبارداری این ماه از حساب شما برداشت شد.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
 
-            System.out.println("--> End calculating storage cost");
+            System.out.println("--> End calculating storage cost :" + LocalDateTime.now(ZoneOffset.UTC));
         }
-    }*/
+    }
 
-    @Scheduled(initialDelay = 2, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
 
         try {
-            System.out.println("final product orders task now commencing:\n");
+            teamDateRepository.updateAllTeamDate(LocalDateTime.now(ZoneOffset.UTC));
+            String text = "گیمین در حال خرید محصول نهایی می باشد.";
+            RestUtil.sendNotificationToAll(text, "WARNING", liveUrl);
+            System.out.println("final product orders task now commencing: " + LocalDateTime.now(ZoneOffset.UTC) + "\n");
             LocalDateTime nextTime = LocalDateTime.now(ZoneOffset.UTC).plusMinutes(5);
             time.setNextFinalOrderTime(nextTime);
             timeRepository.save(time);
@@ -168,6 +171,7 @@ public class ScheduleService {
                     fiveMinutesFromBeginning).run();
             finalProductSellOrderRepository.saveAll(orders);
             teamRepository.saveAll(orders.stream().map(FinalProductSellOrder::getSubmitter).collect(Collectors.toList()));
+            System.out.println("final product orders end :" + LocalDateTime.now(ZoneOffset.UTC) + "\n");
         } catch (Exception e) {
             System.err.println("Error in scheduled task: trade service handler:");
             System.err.println(e.getMessage());
@@ -198,7 +202,7 @@ public class ScheduleService {
         teamRepository.save(gamein);
     }*/
 
-    @Scheduled(fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2,fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     public void saveTeamsWealth() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -259,8 +263,11 @@ public class ScheduleService {
         }
     }
 
-    @Scheduled(initialDelay = 13, fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 13, fixedRate = 10, timeUnit = TimeUnit.MINUTES)
     public void cancelPendingOrders() {
+        teamDateRepository.updateAllTeamDateAll(LocalDateTime.now(ZoneOffset.UTC));
+        String text = "کارگران انبار در حال انبارگردانی می باشند. شکیبا باشید.";
+        RestUtil.sendNotificationToAll(text,"WARNING",liveUrl);
         List<Order> orders =
                 orderRepository.findAllBySubmitDateBeforeAndCancelledIsFalseAndAcceptDateIsNull(
                         LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10)

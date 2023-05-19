@@ -9,10 +9,7 @@ import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.service.factory.StorageService;
 import org.gamein.marketservergamein2022.core.sharedkernel.entity.*;
 import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingStatus;
-import org.gamein.marketservergamein2022.infrastructure.repository.ShippingRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.StorageProductRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TeamRepository;
-import org.gamein.marketservergamein2022.infrastructure.repository.TimeRepository;
+import org.gamein.marketservergamein2022.infrastructure.repository.*;
 import org.gamein.marketservergamein2022.infrastructure.repository.factory.RequirementRepository;
 import org.gamein.marketservergamein2022.infrastructure.repository.market.ProductRepository;
 import org.gamein.marketservergamein2022.infrastructure.util.TeamUtil;
@@ -20,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 @Service
 @EnableScheduling
 @Configuration
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class StorageServiceHandler implements StorageService {
 
 
@@ -39,6 +39,8 @@ public class StorageServiceHandler implements StorageService {
     private final ShippingRepository shippingRepository;
     private final StorageProductRepository storageProductRepository;
     private final TeamRepository teamRepository;
+
+    private final TeamDateRepository teamDateRepository;
     private final TimeRepository timeRepository;
     @Value("${live.data.url}")
     private String liveUrl;
@@ -46,12 +48,13 @@ public class StorageServiceHandler implements StorageService {
 
     public StorageServiceHandler(RequirementRepository requirementRepository, ProductRepository productRepository,
                                  ShippingRepository shippingRepository, TeamRepository teamRepository,
-                                 StorageProductRepository storageProductRepository, TimeRepository timeRepository) {
+                                 StorageProductRepository storageProductRepository, TeamDateRepository teamDateRepository, TimeRepository timeRepository) {
         this.requirementRepository = requirementRepository;
         this.productRepository = productRepository;
         this.teamRepository = teamRepository;
         this.shippingRepository = shippingRepository;
         this.storageProductRepository = storageProductRepository;
+        this.teamDateRepository = teamDateRepository;
         this.timeRepository = timeRepository;
     }
 
@@ -88,12 +91,13 @@ public class StorageServiceHandler implements StorageService {
     @Override
     public StorageInfoDTO collectFromQueue(Team team, Long shippingId)
             throws NotFoundException, BadRequestException {
-        Time time = timeRepository.findById(1L).get();
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Shipping shipping = getShippingFromId(shippingId);
         if (shipping.getStatus() != ShippingStatus.IN_QUEUE) {
             throw new NotFoundException("مورد درخواست‌شده در صف انبار نیست!");
         }
-        if (shipping.getArrivalTime().plusSeconds(60).isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
+        System.out.println(LocalDateTime.now(ZoneOffset.UTC));
+        if (shipping.getArrivalTime().plusMinutes(5).isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
             throw new BadRequestException("مهلت جمع‌آوری این سفارش به پایان رسیده است!");
         }
         if ((long) shipping.getProduct().getUnitVolume() * shipping.getAmount() > TeamUtil.calculateAvailableSpace(team)) {
@@ -114,6 +118,7 @@ public class StorageServiceHandler implements StorageService {
     @Override
     public StorageInfoDTO removeFromQueue(Team team, Long shippingId)
             throws NotFoundException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         Shipping shipping = getShippingFromId(shippingId);
         if (shipping.getStatus() != ShippingStatus.IN_QUEUE) {
             throw new NotFoundException("مورد درخواست‌شده در صف انبار نیست!");
@@ -140,6 +145,7 @@ public class StorageServiceHandler implements StorageService {
     @Override
     public StorageInfoDTO removeFromStorage(Team team, Long productId, Integer quantity)
             throws BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
         if (quantity <= 0)
             throw new BadRequestException("تعداد باید بزرگ تر از صفر باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);
