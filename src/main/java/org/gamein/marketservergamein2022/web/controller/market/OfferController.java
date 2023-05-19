@@ -30,12 +30,12 @@ public class OfferController {
     @PostMapping(value = "",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> createOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> createOffer(@ModelAttribute("teamInfo") Long teamId,
                                                   @RequestBody CreateOfferRequestDTO request) {
         try {
             return new ResponseEntity<>(
                     ServiceResult.createResult(offerService.createOffer(
-                            authInfo.getTeam(),
+                            teamId,
                             request.getOrderId(),
                             request.getShippingMethod()
                     )),
@@ -84,11 +84,11 @@ public class OfferController {
     }
 
     @DeleteMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> cancelOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> cancelOffer(@ModelAttribute("teamInfo") Long teamId,
                                                   @PathVariable(value = "id") Long offerId) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(offerService.cancelOffer(authInfo.getTeam(), offerId)),
+                    ServiceResult.createResult(offerService.cancelOffer(teamId, offerId)),
                     HttpStatus.OK
             );
         } catch (BadRequestException e) {
@@ -105,13 +105,13 @@ public class OfferController {
     @PutMapping(value = "{id}/accept",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> acceptOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> acceptOffer(@ModelAttribute("teamInfo") Long teamId,
                                                   @RequestBody AcceptOfferRequestDTO request,
                                                   @PathVariable(value = "id") Long offerId) {
         try {
             return new ResponseEntity<>(
                     ServiceResult.createResult(offerService.acceptOffer(
-                            authInfo.getTeam(),
+                            teamId,
                             offerId,
                             request.getShippingMethod()
                     )),
@@ -129,11 +129,11 @@ public class OfferController {
     }
 
     @PutMapping(value = "{id}/decline", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> declineOffer(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> declineOffer(@ModelAttribute("teamInfo") Long teamId,
                                                   @PathVariable(value = "id") Long offerId) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(offerService.declineOffer(authInfo.getTeam(), offerId)),
+                    ServiceResult.createResult(offerService.declineOffer(teamId, offerId)),
                     HttpStatus.OK
             );
         } catch (BadRequestException e) {

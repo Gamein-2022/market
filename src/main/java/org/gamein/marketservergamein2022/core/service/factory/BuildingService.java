@@ -14,12 +14,12 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.BuildingType;
 public interface BuildingService {
     TeamBuildingsResult getTeamBuildings(Team team);
 
-    BuildingDTO createBuilding(Team team, BuildingType type, Byte ground) throws BadRequestException,
+    BuildingDTO createBuilding(Long teamId, BuildingType type, Byte ground) throws BadRequestException,
             NotEnoughMoneyException;
 
-    BuildingDTO upgradeBuilding(Team team, long buildingId) throws BadRequestException, NotFoundException;
+    BuildingDTO upgradeBuilding(Long teamId, long buildingId) throws BadRequestException, NotFoundException;
 
-    TeamBuildingsResult destroyBuilding(Team team, Byte ground) throws NotFoundException, BadRequestException;
+    TeamBuildingsResult destroyBuilding(Long teamId, Byte ground) throws NotFoundException, BadRequestException;
 
     void upgradeRegion(Team team)
             throws NotEnoughMoneyException, BadRequestException;

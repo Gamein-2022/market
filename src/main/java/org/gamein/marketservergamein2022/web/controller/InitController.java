@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 
@@ -46,6 +49,34 @@ public class InitController {
     public InitController(TimeRepository timeRepository, AuthService authService) {
         this.timeRepository = timeRepository;
         this.authService = authService;
+    }
+
+    @ModelAttribute(name = "teamInfo")
+    public Long getTeamId(HttpServletRequest request) throws InvalidTokenException {
+        String token = request.getHeader("Authorization");
+        if (token == null || token.length() < 8) {
+            throw new InvalidTokenException("Invalid token!");
+        }
+
+        try {
+            Time time = timeRepository.findById(1L).get();
+            boolean isChooseRegionFinished =
+                    Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC))
+                            .getSeconds() - time.getStoppedTimeSeconds() > time.getChooseRegionDuration();
+            if (!isChooseRegionFinished)
+                throw new BadRequestException("برو سر انتخاب زمینت بچه :)");
+
+            AuthInfoResponse result = RestUtil.getAuthInfo(token, authUrl);
+            if (result.getTeamId() == null) {
+                throw new InvalidTokenException("User does not have a team!");
+            }
+
+            logger.info("userId: " + result.getUserId().toString() +
+                    " --- teamId: " + result.getTeamId());
+            return result.getTeamId();
+        } catch (RestClientException | BadRequestException e) {
+            throw new InvalidTokenException("Invalid token!");
+        }
     }
 
     @ModelAttribute(name = "authInfo")

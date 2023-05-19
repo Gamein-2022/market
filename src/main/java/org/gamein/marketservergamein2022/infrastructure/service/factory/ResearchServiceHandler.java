@@ -53,9 +53,10 @@ public class ResearchServiceHandler implements ResearchService {
     }
 
     @Override
-    public TeamResearchDTO startResearchProcess(Team team, String name)
+    public TeamResearchDTO startResearchProcess(Long teamId, String name)
             throws BadRequestException, NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (teamResearchRepository.findFirstByEndTimeAfterAndTeamId(LocalDateTime.now(ZoneOffset.UTC), team.getId()) != null) {
             throw new BadRequestException("شما یک فرآیند تحقیق و توسعه در دست انجام دارید!");
         }
@@ -148,9 +149,10 @@ public class ResearchServiceHandler implements ResearchService {
     }
 
     @Override
-    public TeamResearchDTO stopResearch(Team team, String name)
+    public TeamResearchDTO stopResearch(Long teamId, String name)
             throws BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Optional<TeamResearch> researchOptional = teamResearchRepository.findByTeam_IdAndSubject_Name(
                 team.getId(),
                 name

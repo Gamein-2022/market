@@ -89,9 +89,10 @@ public class StorageServiceHandler implements StorageService {
     }
 
     @Override
-    public StorageInfoDTO collectFromQueue(Team team, Long shippingId)
+    public StorageInfoDTO collectFromQueue(Long teamId, Long shippingId)
             throws NotFoundException, BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Shipping shipping = getShippingFromId(shippingId);
         if (shipping.getStatus() != ShippingStatus.IN_QUEUE) {
             throw new NotFoundException("مورد درخواست‌شده در صف انبار نیست!");
@@ -116,9 +117,10 @@ public class StorageServiceHandler implements StorageService {
     }
 
     @Override
-    public StorageInfoDTO removeFromQueue(Team team, Long shippingId)
+    public StorageInfoDTO removeFromQueue(Long teamId, Long shippingId)
             throws NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Shipping shipping = getShippingFromId(shippingId);
         if (shipping.getStatus() != ShippingStatus.IN_QUEUE) {
             throw new NotFoundException("مورد درخواست‌شده در صف انبار نیست!");
@@ -143,9 +145,10 @@ public class StorageServiceHandler implements StorageService {
     }
 
     @Override
-    public StorageInfoDTO removeFromStorage(Team team, Long productId, Integer quantity)
+    public StorageInfoDTO removeFromStorage(Long teamId, Long productId, Integer quantity)
             throws BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (quantity <= 0)
             throw new BadRequestException("تعداد باید بزرگ تر از صفر باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);

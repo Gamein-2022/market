@@ -92,12 +92,12 @@ public class ManufactureController {
 
     @PostMapping("start")
     ResponseEntity<BaseResult> startNewProcess(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @RequestBody StartNewProcessRequestDTO request
     ) {
         try {
             FactoryLineDTO factoryLineDTO = serviceHandler.startNewProcess(
-                    authInfo.getTeam(), request.getLineId(), request.getProductId(), request.getCount());
+                    teamId, request.getLineId(), request.getProductId(), request.getCount());
             ServiceResult<FactoryLineDTO> result = ServiceResult.createResult(factoryLineDTO);
             return new ResponseEntity<>(result, HttpStatus.OK);
 
@@ -118,12 +118,12 @@ public class ManufactureController {
 
     @DeleteMapping("{id}")
     public ResponseEntity<BaseResult> cancelProcess(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @PathVariable(value = "id") Long lineId
     ) {
         try {
             return new ResponseEntity<>(ServiceResult.createResult(
-                    serviceHandler.cancelProcess(authInfo.getTeam(), lineId)
+                    serviceHandler.cancelProcess(teamId, lineId)
             ), HttpStatus.OK);
         } catch (UnauthorizedException e) {
             logger.error(e.getMessage(), e);
@@ -151,11 +151,11 @@ public class ManufactureController {
 
     @GetMapping("collect")
     ResponseEntity<BaseResult> collectLine(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @RequestParam("id") Long lineId
     ) {
         try {
-            FactoryLineDTO factoryLineDTO = serviceHandler.collectLine(authInfo.getTeam(), lineId);
+            FactoryLineDTO factoryLineDTO = serviceHandler.collectLine(teamId, lineId);
             ServiceResult<FactoryLineDTO> result = ServiceResult.createResult(factoryLineDTO);
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (UnauthorizedException e) {

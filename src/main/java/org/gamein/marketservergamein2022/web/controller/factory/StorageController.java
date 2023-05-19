@@ -30,7 +30,7 @@ public class StorageController {
 
     @GetMapping(value = "",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> getStorageInfo(@ModelAttribute AuthInfo authInfo) {
+    public ResponseEntity<BaseResult> getStorageInfo(@ModelAttribute("authInfo") AuthInfo authInfo) {
         return new ResponseEntity<>(
                 ServiceResult.createResult(storageService.getStorageInfo(authInfo.getTeam())),
                 HttpStatus.OK
@@ -39,7 +39,7 @@ public class StorageController {
 
     @GetMapping(value = "queue",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> getStorageQueue(@ModelAttribute AuthInfo authInfo) {
+    public ResponseEntity<BaseResult> getStorageQueue(@ModelAttribute("authInfo") AuthInfo authInfo) {
         return new ResponseEntity<>(
                 ServiceResult.createResult(storageService.getStorageQueue(authInfo.getTeam())),
                 HttpStatus.OK
@@ -48,11 +48,11 @@ public class StorageController {
 
     @PutMapping(value = "{id}/collect",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> collectFromQueue(@ModelAttribute AuthInfo authInfo,
+    public ResponseEntity<BaseResult> collectFromQueue(@ModelAttribute("teamInfo") Long teamId,
                                                    @PathVariable(value = "id") Long shippingId) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(storageService.collectFromQueue(authInfo.getTeam(), shippingId)),
+                    ServiceResult.createResult(storageService.collectFromQueue(teamId, shippingId)),
                     HttpStatus.OK
             );
         } catch (NotFoundException e) {
@@ -68,11 +68,11 @@ public class StorageController {
 
     @DeleteMapping(value = "{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> removeFromQueue(@ModelAttribute AuthInfo authInfo,
+    public ResponseEntity<BaseResult> removeFromQueue(@ModelAttribute("teamInfo") Long teamId,
                                                       @PathVariable(value = "id") Long shippingId) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(storageService.removeFromQueue(authInfo.getTeam(), shippingId)),
+                    ServiceResult.createResult(storageService.removeFromQueue(teamId, shippingId)),
                     HttpStatus.OK
             );
         } catch (NotFoundException e) {
@@ -88,7 +88,7 @@ public class StorageController {
 
     @GetMapping(value = "in-route",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> getInRouteProducts(@ModelAttribute AuthInfo authInfo) {
+    public ResponseEntity<BaseResult> getInRouteProducts(@ModelAttribute("authInfo") AuthInfo authInfo) {
         return new ResponseEntity<>(
                 ServiceResult.createResult(storageService.getInRouteShippings(authInfo.getTeam())),
                 HttpStatus.OK
@@ -98,11 +98,11 @@ public class StorageController {
     @PutMapping(value = "remove",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> removeFromStorage(@ModelAttribute AuthInfo authInfo,
+    public ResponseEntity<BaseResult> removeFromStorage(@ModelAttribute("teamInfo") Long teamId,
                                                         @RequestBody RemoveFromStorageRequestDTO request) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(storageService.removeFromStorage(authInfo.getTeam(),
+                    ServiceResult.createResult(storageService.removeFromStorage(teamId,
                             request.getProductId(), request.getQuantity())),
                     HttpStatus.OK
             );

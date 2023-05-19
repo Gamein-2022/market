@@ -61,9 +61,10 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
+    public OrderDTO createOrder(Long teamId, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC), team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC), teamId);
+        Team team = teamRepository.findById(teamId).get();
         Product product = validatingCreateOrder(productId, quantity, price);
 
         if (orderType == OrderType.BUY) {
@@ -160,10 +161,11 @@ public class OrderServiceHandler implements OrderService {
     }
 
     @Override
-    public OrderDTO cancelOrder(Team team, Long orderId)
+    public OrderDTO cancelOrder(Long teamId, Long orderId)
             throws BadRequestException, NotFoundException {
         teamDateRepository.updateOfferer(LocalDateTime.now(ZoneOffset.UTC), orderId);
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC), team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Optional<Order> orderOptional = orderRepository.findById(orderId);
         if (orderOptional.isEmpty()) {
             throw new NotFoundException("سفارش یافت نشد.");

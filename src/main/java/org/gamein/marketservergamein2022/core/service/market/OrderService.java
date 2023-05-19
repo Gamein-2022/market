@@ -13,14 +13,14 @@ import java.util.List;
 
 
 public interface OrderService {
-    OrderDTO createOrder(Team team, OrderType orderType, Long productId, Integer quantity, Long price)
+    OrderDTO createOrder(Long teamId, OrderType orderType, Long productId, Integer quantity, Long price)
             throws BadRequestException;
 
     List<OrderDTO> getAllOrders(Team team, OrderType type, Long productId);
 
     TeamTradesDTO getTeamTrades(Team team);
 
-    OrderDTO cancelOrder(Team team, Long orderId)
+    OrderDTO cancelOrder(Long teamId, Long orderId)
             throws NotFoundException, BadRequestException;
 
     OrderDTO archiveOrder(Team team, Long orderId)

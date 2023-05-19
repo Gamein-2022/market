@@ -10,13 +10,13 @@ import org.gamein.marketservergamein2022.core.sharedkernel.enums.ShippingMethod;
 
 
 public interface TradeService {
-    ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
+    ShippingDTO buyFromGamein(Long teamId, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException;
 
-    FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
+    FinalProductSellOrderDTO sellToGamein(Long teamId, Long productId, Integer quantity, Long price)
             throws NotFoundException, BadRequestException;
 
-    FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId)
+    FinalProductSellOrderDTO cancelSellOrder(Long teamId, Long orderId)
             throws NotFoundException, BadRequestException;
 
     FinalProductSellOrderDTO archiveSellOrder(Team team, Long orderId)

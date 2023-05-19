@@ -36,12 +36,12 @@ public class BuildingController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> createBuilding(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @RequestBody CreateBuildingRequestDTO request
     ) {
         try {
             BuildingDTO buildingDTO = buildingService.createBuilding(
-                    authInfo.getTeam(),
+                    teamId,
                     request.getType(),
                     request.getGround()
             );
@@ -57,12 +57,12 @@ public class BuildingController {
     @PutMapping(value = "/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> upgradeBuilding(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @PathVariable(value = "id") long buildingId
     ) {
         try {
             BuildingDTO buildingDTO = buildingService.upgradeBuilding(
-                    authInfo.getTeam(),
+                    teamId,
                     buildingId
             );
             ServiceResult<BuildingDTO> result = ServiceResult.createResult(buildingDTO);
@@ -81,12 +81,12 @@ public class BuildingController {
     @DeleteMapping(value = "/{ground}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> destroyBuilding(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @PathVariable(value = "ground") byte ground
     ) {
         try {
             return new ResponseEntity<>(ServiceResult.createResult(buildingService.destroyBuilding(
-                    authInfo.getTeam(),
+                    teamId,
                     ground
             )), HttpStatus.OK);
         } catch (NotFoundException e) {

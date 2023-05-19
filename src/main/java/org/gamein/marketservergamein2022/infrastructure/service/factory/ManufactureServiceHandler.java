@@ -150,10 +150,11 @@ public class ManufactureServiceHandler {
         return new ValidateNewProcessResult(factoryLine, product);
     }
 
-    public FactoryLineDTO startNewProcess(Team team, Long lineId, Long productId, int count)
+    public FactoryLineDTO startNewProcess(Long teamId, Long lineId, Long productId, int count)
             throws NotFoundException, UnauthorizedException, NotEnoughMaterial, LineInProgressException, BadRequestException, NotEnoughMoneyException {
 
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Time time = timeRepository.findById(1L).get();
         ValidateNewProcessResult result = validateStartNewProcess(count, team, lineId, productId, time);
         FactoryLine factoryLine = result.getFactoryLine();
@@ -243,9 +244,10 @@ public class ManufactureServiceHandler {
         return factoryLineRepository.save(line).toDTO();
     }
 
-    public FactoryLineDTO cancelProcess(Team team, Long lineId)
+    public FactoryLineDTO cancelProcess(Long teamId, Long lineId)
             throws UnauthorizedException, NotFoundException, BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         FactoryLine factoryLine = validateTeamAndLine(team, lineId);
         if (factoryLine.getStatus() != LineStatus.IN_PROGRESS) {
             throw new BadRequestException("این خط در حال کار نیست!");
@@ -292,8 +294,9 @@ public class ManufactureServiceHandler {
                 .stream().map(FactoryLine::toDTO).collect(Collectors.toList());
     }
 
-    public FactoryLineDTO collectLine(Team team, Long lineId) throws UnauthorizedException, NotFoundException, RemainignTimeException, BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+    public FactoryLineDTO collectLine(Long teamId, Long lineId) throws UnauthorizedException, NotFoundException, RemainignTimeException, BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         FactoryLine factoryLine = validateTeamAndLine(team, lineId);
 
         if (factoryLine.getStatus().equals(LineStatus.OFF))

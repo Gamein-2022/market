@@ -8,6 +8,7 @@ import org.gamein.marketservergamein2022.core.exception.BadRequestException;
 import org.gamein.marketservergamein2022.core.exception.NotFoundException;
 import org.gamein.marketservergamein2022.core.iao.AuthInfo;
 import org.gamein.marketservergamein2022.core.service.market.TradeService;
+import org.gamein.marketservergamein2022.core.sharedkernel.entity.Team;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -30,11 +31,11 @@ public class TradeController {
     @PostMapping(value = "buy",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> buyFromGamein(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> buyFromGamein(@ModelAttribute("teamInfo") Long teamId,
                                                     @RequestBody BuyFromGameinRequestDTO request) {
         try {
             ShippingDTO result = tradeService.buyFromGamein(
-                    authInfo.getTeam(),
+                    teamId,
                     request.getProductId(),
                     request.getQuantity(),
                     request.getShippingMethod()
@@ -50,11 +51,11 @@ public class TradeController {
     @PostMapping(value = "sell",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> sellToGamein(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> sellToGamein(@ModelAttribute("teamInfo") Long teamId,
                                                    @RequestBody SellToGameinRequestDTO request) {
         try {
             return new ResponseEntity<>(ServiceResult.createResult(tradeService.sellToGamein(
-                    authInfo.getTeam(),
+                    teamId,
                     request.getProductId(),
                     request.getQuantity(),
                     request.getPrice()
@@ -71,11 +72,11 @@ public class TradeController {
     }
 
     @DeleteMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> cancelOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> cancelOrder(@ModelAttribute("teamInfo") Long teamId,
                                                   @PathVariable Long id) {
         try {
             return new ResponseEntity<>(ServiceResult.createResult(tradeService.cancelSellOrder(
-                    authInfo.getTeam(),
+                    teamId,
                     id
             )), HttpStatus.OK);
         } catch (BadRequestException e) {

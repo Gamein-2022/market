@@ -70,9 +70,10 @@ public class OfferServiceHandler implements OfferService {
     }
 
     @Override
-    public OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
+    public OfferDTO createOffer(Long teamId, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (shippingMethod != null)
             if (shippingMethod.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
@@ -157,7 +158,7 @@ public class OfferServiceHandler implements OfferService {
         if (order.getType().equals(OrderType.SELL)) {
             if (distance == 0)
                 shippingMethod = null;
-            acceptOffer(order.getSubmitter(), offer.getId(), shippingMethod);
+            acceptOffer(order.getSubmitter().getId(), offer.getId(), shippingMethod);
         }
 
         return offer.toDTO(
@@ -208,9 +209,10 @@ public class OfferServiceHandler implements OfferService {
     }
 
     @Override
-    public OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
+    public OfferDTO acceptOffer(Long teamId, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (shippingMethod != null)
             if (shippingMethod.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
@@ -389,9 +391,9 @@ public class OfferServiceHandler implements OfferService {
     }
 
     @Override
-    public OfferDTO declineOffer(Team team, Long offerId)
+    public OfferDTO declineOffer(Long teamId, Long offerId)
             throws BadRequestException, NotFoundException {
-        Offer offer = checkOfferAccess(team.getId(), offerId);
+        Offer offer = checkOfferAccess(teamId, offerId);
         teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),offer.getOfferer().getId());
         offer.setDeclined(true);
         offerRepository.save(offer);
@@ -407,9 +409,10 @@ public class OfferServiceHandler implements OfferService {
     }
 
     @Override
-    public OfferDTO cancelOffer(Team team, Long offerId)
+    public OfferDTO cancelOffer(Long teamId, Long offerId)
             throws BadRequestException, NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Optional<Offer> offerOptional = offerRepository.findById(offerId);
         if (offerOptional.isEmpty()) {
             throw new NotFoundException("پیشنهاد یافت نشد!");

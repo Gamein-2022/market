@@ -15,15 +15,15 @@ public interface StorageService {
 
     List<ShippingDTO> getStorageQueue(Team team);
 
-    StorageInfoDTO collectFromQueue(Team team, Long shippingId)
+    StorageInfoDTO collectFromQueue(Long teamId, Long shippingId)
             throws NotFoundException, BadRequestException;
 
-    StorageInfoDTO removeFromQueue(Team team, Long shippingId)
+    StorageInfoDTO removeFromQueue(Long teamId, Long shippingId)
             throws NotFoundException, BadRequestException;
 
     List<ShippingDTO> getInRouteShippings(Team team);
 
-    StorageInfoDTO removeFromStorage(Team team, Long productId, Integer quantity)
+    StorageInfoDTO removeFromStorage(Long teamId, Long productId, Integer quantity)
             throws BadRequestException;
 
     void upgradeStorage(Team team) throws BadRequestException;

@@ -31,12 +31,12 @@ public class OrderController {
     @PostMapping(value = "",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> createOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> createOrder(@ModelAttribute("teamInfo") Long teamId,
                                                   @RequestBody CreateOrderRequestDTO request) {
         try {
             return new ResponseEntity<>(
                     ServiceResult.createResult(orderService.createOrder(
-                            authInfo.getTeam(),
+                            teamId,
                             request.getOrderType(),
                             request.getProductId(),
                             request.getQuantity(),
@@ -75,11 +75,11 @@ public class OrderController {
     }
 
     @DeleteMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> cancelOrder(@ModelAttribute("authInfo") AuthInfo authInfo,
+    public ResponseEntity<BaseResult> cancelOrder(@ModelAttribute("teamInfo") Long teamId,
                                                   @PathVariable(value = "id") Long orderId) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(orderService.cancelOrder(authInfo.getTeam(), orderId)),
+                    ServiceResult.createResult(orderService.cancelOrder(teamId, orderId)),
                     HttpStatus.OK
             );
         } catch (BadRequestException e) {

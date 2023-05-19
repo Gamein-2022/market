@@ -10,7 +10,7 @@ import java.util.List;
 
 
 public interface OfferService {
-    OfferDTO createOffer(Team team, Long orderId, ShippingMethod shippingMethod)
+    OfferDTO createOffer(Long teamId, Long orderId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException;
 
     List<OfferDTO> getReceivedOffers(Long teamId);
@@ -19,14 +19,14 @@ public interface OfferService {
 
     List<OfferDTO> getSentOffers(Long teamId);
 
-    OfferDTO acceptOffer(Team team, Long offerId, ShippingMethod shippingMethod)
+    OfferDTO acceptOffer(Long teamId, Long offerId, ShippingMethod shippingMethod)
             throws BadRequestException, NotFoundException;
 
 
-    OfferDTO declineOffer(Team team, Long offerId)
+    OfferDTO declineOffer(Long teamId, Long offerId)
             throws BadRequestException, NotFoundException;
 
-    OfferDTO cancelOffer(Team team, Long offerId)
+    OfferDTO cancelOffer(Long teamId, Long offerId)
             throws BadRequestException, NotFoundException;
 
     OfferDTO archiveOffer(Team team, Long offerId)

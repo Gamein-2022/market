@@ -75,9 +75,10 @@ public class BuildingServiceHandler implements BuildingService {
     }
 
     @Override
-    public BuildingDTO createBuilding(Team team, BuildingType type, Byte ground)
+    public BuildingDTO createBuilding(Long teamId, BuildingType type, Byte ground)
             throws BadRequestException, NotEnoughMoneyException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         BuildingInfo info = buildingInfoRepository.findById(type).orElseGet(BuildingInfo::new);
         validateCreatingBuilding(team, type, ground, info);
 
@@ -123,8 +124,9 @@ public class BuildingServiceHandler implements BuildingService {
     }
 
     @Override
-    public BuildingDTO upgradeBuilding(Team team, long buildingId) throws BadRequestException, NotFoundException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+    public BuildingDTO upgradeBuilding(Long teamId, long buildingId) throws BadRequestException, NotFoundException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Optional<Building> buildingOptional = team.getBuildings().stream().filter(b -> b.getId() == buildingId).findFirst();
         if (buildingOptional.isEmpty()) throw new NotFoundException("ساختمان یافت نشد!");
 
@@ -163,9 +165,10 @@ public class BuildingServiceHandler implements BuildingService {
     }
 
     @Override
-    public TeamBuildingsResult destroyBuilding(Team team, Byte ground) throws NotFoundException,
+    public TeamBuildingsResult destroyBuilding(Long teamId, Byte ground) throws NotFoundException,
             BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         Optional<Building> buildingOptional = buildingRepository.findByGroundAndTeam_Id(ground, team.getId());
         if (buildingOptional.isEmpty()) throw new NotFoundException("ساختمان مورد نظر یافت نشد!");
 

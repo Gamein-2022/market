@@ -62,9 +62,10 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public ShippingDTO buyFromGamein(Team team, Long productId, Integer quantity, ShippingMethod method)
+    public ShippingDTO buyFromGamein(Long teamId, Long productId, Integer quantity, ShippingMethod method)
             throws BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (method != null)
             if (method.equals(ShippingMethod.SAME_REGION))
                 throw new BadRequestException("حمل و نقل معتبر نمی باشد.");
@@ -152,9 +153,10 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public FinalProductSellOrderDTO sellToGamein(Team team, Long productId, Integer quantity, Long price)
+    public FinalProductSellOrderDTO sellToGamein(Long teamId, Long productId, Integer quantity, Long price)
             throws NotFoundException, BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         if (quantity <= 0)
             throw new BadRequestException("تعداد واردشده معتبر نمی باشد.");
         Optional<Product> productOptional = productRepository.findById(productId);
@@ -202,8 +204,9 @@ public class TradeServiceHandler implements TradeService {
     }
 
     @Override
-    public FinalProductSellOrderDTO cancelSellOrder(Team team, Long orderId) throws NotFoundException, BadRequestException {
-        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),team.getId());
+    public FinalProductSellOrderDTO cancelSellOrder(Long teamId, Long orderId) throws NotFoundException, BadRequestException {
+        teamDateRepository.updateTeamDate(LocalDateTime.now(ZoneOffset.UTC),teamId);
+        Team team = teamRepository.findById(teamId).get();
         FinalProductSellOrder order = validateAndReturnOrder(team.getId(), orderId);
 
         if (order.getClosed()) {

@@ -46,13 +46,13 @@ public class ResearchController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseResult> startResearch(
-            @ModelAttribute("authInfo") AuthInfo authInfo,
+            @ModelAttribute("teamInfo") Long teamId,
             @RequestBody StartResearchRequestDTO request
     ) {
         try {
             return new ResponseEntity<>(
                     ServiceResult.createResult(researchService.startResearchProcess(
-                            authInfo.getTeam(),
+                            teamId,
                             request.getName()
                     )),
                     HttpStatus.OK
@@ -97,11 +97,11 @@ public class ResearchController {
 
     @DeleteMapping(value = "subjects/{name}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseResult> putOffResearch(@ModelAttribute AuthInfo authInfo,
+    public ResponseEntity<BaseResult> putOffResearch(@ModelAttribute("teamInfo") Long teamId,
                                                      @PathVariable(value = "name") String name) {
         try {
             return new ResponseEntity<>(
-                    ServiceResult.createResult(researchService.stopResearch(authInfo.getTeam(), name)),
+                    ServiceResult.createResult(researchService.stopResearch(teamId, name)),
                     HttpStatus.OK
             );
         } catch (BadRequestException e) {

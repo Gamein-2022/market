@@ -10,12 +10,12 @@ import java.util.List;
 
 public interface ResearchService {
     List<TeamResearchDTO> getTeamResearches(Team team);
-    TeamResearchDTO startResearchProcess(Team team, String name)
+    TeamResearchDTO startResearchProcess(Long teamId, String name)
             throws BadRequestException, NotFoundException;
     TeamResearchDTO getCurrentResearch(Team team);
     TeamResearchDTO getSubjectInfo(Team team, String name)
             throws NotFoundException;
 
-    TeamResearchDTO stopResearch(Team team, String name)
+    TeamResearchDTO stopResearch(Long teamId, String name)
             throws BadRequestException;
 }
