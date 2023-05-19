@@ -41,7 +41,7 @@ import static org.gamein.marketservergamein2022.infrastructure.util.TeamUtil.get
 @EnableScheduling
 @Configuration
 public class ScheduleService {
-    private final TimeRepository timeRepository;
+    /*private final TimeRepository timeRepository;
     private final TeamRepository teamRepository;
     private final TeamResearchRepository teamResearchRepository;
     private final FinalProductSellOrderRepository finalProductSellOrderRepository;
@@ -63,6 +63,16 @@ public class ScheduleService {
     @Value("${live.data.url}")
     private String liveUrl;
 
+    @Value("${4_delay}")
+    private Long fourDelay;
+
+    @Value("${5_delay}")
+    private Long fiveDelay;
+
+
+
+
+
     public ScheduleService(TimeRepository timeRepository, TeamRepository teamRepository, TeamResearchRepository teamResearchRepository, FinalProductSellOrderRepository finalProductSellOrderRepository, ProductRepository productRepository, DemandRepository demandRepository, RegionRepository regionRepository, LogRepository logRepository, StorageProductRepository storageProductRepository, OrderRepository orderRepository, OfferRepository offerRepository, DemandLogRepository demandLogRepository, BuildingRepository buildingRepository, BuildingInfoRepository buildingInfoRepository, WealthLogRepository wealthLogRepository, ResearchSubjectRepository researchSubjectRepository, TeamDateRepository teamDateRepository) {
         this.timeRepository = timeRepository;
         this.teamRepository = teamRepository;
@@ -83,7 +93,7 @@ public class ScheduleService {
         this.teamDateRepository = teamDateRepository;
     }
 
-    /*@Transactional
+    *//*@Transactional
     @Scheduled(initialDelay = 0,fixedDelay = 4, timeUnit = TimeUnit.MINUTES)
     public void storageCost() {
         Time time = timeRepository.findById(1L).get();
@@ -95,7 +105,7 @@ public class ScheduleService {
             RestUtil.sendNotificationToAll(text,"WARNING",liveUrl);
             teamDateRepository.updateAllTeamDateAll(LocalDateTime.now(ZoneOffset.UTC));
             teamRepository.updateStorageCost(time.getScale());
-            *//*List<Team> allTeams = teamRepository.findAll();
+            *//**//*List<Team> allTeams = teamRepository.findAll();
             System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
             TimeResultDTO timeResultDTO = TimeUtil.getTime(time);
             System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));
@@ -124,14 +134,14 @@ public class ScheduleService {
                 } else
                     team.setBalance(0);
             }
-            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));*//*
+            System.out.println("calculating storage cost : " + LocalDateTime.now(ZoneOffset.UTC));*//**//*
 
             text = "هزینه انبارداری این ماه از حساب شما برداشت شد. موفق باشید.";
             RestUtil.sendNotificationToAll(text, "UPDATE_BALANCE", liveUrl);
 
             System.out.println("--> End calculating storage cost :" + LocalDateTime.now(ZoneOffset.UTC));
         }
-    }*/
+    }*//*
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void buyFinalProducts() {
@@ -182,7 +192,7 @@ public class ScheduleService {
         }
     }
 
-    /*@Scheduled(fixedDelay = 3, timeUnit = TimeUnit.MINUTES)
+    *//*@Scheduled(fixedDelay = 3, timeUnit = TimeUnit.MINUTES)
     public void tradeOffers() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -204,9 +214,9 @@ public class ScheduleService {
         }
         gamein.setRegion(new Random().nextInt(8) + 1);
         teamRepository.save(gamein);
-    }*/
+    }*//*
 
-    @Scheduled(initialDelay = 2,fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(initialDelay = 2, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     public void saveTeamsWealth() {
         Time time = timeRepository.findById(1L).get();
         if (time.getIsGamePaused()) return;
@@ -230,7 +240,7 @@ public class ScheduleService {
         Long duration = Duration.between(time.getBeginTime(), LocalDateTime.now(ZoneOffset.UTC)).toSeconds();
         boolean isChooseRegionFinished = duration - time.getStoppedTimeSeconds() > time.getChooseRegionDuration();
         if (!time.getIsRegionPayed() && isChooseRegionFinished) {
-            /*List<Region> regions = regionRepository.findAll();*/
+            *//*List<Region> regions = regionRepository.findAll();*//*
             Map<Integer, Long> regionsPopulation = RegionDTO.getRegionsPopulation(teamRepository.getRegionsPopulation());
             for (int i = 1; i < 9; i++) {
                 if (!regionsPopulation.containsKey(i))
@@ -271,7 +281,7 @@ public class ScheduleService {
     public void cancelPendingOrders() {
         teamDateRepository.updateAllTeamDateAll(LocalDateTime.now(ZoneOffset.UTC));
         String text = "کارگران انبار در حال انبارگردانی می باشند. شکیبا باشید.";
-        RestUtil.sendNotificationToAll(text,"WARNING",liveUrl);
+        RestUtil.sendNotificationToAll(text, "WARNING", liveUrl);
         List<Order> orders =
                 orderRepository.findAllBySubmitDateBeforeAndCancelledIsFalseAndAcceptDateIsNull(
                         LocalDateTime.now(ZoneOffset.UTC).minusMinutes(10)
@@ -475,5 +485,5 @@ public class ScheduleService {
             );
             storageProductRepository.save(sp);
         }
-    }
+    }*/
 }
