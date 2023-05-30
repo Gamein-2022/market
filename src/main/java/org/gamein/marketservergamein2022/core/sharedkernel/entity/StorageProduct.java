@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Table(name = "storage_products")
 public class StorageProduct {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", unique = true, nullable = false)
     private long id;
 
