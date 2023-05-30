@@ -227,9 +227,14 @@ public class ManufactureServiceHandler {
 
         StorageProduct sp = getOrCreateSPFromProduct(team, product);
         sp.setManufacturingAmount(count);
-        storageProductRepository.save(sp);
-        storageProductRepository.save(recycleProduct);
 
+        System.out.println(sp.getId());
+
+        List<StorageProduct> sps = new ArrayList<>();
+        sps.add(recycleProduct);
+        sps.add(sp);
+
+        storageProductRepository.saveAll(sps);
 
         team.setBalance(team.getBalance() - ((long) (count / requirement.getCount()) * product.getVariableCost() + product.getFixedCost()));
         team.getStorageProducts().add(sp);
