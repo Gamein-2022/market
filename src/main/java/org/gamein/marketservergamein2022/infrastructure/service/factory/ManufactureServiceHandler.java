@@ -163,7 +163,46 @@ public class ManufactureServiceHandler {
 
         List<Requirement> requirements = requirementRepository.findRequirementsByProductId(productId);
         if (factoryLine.getType() == LineType.RECYCLE) {
-            return startRecycleProcess(team, factoryLine, product, count, requirements);
+            Requirement requirement = requirements.get(0);
+            Optional<StorageProduct> optionalRecycleProduct = getSPFromProduct(team, requirement.getRequirement());
+            if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
+                throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
+            }
+            if (count % requirement.getCount() != 0) {
+                throw new BadRequestException("تعداد مواد بازیافتی باید مضربی از " + requirement.getCount() + " باشد!");
+            }
+            //todo fix available space for this part
+            if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
+                throw new BadRequestException("انبار شما فضای کافی ندارد!");
+            }
+
+            StorageProduct recycleProduct = optionalRecycleProduct.get();
+
+            removeProductFromStorage(recycleProduct, count / requirement.getCount());
+
+            StorageProduct sp = getOrCreateSPFromProduct(team, product);
+            sp.setManufacturingAmount(count);
+
+            System.out.println(sp.getId());
+
+            List<StorageProduct> sps = new ArrayList<>();
+            sps.add(recycleProduct);
+            sps.add(sp);
+
+
+            storageProductRepository.saveAll(sps);
+
+            team.setBalance(team.getBalance() - ((long) (count / requirement.getCount()) * product.getVariableCost() + product.getFixedCost()));
+            team.getStorageProducts().add(sp);
+            teamRepository.save(team);
+            factoryLine.setStatus(LineStatus.IN_PROGRESS);
+            factoryLine.setStartTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+            long duration = (count / product.getProductionRate()) * 8 + 1;
+            factoryLine.setEndTime(factoryLine.getStartTime().plusSeconds(duration));
+            factoryLine.setCount(count);
+            factoryLine.setProduct(product);
+
+            return factoryLineRepository.save(factoryLine).toDTO();
         }
 
 
@@ -217,6 +256,7 @@ public class ManufactureServiceHandler {
         if (count % requirement.getCount() != 0) {
             throw new BadRequestException("تعداد مواد بازیافتی باید مضربی از " + requirement.getCount() + " باشد!");
         }
+        //todo fix available space for this part
         if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
             throw new BadRequestException("انبار شما فضای کافی ندارد!");
         }
@@ -233,6 +273,7 @@ public class ManufactureServiceHandler {
         List<StorageProduct> sps = new ArrayList<>();
         sps.add(recycleProduct);
         sps.add(sp);
+
 
         storageProductRepository.saveAll(sps);
 
