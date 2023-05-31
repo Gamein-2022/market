@@ -1,6 +1,7 @@
 package org.gamein.marketservergamein2022.infrastructure.service.factory;
 
 
+import org.checkerframework.checker.nullness.Opt;
 import org.gamein.marketservergamein2022.core.dto.result.BaseProductDTO;
 import org.gamein.marketservergamein2022.core.dto.result.TimeResultDTO;
 import org.gamein.marketservergamein2022.core.dto.result.factory.*;
@@ -163,46 +164,7 @@ public class ManufactureServiceHandler {
 
         List<Requirement> requirements = requirementRepository.findRequirementsByProductId(productId);
         if (factoryLine.getType() == LineType.RECYCLE) {
-            Requirement requirement = requirements.get(0);
-            Optional<StorageProduct> optionalRecycleProduct = getSPFromProduct(team, requirement.getRequirement());
-            if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
-                throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
-            }
-            if (count % requirement.getCount() != 0) {
-                throw new BadRequestException("تعداد مواد بازیافتی باید مضربی از " + requirement.getCount() + " باشد!");
-            }
-            //todo fix available space for this part
-            if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
-                throw new BadRequestException("انبار شما فضای کافی ندارد!");
-            }
-
-            StorageProduct recycleProduct = optionalRecycleProduct.get();
-
-            removeProductFromStorage(recycleProduct, count / requirement.getCount());
-
-            StorageProduct sp = getOrCreateSPFromProduct(team, product);
-            sp.setManufacturingAmount(count);
-
-            System.out.println(sp.getId());
-
-            List<StorageProduct> sps = new ArrayList<>();
-            sps.add(recycleProduct);
-            sps.add(sp);
-
-
-            storageProductRepository.saveAll(sps);
-
-            team.setBalance(team.getBalance() - ((long) (count / requirement.getCount()) * product.getVariableCost() + product.getFixedCost()));
-            team.getStorageProducts().add(sp);
-            teamRepository.save(team);
-            factoryLine.setStatus(LineStatus.IN_PROGRESS);
-            factoryLine.setStartTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-            long duration = (count / product.getProductionRate()) * 8 + 1;
-            factoryLine.setEndTime(factoryLine.getStartTime().plusSeconds(duration));
-            factoryLine.setCount(count);
-            factoryLine.setProduct(product);
-
-            return factoryLineRepository.save(factoryLine).toDTO();
+            return startRecycleProcess(team, factoryLine, product, count, requirements);
         }
 
 
@@ -250,36 +212,46 @@ public class ManufactureServiceHandler {
             throws BadRequestException {
         Requirement requirement = requirements.get(0);
         Optional<StorageProduct> optionalRecycleProduct = getSPFromProduct(team, requirement.getRequirement());
-        if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
-            throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
-        }
         if (count % requirement.getCount() != 0) {
             throw new BadRequestException("تعداد مواد بازیافتی باید مضربی از " + requirement.getCount() + " باشد!");
+        }
+        if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
+            throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
         }
         //todo fix available space for this part
         if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
             throw new BadRequestException("انبار شما فضای کافی ندارد!");
         }
+        List<StorageProduct> sps = new ArrayList<>();
 
         StorageProduct recycleProduct = optionalRecycleProduct.get();
 
         removeProductFromStorage(recycleProduct, count / requirement.getCount());
 
-        StorageProduct sp = getOrCreateSPFromProduct(team, product);
-        sp.setManufacturingAmount(count);
+        sps.add(recycleProduct);
+
+        /*Optional<StorageProduct> spOptional = getSPFromProduct(team,product);
+        StorageProduct sp;
+        if (spOptional.isEmpty()){
+            sp = new StorageProduct();
+            sp.setProduct(product);
+            sp.setTeam(team);
+            team.getStorageProducts().add(sp);
+
+        }else {
+            sp = spOptional.get();
+        }*/
+
+        StorageProduct sp = TeamUtil.getOrCreateSPFromProduct(team, product);
+        TeamUtil.addProductToManufacturing(sp,count);
 
         System.out.println(sp.getId());
 
-        List<StorageProduct> sps = new ArrayList<>();
-        sps.add(recycleProduct);
         sps.add(sp);
 
-
-        storageProductRepository.saveAll(sps);
-
         team.setBalance(team.getBalance() - ((long) (count / requirement.getCount()) * product.getVariableCost() + product.getFixedCost()));
-        team.getStorageProducts().add(sp);
-        teamRepository.save(team);
+
+
         line.setStatus(LineStatus.IN_PROGRESS);
         line.setStartTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
         long duration = (count / product.getProductionRate()) * 8 + 1;
@@ -287,7 +259,12 @@ public class ManufactureServiceHandler {
         line.setCount(count);
         line.setProduct(product);
 
-        return factoryLineRepository.save(line).toDTO();
+        storageProductRepository.saveAll(sps);
+        FactoryLine factoryLine = factoryLineRepository.save(line);
+        teamRepository.save(team);
+
+        return factoryLine.toDTO();
+
     }
 
     public FactoryLineDTO cancelProcess(Long teamId, Long lineId)
