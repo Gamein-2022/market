@@ -190,10 +190,10 @@ public class TradeServiceHandler implements TradeService {
                 sp,
                 quantity
         );
-        TeamUtil.removeProductFromSellable(
+/*        TeamUtil.removeProductFromSellable(
                 sp,
                 quantity
-        );
+        );*/
         storageProductRepository.save(sp);
 
         FinalProductSellOrder order = new FinalProductSellOrder();

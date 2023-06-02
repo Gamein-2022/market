@@ -218,8 +218,8 @@ public class ManufactureServiceHandler {
         if (optionalRecycleProduct.isEmpty() || optionalRecycleProduct.get().getInStorageAmount() < count / requirement.getCount()) {
             throw new BadRequestException("شما به میزان کافی " + requirement.getRequirement().getName() + " ندارید!");
         }
-        //todo fix available space for this part
-        if (calculateAvailableSpace(team) < count * product.getUnitVolume()) {
+        if (calculateAvailableSpace(team) < count * product.getUnitVolume() -
+                optionalRecycleProduct.get().getProduct().getUnitVolume() * (count / requirement.getCount())) {
             throw new BadRequestException("انبار شما فضای کافی ندارد!");
         }
         List<StorageProduct> sps = new ArrayList<>();
@@ -254,7 +254,7 @@ public class ManufactureServiceHandler {
 
         line.setStatus(LineStatus.IN_PROGRESS);
         line.setStartTime(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-        long duration = (count / product.getProductionRate()) * 8 + 1;
+        long duration = (long) (((double) count / product.getProductionRate()) * 8 + 1);
         line.setEndTime(line.getStartTime().plusSeconds(duration));
         line.setCount(count);
         line.setProduct(product);
@@ -335,8 +335,8 @@ public class ManufactureServiceHandler {
 
         StorageProduct sp = optional.get();
         TeamUtil.removeProductFromManufacturing(sp, factoryLine.getCount());
-        TeamUtil.addProductToSellable(sp, factoryLine.getCount());
-        TeamUtil.addProductToStorage(sp, factoryLine.getCount());
+        if (!factoryLine.getType().equals(LineType.RECYCLE) && sp.getProduct().getLevel() == 1)
+            TeamUtil.addProductToSellable(sp, factoryLine.getCount());
 
         storageProductRepository.save(sp);
 
