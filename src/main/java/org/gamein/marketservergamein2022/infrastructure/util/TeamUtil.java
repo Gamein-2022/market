@@ -21,7 +21,7 @@ import static java.lang.Math.pow;
 
 public class TeamUtil {
     public static int calculateStorageSpace(Team team) {
-        return team.getIsStorageUpgraded() ? 80_000_000 : 20_000_000;
+        return team.getIsStorageUpgraded() ? 100_000_000 : 20_000_000;
     }
 
 
