@@ -335,7 +335,7 @@ public class ManufactureServiceHandler {
 
         StorageProduct sp = optional.get();
         TeamUtil.removeProductFromManufacturing(sp, factoryLine.getCount());
-        if (!factoryLine.getType().equals(LineType.RECYCLE) && sp.getProduct().getLevel() == 1)
+        if (!factoryLine.getType().equals(LineType.RECYCLE))
             TeamUtil.addProductToSellable(sp, factoryLine.getCount());
         TeamUtil.addProductToStorage(sp, factoryLine.getCount());
 
