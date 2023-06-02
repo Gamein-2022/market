@@ -50,16 +50,16 @@ jobs:
               
               
               
-#   deploy-market-1:
-#     needs: build-market
-#     runs-on: [app-X]
-#     steps:
-#       - uses: actions/checkout@master
-#       - run: |
-#               docker login   -u daria -p 7HlUyiSD  https://registry.dariasystem.com
-#               docker pull registry.dariasystem.com/gamein/market:dev
-#               docker rm -f market-1
-#               docker compose up  -d market-1
-#               docker compose ps
+  deploy-market-1:
+    needs: build-market
+    runs-on: [test1]
+    steps:
+      - uses: actions/checkout@master
+      - run: |
+              docker login   -u daria -p 7HlUyiSD  https://registry.dariasystem.com
+              docker pull registry.dariasystem.com/gamein/market:dev
+              docker rm -f market-1
+              docker compose up  -d market-1
+              docker compose ps
 
 
