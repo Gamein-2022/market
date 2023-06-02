@@ -21,9 +21,9 @@ public class TimeUtil {
 
         long days = 254 + daysFromBeginning;
         byte era = 0;
-        if (daysFromBeginning >= 7425)
+        if (daysFromBeginning >= 7680)
             era = 4;
-        else if (daysFromBeginning >= 4688)
+        else if (daysFromBeginning >= 6105)
             era = 3;
         else if (daysFromBeginning >= 2738)
             era = 2;
