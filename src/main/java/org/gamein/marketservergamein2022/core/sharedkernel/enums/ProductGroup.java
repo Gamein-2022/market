@@ -7,9 +7,7 @@ public enum ProductGroup {
     PHONE_BODY,
     TABLET_BODY,
     SOC_AND_MEMORY,
-    WATCH_EXTERNAL,
-    WATCH_SENSORS,
-    WATCH_INTERNAL,
+    WATCH_UNITS,
 
     COMMUNICATION,
     MEDIA,
